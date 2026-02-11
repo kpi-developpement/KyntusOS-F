@@ -21,16 +21,18 @@ services:
     container_name: kyntus-backend
     restart: always
     ports:
-      - "8080:8080" # On expose 8080 pour que le Frontend (Client Browser) puisse le voir
+      # 🔥 FIX IMPORTANT: Bra (Host) = 8082 | Ldakhel (Container) = 8080
+      # Hakka kantfadaw l-mochkil m3a 'apples_backend' li chad 8080
+      - "8082:8080"
     depends_on:
       - db
     environment:
-      # Hna kan connectiw backend m3a 'db' service
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/kyntus_db
-      SPRING_DATASOURCE_USERNAME: kyntus_user
-      SPRING_DATASOURCE_PASSWORD: kyntus_password
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
+      # Hna kan-injectiw les variables bach application.properties yfhemhom
+      # 'db' hna hiya smiyet l-service li lfou9 👆
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/kyntus_db
+      - SPRING_DATASOURCE_USERNAME=kyntus_user
+      - SPRING_DATASOURCE_PASSWORD=kyntus_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
   # 3. FRONTEND (Next.js)
   frontend:
@@ -39,7 +41,10 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    # Pas besoin de depends_on strict car Next.js est client-side fetch principalement
+    environment:
+      # Frontend khasso ya3ref fin ja Backend (Machi localhost, walakin Host IP/Domain)
+      # Pour l'instant on laisse localhost coté client browser
+      - NEXT_PUBLIC_API_URL=http://kyntusos.kyntus.fr:8082
 
 volumes:
   postgres_data:
