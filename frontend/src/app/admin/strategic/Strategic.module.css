@@ -1,0 +1,165 @@
+/* CONTAINER GLOBAL */
+.container {
+  width: 100%;
+  height: calc(100vh - 80px); /* Height minus Navbar */
+  position: relative;
+  background-color: #02040a;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.bgLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- HUD HEADER --- */
+.hudHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: rgba(10, 15, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 2px solid #00f2ea;
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: slideDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.titleGroup { display: flex; align-items: center; gap: 15px; }
+
+.iconWrapper { 
+  position: relative; 
+  width: 44px; height: 44px; 
+  display: flex; align-items: center; justify-content: center; 
+}
+.globeIcon { color: #00f2ea; z-index: 2; filter: drop-shadow(0 0 10px rgba(0,242,234,0.5)); }
+.pulseRing { 
+  position: absolute; inset: 0; 
+  border: 1px dashed rgba(0, 242, 234, 0.3); 
+  border-radius: 50%; 
+  animation: rotate 10s linear infinite; 
+}
+
+.title { 
+  font-size: 1.6rem; font-weight: 900; 
+  color: white; letter-spacing: 3px; margin: 0; 
+  line-height: 1;
+}
+.vTag { 
+  font-size: 0.7rem; background: rgba(255,255,255,0.1); 
+  padding: 2px 6px; border-radius: 4px; color: #aaa; 
+  vertical-align: middle; letter-spacing: 1px;
+}
+.subtitle { 
+  font-family: 'JetBrains Mono', monospace; 
+  font-size: 0.7rem; color: #666; letter-spacing: 2px; margin-top: 5px; 
+}
+
+/* STATS */
+.statsGroup { display: flex; align-items: center; gap: 30px; }
+.statBox { display: flex; flex-direction: column; align-items: flex-end; }
+
+.label { font-size: 0.6rem; color: #555; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+.value { 
+  font-family: 'JetBrains Mono', monospace; 
+  font-size: 1.1rem; font-weight: 700; color: white; 
+  display: flex; align-items: center; gap: 8px; 
+}
+
+.green { color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.3); }
+.red { color: #ff0055; text-shadow: 0 0 15px rgba(255, 0, 85, 0.3); animation: pulseAlert 1s infinite; }
+
+.refreshBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #00f2ea;
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.refreshBtn:hover {
+  background: #00f2ea; color: black; 
+  box-shadow: 0 0 30px rgba(0, 242, 234, 0.5);
+  transform: rotate(180deg);
+}
+.spin { animation: rotate 1s linear infinite; }
+
+/* --- VIEWPORT (THE 3D WINDOW) --- */
+.viewport {
+  flex: 1; 
+  position: relative;
+  background: radial-gradient(circle at center, rgba(15, 20, 35, 0.3) 0%, rgba(0,0,0,0.8) 100%);
+  border: 1px solid rgba(255,255,255,0.05); 
+  border-radius: 16px;
+  overflow: hidden; 
+  z-index: 5;
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+}
+
+/* Decorations Ecran */
+.scanline {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, 
+    rgba(0,242,234,0.02) 0px, 
+    rgba(0,242,234,0.02) 1px, 
+    transparent 1px, 
+    transparent 4px
+  );
+  animation: scanMove 20s linear infinite;
+}
+
+.vignette {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: radial-gradient(circle, transparent 50%, #02040a 120%);
+}
+
+.bracket { 
+  position: absolute; width: 30px; height: 30px; 
+  border: 2px solid #00f2ea; opacity: 0.5; z-index: 10; transition: 0.3s; 
+}
+.viewport:hover .bracket { width: 50px; height: 50px; opacity: 1; box-shadow: 0 0 15px #00f2ea; }
+
+.tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+.tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+.bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+.br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+/* --- FOOTER HUD --- */
+.footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px; padding: 12px 25px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px; z-index: 10;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.legendGroup { display: flex; gap: 30px; }
+.legendItem { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; color: #ccc; font-family: monospace; font-weight: bold; }
+.colorBox { width: 12px; height: 12px; border-radius: 2px; }
+
+.controlsGroup { display: flex; gap: 15px; }
+.controlBadge {
+  background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 4px;
+  font-size: 0.7rem; color: #00f2ea; border: 1px solid rgba(0, 242, 234, 0.2);
+  display: flex; align-items: center; gap: 8px; font-weight: bold; font-family: 'JetBrains Mono', monospace;
+}
+
+/* ANIMATIONS */
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulseAlert { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+@keyframes scanMove { from { background-position: 0 0; } to { background-position: 0 100%; } }
+.blink { animation: pulseAlert 2s infinite; }

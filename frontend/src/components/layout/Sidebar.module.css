@@ -1,0 +1,191 @@
+/* src/components/layout/Sidebar.module.css */
+
+/* --- LE RAIL LATÉRAL --- */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 80px; /* Fermé par défaut */
+  z-index: 1000;
+  
+  display: flex;
+  flex-direction: column;
+  padding: 25px 12px;
+  
+  /* Glass Sombre & Solide */
+  background: rgba(2, 4, 10, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+  
+  /* Animation d'ouverture */
+  transition: width 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  overflow: hidden;
+}
+
+/* HOVER : L'EXPANSION */
+.sidebar:hover {
+  width: 260px;
+  border-right-color: rgba(0, 242, 234, 0.3); /* Bordure Cyan */
+  box-shadow: 20px 0 60px rgba(0,0,0,0.9), inset -1px 0 0 rgba(0, 242, 234, 0.1);
+}
+
+/* --- LOGO AREA (HEXAGON) --- */
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 40px;
+  padding-left: 4px;
+  height: 50px;
+  white-space: nowrap;
+}
+
+.logoHex {
+  min-width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #00f2ea, #0070f3);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; color: black; font-size: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+  animation: pulseLogo 3s infinite;
+}
+
+.logoText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: white;
+  letter-spacing: 2px;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s ease;
+}
+
+.sidebar:hover .logoText {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* --- MENU ITEMS --- */
+.menu {
+  display: flex; flex-direction: column; gap: 8px; flex: 1;
+}
+
+.menuItem {
+  display: flex; align-items: center; gap: 15px;
+  padding: 12px 14px;
+  color: #8899a6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+/* Hover Item */
+.menuItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  transform: translateX(5px);
+}
+
+/* Active Item (Le Neon Glow) */
+.menuItem.active {
+  background: rgba(0, 242, 234, 0.05);
+  color: #00f2ea;
+  border-color: rgba(0, 242, 234, 0.2);
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.05);
+}
+
+.menuItem svg {
+  min-width: 22px;
+  filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+}
+
+.itemLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s 0.1s; /* Petit délai */
+}
+
+.sidebar:hover .itemLabel {
+  opacity: 1;
+}
+
+/* Indicateur Actif (Barre verticale) */
+.activeBar {
+  position: absolute;
+  left: 0;
+  height: 60%;
+  width: 3px;
+  background: #00f2ea;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px #00f2ea;
+}
+
+/* --- FOOTER (USER) --- */
+.footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  overflow: hidden;
+}
+
+.userSection {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.avatar {
+  min-width: 40px; height: 40px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; color: white; font-size: 0.9rem;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+}
+
+.userInfo {
+  opacity: 0; transition: 0.2s; white-space: nowrap;
+}
+.sidebar:hover .userInfo { opacity: 1; }
+
+.userName { font-size: 0.9rem; font-weight: 700; color: white; }
+.userStatus { font-size: 0.65rem; color: #39ff14; font-family: monospace; letter-spacing: 1px; }
+
+.logoutBtn {
+  background: rgba(255, 0, 85, 0.1);
+  border: 1px solid #ff0055;
+  color: #ff0055;
+  cursor: pointer;
+  min-width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.2s;
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.sidebar:hover .logoutBtn {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.logoutBtn:hover {
+  background: #ff0055; color: white; box-shadow: 0 0 15px #ff0055;
+}
+
+@keyframes pulseLogo {
+  0% { box-shadow: 0 0 20px rgba(0, 242, 234, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(0, 242, 234, 0.5); }
+  100% { box-shadow: 0 0 20px rgba(0, 242, 234, 0.2); }
+}

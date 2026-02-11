@@ -1,0 +1,348 @@
+/* =========================================
+   1. GLOBAL SPACE (TRANSPARENT POUR LE FOND INTERACTIF)
+   ========================================= */
+.container {
+  min-height: 100vh;
+  padding: 40px;
+  /* Fond semi-transparent pour laisser voir les particules derrière */
+  background-color: rgba(2, 4, 10, 0.85); 
+  color: white;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================
+   2. HEADER (MINIMALIST)
+   ========================================= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 50px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 242, 234, 0.1); /* Ligne Cyan subtile */
+  position: relative;
+  z-index: 10;
+}
+
+.titleBox h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -2px;
+  margin: 0;
+  text-transform: uppercase;
+  text-shadow: 0 0 30px rgba(0, 112, 243, 0.3);
+}
+
+.titleBox p {
+  color: #00f2ea;
+  font-family: monospace;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  margin-top: 5px;
+}
+
+/* MODE SWITCHER (CAPSULE) */
+.modeTabs {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 5px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 5px;
+  backdrop-filter: blur(10px);
+}
+
+.tabBtn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 40px;
+  background: transparent;
+  color: #888;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.tabBtn:hover { color: white; background: rgba(255,255,255,0.05); }
+
+.tabBtn.active {
+  background: #00f2ea;
+  color: black;
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+  transform: scale(1.05);
+  font-weight: 900;
+}
+
+/* =========================================
+   3. FILTER BAR (CONTROL DECK)
+   ========================================= */
+.filterBar {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr; /* Layout précis pour Smart Filter */
+  gap: 20px;
+  margin-bottom: 40px;
+  padding: 25px;
+  background: rgba(10, 12, 18, 0.6); /* Plus sombre */
+  border: 1px solid rgba(0, 242, 234, 0.15); /* Bordure Cyan */
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  align-items: flex-start; 
+  
+  position: relative; 
+  z-index: 50; /* IMPORTANT: Doit être au dessus de la grille */
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+
+/* Decoration Bar à gauche */
+.filterBar::before {
+  content: '';
+  position: absolute; left: 0; top: 20%; height: 60%; width: 3px;
+  background: #00f2ea;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 15px rgba(0, 242, 234, 0.4);
+}
+
+/* Cas spécial pour Manual/Batch qui prennent toute la largeur */
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* --- MULTI SELECT CONTAINER --- */
+.multiWrapper {
+  position: relative;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 20;
+}
+
+.multiLabel {
+  font-size: 0.65rem; font-weight: 700; color: #666; 
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+.multiTrigger {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 52px; /* Hauteur fixe mini */
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  transition: all 0.3s;
+}
+
+.multiTrigger:hover { 
+  border-color: #00f2ea; 
+  background: rgba(0, 242, 234, 0.02);
+}
+
+.chip {
+  background: rgba(0, 242, 234, 0.15);
+  color: #00f2ea;
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex; align-items: center; gap: 5px;
+  box-shadow: 0 0 10px rgba(0, 242, 234, 0.1);
+}
+
+.removeChip { cursor: pointer; opacity: 0.7; }
+.removeChip:hover { opacity: 1; color: white; }
+
+/* 🔥 LE FIX DU DROPDOWN QUI DÉBORDE 🔥 */
+.multiSelectDropdown {
+  position: absolute;
+  top: 110%; 
+  left: 0;
+  width: 100%;
+  background: #050505; /* Fond solide noir */
+  border: 1px solid #333;
+  border-top: 2px solid #00f2ea; /* Accent Top */
+  border-radius: 12px;
+  z-index: 1000; /* Très haut z-index */
+  
+  /* SCROLL FIX */
+  max-height: 400px; 
+  overflow-y: auto; 
+  overflow-x: hidden;
+  
+  box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+  padding: 8px;
+}
+
+/* Scrollbar Stylée */
+.multiSelectDropdown::-webkit-scrollbar { width: 6px; }
+.multiSelectDropdown::-webkit-scrollbar-track { background: #111; }
+.multiSelectDropdown::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.multiSelectDropdown::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
+
+.multiOption {
+  padding: 12px 15px;
+  cursor: pointer;
+  color: #aaa;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  display: flex; align-items: flex-start; /* Aligner en haut si texte long */
+  gap: 12px;
+  transition: all 0.1s;
+  
+  /* Gestion du texte long */
+  white-space: normal;
+  line-height: 1.4;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+}
+
+.multiOption:hover { background: #1a1a1a; color: white; }
+.multiOption.selected { background: rgba(0, 242, 234, 0.1); color: #00f2ea; font-weight: bold; }
+
+/* =========================================
+   4. GRID LAYOUT
+   ========================================= */
+.tacticalGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; 
+  gap: 40px;
+  height: calc(100vh - 350px);
+  position: relative;
+  z-index: 1; /* En dessous du filterBar */
+}
+
+/* PANELS */
+.panel {
+  display: flex; flex-direction: column; 
+  /* Fond transparent pour voir les particules */
+  background: rgba(0, 0, 0, 0.4); 
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+
+.panelHeader {
+  padding: 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+}
+
+.sectionTitle {
+  font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; color: white;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.sectionCount {
+  font-size: 0.7rem; font-family: monospace; color: #00f2ea;
+  background: rgba(0, 242, 234, 0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(0, 242, 234, 0.2);
+}
+
+.scrollArea {
+  flex: 1; overflow-y: auto; padding: 15px;
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+
+/* --- ELEMENT 1 : TASK ITEM (Transformers) --- */
+.taskItem {
+  display: flex; align-items: center; gap: 20px;
+  padding: 20px;
+  margin-bottom: 12px;
+  background: rgba(20, 20, 25, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  cursor: pointer;
+}
+
+.taskItem:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 242, 234, 0.5);
+  transform: translateX(10px) scale(1.01);
+  box-shadow: -10px 0 30px rgba(0, 242, 234, 0.1);
+  
+  /* Forme coupée */
+  clip-path: polygon(
+    0 0, 
+    100% 0, 
+    100% 70%, 
+    95% 100%, 
+    0 100%
+  );
+}
+
+.taskInfo { flex: 1; }
+.taskRef { font-family: monospace; font-weight: bold; font-size: 1rem; color: #ccc; }
+.taskItem:hover .taskRef { color: #00f2ea; text-shadow: 0 0 10px rgba(0, 242, 234, 0.5); }
+.taskMeta { font-size: 0.75rem; color: #666; margin-top: 2px; }
+
+/* Checkbox Luxe */
+.checkbox {
+  width: 20px; height: 20px; border: 2px solid #444; border-radius: 6px;
+  display: flex; justify-content: center; align-items: center;
+  transition: all 0.2s;
+}
+.selected .checkbox { background: #00f2ea; border-color: #00f2ea; box-shadow: 0 0 10px #00f2ea; }
+.taskItem.selected { background: rgba(0, 242, 234, 0.05); border: 1px solid #00f2ea; }
+
+/* --- ELEMENT 2 : PILOT CARD (Pods) --- */
+.pilotCard {
+  padding: 15px; margin-bottom: 15px;
+  background: rgba(10, 10, 12, 0.8);
+  border: 1px solid #333;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.pilotCard:hover {
+  background: #000;
+  border-color: #00f2ea;
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 10px 40px rgba(0, 242, 234, 0.15);
+}
+
+.pilotCard.active {
+  border: 1px solid #00f2ea;
+  background: linear-gradient(135deg, rgba(0, 242, 234, 0.1), transparent);
+}
+
+.pilotHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pilotName { font-weight: 800; font-size: 0.9rem; color: white; text-transform: uppercase; }
+.pilotStatus { font-size: 0.65rem; color: #39ff14; font-weight: bold; background: rgba(57, 255, 20, 0.1); padding: 2px 6px; border-radius: 4px; }
+
+/* Load Bar */
+.loadTrack { height: 4px; background: #222; border-radius: 2px; overflow: hidden; margin-top: 8px; }
+.loadFill { height: 100%; background: #00f2ea; width: 0%; transition: width 0.5s; }
+.pilotCard:hover .loadFill { box-shadow: 0 0 10px #00f2ea; background: white; }
+
+/* BUTTON */
+.dispatchBtn {
+  margin-top: 20px;
+  width: 100%; padding: 20px;
+  background: #111; color: #666;
+  border: 1px solid #333;
+  font-weight: 900; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem;
+  cursor: not-allowed; transition: all 0.3s;
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+}
+
+.dispatchBtn.ready {
+  background: #00f2ea; color: black; border-color: #00f2ea; cursor: pointer;
+  box-shadow: 0 0 30px rgba(0, 242, 234, 0.3);
+}
+.dispatchBtn.ready:hover {
+  background: white; transform: translateY(-2px);
+  box-shadow: 0 0 50px rgba(0, 242, 234, 0.6);
+}

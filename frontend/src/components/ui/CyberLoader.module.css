@@ -1,0 +1,144 @@
+/* Container Plein Écran */
+.loaderOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: #02040a;
+  z-index: 99999; /* Fo9 koulchi */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* --- ANIMATION DE SORTIE (L'FERG3A) --- */
+/* L'écran se coupe en deux et part sur les côtés */
+.exit {
+  animation: shutterOpen 0.6s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+}
+
+/* --- LE NOYAU (THE CORE) --- */
+.spinnerWrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+/* Cercle Externe */
+.ring1 {
+  position: absolute;
+  width: 100%; height: 100%;
+  border: 2px solid transparent;
+  border-top: 4px solid var(--neon-cyan);
+  border-bottom: 4px solid var(--neon-cyan);
+  border-radius: 50%;
+  animation: spin 2s linear infinite;
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.2);
+}
+
+/* Cercle Interne (Inverse) */
+.ring2 {
+  position: absolute;
+  width: 70%; height: 70%;
+  border: 2px solid transparent;
+  border-left: 4px solid var(--neon-green);
+  border-right: 4px solid var(--neon-green);
+  border-radius: 50%;
+  animation: spinReverse 1.5s linear infinite;
+}
+
+/* Le Cube Central */
+.core {
+  width: 30px; height: 30px;
+  background: white;
+  box-shadow: 0 0 30px white;
+  animation: pulse 0.5s infinite alternate;
+}
+
+/* --- TEXTE & BARRE --- */
+.textZone {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.statusText {
+  color: var(--neon-cyan);
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px var(--neon-cyan);
+  animation: glitch 0.3s infinite;
+}
+
+.progressBar {
+  width: 300px;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--neon-green);
+  width: 0%;
+  box-shadow: 0 0 15px var(--neon-green);
+  animation: loadProgress 2s ease-in-out forwards;
+}
+
+/* --- KEYFRAMES --- */
+
+@keyframes spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes spinReverse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+@keyframes pulse {
+  from { opacity: 0.5; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes loadProgress {
+  0% { width: 0%; }
+  30% { width: 40%; }
+  70% { width: 60%; }
+  100% { width: 100%; }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+/* L'ANIMATION DE SORTIE (SHUTTER) */
+@keyframes shutterOpen {
+  0% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0); /* Visible entier */
+  }
+  30% {
+    background: white; /* Flash blanc */
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(0 50% 0 50%); /* Coupe au milieu verticalement */
+    pointer-events: none;
+  }
+}

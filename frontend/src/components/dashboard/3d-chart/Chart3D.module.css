@@ -1,0 +1,50 @@
+.chartContainer {
+  width: 100%;
+  height: 600px; /* Hauteur fixe pour le canvas */
+  max-width: 1400px;
+  margin: 0 auto;
+  
+  background: rgba(5, 8, 15, 0.6); /* Semi-transparent */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 50px rgba(0, 242, 234, 0.05);
+}
+
+.overlayHeader {
+  position: absolute;
+  top: 30px;
+  left: 40px;
+  z-index: 10;
+  pointer-events: none; /* Laisse passer la souris vers le Canvas */
+  display: flex;
+  justify-content: space-between;
+  width: calc(100% - 80px);
+}
+
+.titleBox { display: flex; align-items: center; gap: 15px; }
+.title { 
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5rem; 
+  font-weight: 800; 
+  color: white; 
+  letter-spacing: 1px; 
+  margin: 0; 
+  text-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.metaBox { display: flex; gap: 20px; }
+.metaItem { 
+  display: flex; align-items: center; gap: 8px; 
+  font-family: monospace; font-size: 0.8rem; color: #00f2ea; 
+  background: rgba(0, 242, 234, 0.1); padding: 5px 12px; border-radius: 4px; 
+  border: 1px solid rgba(0, 242, 234, 0.2);
+}
+
+.canvasWrapper {
+  width: 100%;
+  height: 100%;
+}

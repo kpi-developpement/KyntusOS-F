@@ -1,0 +1,135 @@
+/* src/components/ui/Toaster.module.css */
+
+.container {
+  position: fixed;
+  top: 100px; /* Juste ta7t Navbar */
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  pointer-events: none; /* Bach click ydouz l ta7t ila ma9sstich toast */
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 380px;
+  background: rgba(8, 12, 18, 0.85); /* Fond noir transparent */
+  backdrop-filter: blur(12px); /* Effet Glass */
+  -webkit-backdrop-filter: blur(12px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--toast-color); /* Couleur variable */
+  
+  border-radius: 4px;
+  padding: 0;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.5),
+    0 0 20px var(--toast-glow); /* Glow dynamique */
+
+  /* Animation d'entrée : Slide rapide + Fade */
+  animation: slideInRight 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transition: all 0.3s ease;
+}
+
+/* Hover Effect */
+.toast:hover {
+  transform: translateX(-5px);
+  background: rgba(15, 20, 30, 0.95);
+  box-shadow: 0 0 30px var(--toast-glow);
+}
+
+/* Icon Section (Gauche) */
+.iconSection {
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Content Section (Texte) */
+.content {
+  flex: 1;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--toast-color);
+  margin-bottom: 4px;
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+}
+
+.message {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #e0e0e0;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Close Button */
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #666;
+  padding: 10px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: 0.2s;
+}
+.closeBtn:hover { color: white; transform: rotate(90deg); }
+
+/* --- TIMER BAR (La barre qui descend) --- */
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--toast-color);
+  width: 100%;
+  animation: timeOut 4s linear forwards; /* 4s duration */
+  box-shadow: 0 0 10px var(--toast-color);
+}
+
+/* --- VARIANTES (Couleurs) --- */
+.success {
+  --toast-color: #39ff14; /* Matrix Green */
+  --toast-glow: rgba(57, 255, 20, 0.2);
+}
+
+.error {
+  --toast-color: #ff0055; /* Cyber Red */
+  --toast-glow: rgba(255, 0, 85, 0.2);
+}
+
+.info {
+  --toast-color: #00f2ea; /* Neon Cyan */
+  --toast-glow: rgba(0, 242, 234, 0.2);
+}
+
+/* --- ANIMATIONS --- */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(50px) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes timeOut {
+  from { width: 100%; }
+  to { width: 0%; }
+}

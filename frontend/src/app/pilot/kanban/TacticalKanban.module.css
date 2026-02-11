@@ -1,0 +1,180 @@
+/* src/app/pilot/kanban/TacticalKanban.module.css */
+
+.container {
+  padding: 40px;
+  min-height: calc(100vh - 80px);
+  background-color: #02040a;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- HEADER --- */
+.headerControl {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 50px; padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  animation: slideDown 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.titleBlock h1 {
+  font-size: 2.2rem; font-weight: 900; color: white; letter-spacing: 4px; text-transform: uppercase; margin: 0;
+  background: linear-gradient(90deg, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(255,255,255,0.1);
+}
+.titleBlock p {
+  color: #00f2ea; font-family: 'JetBrains Mono', monospace; margin-top: 8px; font-size: 0.75rem; letter-spacing: 2px; opacity: 0.7;
+}
+
+/* --- KANBAN GRID --- */
+.kanbanGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  flex: 1;
+}
+
+/* --- COLUMNS (DOCKING BAYS) --- */
+.column {
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  display: flex; flex-direction: column;
+  height: 100%;
+  min-height: 600px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Column Colors & Glows */
+.colPending { border-top: 4px solid #FFB020; }
+.colActive { border-top: 4px solid #00f2ea; background: rgba(0, 242, 234, 0.01); }
+.colDone { border-top: 4px solid #39ff14; }
+
+/* Column Headers */
+.colHeader {
+  padding: 20px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0,0,0,0.2);
+}
+
+.colTitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.countBadge {
+  background: rgba(255,255,255,0.1); color: white;
+  padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;
+}
+
+/* Specific Header Colors */
+.colPending .colTitle { color: #FFB020; }
+.colActive .colTitle { color: #00f2ea; text-shadow: 0 0 10px rgba(0,242,234,0.4); }
+.colDone .colTitle { color: #39ff14; }
+
+/* --- CARDS LIST --- */
+.cardList {
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* --- CARD DESIGN (DATA CHIP) --- */
+.card {
+  background: #0a0f15;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-left: 3px solid #444; /* Default border */
+  border-radius: 8px;
+  padding: 15px;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: default;
+  animation: scaleIn 0.3s ease forwards;
+}
+
+.card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  background: #0f141a;
+  z-index: 10;
+}
+
+/* Card States */
+.cardPending { border-left-color: #FFB020; }
+.cardPending:hover { border-color: rgba(255, 176, 32, 0.3); }
+
+.cardActive { 
+  border-left-color: #00f2ea; 
+  background: linear-gradient(90deg, rgba(0, 242, 234, 0.05), transparent);
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.05);
+}
+.cardActive:hover { border-color: rgba(0, 242, 234, 0.4); box-shadow: 0 0 30px rgba(0, 242, 234, 0.15); }
+
+.cardDone { border-left-color: #39ff14; opacity: 0.8; }
+.cardDone:hover { border-color: rgba(57, 255, 20, 0.3); opacity: 1; }
+
+/* Card Content */
+.cardHeader {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
+.cardRef {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: white; font-weight: bold;
+}
+.cardId { font-size: 0.6rem; color: #555; }
+
+.cardMeta {
+  display: grid; grid-template-columns: 1fr; gap: 5px; margin-bottom: 15px;
+}
+.metaRow { display: flex; justify-content: space-between; font-size: 0.7rem; color: #888; }
+.metaVal { color: #ccc; font-weight: 500; text-align: right; }
+
+/* ACTION BAR (Bottom of card) */
+.cardActions {
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 10px; margin-top: 5px;
+}
+
+.timerDisplay {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  color: #666; display: flex; align-items: center; gap: 5px;
+}
+.activeTimer { color: #00f2ea; font-weight: bold; animation: pulse 2s infinite; }
+
+/* Move Buttons */
+.moveBtn {
+  background: rgba(255,255,255,0.05); border: none; color: #888;
+  width: 28px; height: 28px; border-radius: 4px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.2s;
+}
+.moveBtn:hover { background: white; color: black; }
+.moveNext:hover { background: #00f2ea; color: black; box-shadow: 0 0 10px #00f2ea; }
+.movePrev:hover { background: #FFB020; color: black; box-shadow: 0 0 10px #FFB020; }
+.moveFinish:hover { background: #39ff14; color: black; box-shadow: 0 0 10px #39ff14; }
+
+/* Empty State Placeholder */
+.emptySlot {
+  height: 100px;
+  border: 2px dashed rgba(255,255,255,0.05);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #444; font-family: monospace; font-size: 0.7rem; letter-spacing: 2px;
+}
+
+/* ANIMATIONS */
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeInUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } }

@@ -1,0 +1,139 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  perspective: 1000px;
+}
+
+/* LA BOITE PRINCIPALE */
+.exportCard {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(10, 15, 25, 0.8);
+  border: 1px solid rgba(57, 255, 20, 0.2); /* Vert Matrix */
+  border-radius: 24px;
+  padding: 50px;
+  backdrop-filter: blur(20px);
+  position: relative;
+  
+  /* 🔥 FIX 1: OVERFLOW VISIBLE (bach dropdown yban) 🔥 */
+  overflow: visible;
+  
+  box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+  
+  /* Animation d'arrivée */
+  transform: rotateX(10deg);
+  animation: floatIn 0.6s ease-out forwards;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 10;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-shadow: 0 0 20px rgba(57, 255, 20, 0.4); /* Glow Vert */
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  color: #39ff14;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  background: rgba(57, 255, 20, 0.1);
+  padding: 5px 12px;
+  border-radius: 4px;
+}
+
+/* Zone de Selection */
+.inputGroup {
+  margin-bottom: 30px;
+  position: relative;
+  
+  /* 🔥 FIX 2: Z-INDEX 50 (Fouq bouton ltaht) 🔥 */
+  z-index: 50;
+}
+
+.infoBox {
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  font-size: 0.85rem;
+  color: #8899a6;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+/* LE GROS BOUTON EXPORT */
+.exportBtn {
+  width: 100%;
+  padding: 20px;
+  border: none;
+  border-radius: 8px;
+  
+  /* Gradient Vert Matrix */
+  background: linear-gradient(135deg, #39ff14 0%, #008f11 100%);
+  
+  color: black;
+  font-weight: 900;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  cursor: pointer;
+  
+  /* Forme Tech */
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  
+  transition: all 0.2s;
+  box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+  position: relative;
+  z-index: 10;
+}
+
+.exportBtn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 50px rgba(57, 255, 20, 0.6);
+  background: white;
+}
+
+.exportBtn:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Background Grid interne */
+.gridOverlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(57, 255, 20, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57, 255, 20, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
+  border-radius: 24px; /* Fix pour garder l'arrondi sans overflow:hidden */
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(50px) rotateX(20deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0deg); }
+}

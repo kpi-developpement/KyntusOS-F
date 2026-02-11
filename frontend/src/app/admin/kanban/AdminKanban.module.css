@@ -1,0 +1,206 @@
+/* src/app/admin/kanban/AdminKanban.module.css */
+
+.container {
+  padding: 40px;
+  min-height: calc(100vh - 80px);
+  /* Fond transparent pour voir l'InteractiveBackground */
+  background: transparent; 
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  display: flex; flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- HEADER --- */
+.headerControl {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 40px; padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.15); /* Bordure Or subtile */
+  animation: slideDown 0.6s ease;
+}
+
+.titleBlock h1 {
+  font-size: 2rem; font-weight: 900; color: white; letter-spacing: 4px; text-transform: uppercase; margin: 0;
+  /* Dégradé Or Métallique pour l'Admin */
+  background: linear-gradient(90deg, #ffd700, #b8860b); 
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
+}
+.titleBlock p {
+  color: #888; font-family: 'JetBrains Mono', monospace; margin-top: 8px; font-size: 0.75rem; letter-spacing: 2px;
+}
+
+.filters { display: flex; gap: 15px; }
+
+/* --- GRID --- */
+.kanbanGrid {
+  display: grid; grid-template-columns: repeat(4, 1fr); /* 4 Colonnes */
+  gap: 20px; flex: 1; overflow-x: auto; padding-bottom: 20px;
+}
+
+/* --- COLONNES --- */
+.column {
+  background: rgba(10, 12, 16, 0.6); /* Fond sombre semi-transparent */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px; display: flex; flex-direction: column;
+  min-height: 600px; backdrop-filter: blur(12px);
+  position: relative; overflow: hidden;
+  transition: 0.3s;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* En-tête Colonne */
+.colHeader {
+  padding: 15px; display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.colTitle { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; color: #ccc; }
+.countBadge { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; color: white; }
+
+/* Couleurs Spécifiques */
+.colPending { border-top: 3px solid #666; }
+.colActive { border-top: 3px solid #00f2ea; } /* Cyan */
+.colValidation { 
+  border-top: 3px solid #FFD700; /* Or */
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.02) 0%, rgba(10, 12, 16, 0.6) 100%);
+}
+.colHistory { border-top: 3px solid #39ff14; /* Vert */ opacity: 0.8; }
+
+/* --- ACTIONS EN MASSE (BULK) --- */
+.bulkActions {
+  padding: 10px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+  background: rgba(255, 215, 0, 0.05); animation: fadeIn 0.5s;
+}
+.bulkBtn {
+  flex: 1; border: none; padding: 8px; border-radius: 4px; cursor: pointer;
+  font-size: 0.65rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;
+  transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.bulkValide { background: rgba(57, 255, 20, 0.1); color: #39ff14; border: 1px solid rgba(57, 255, 20, 0.2); }
+.bulkValide:hover { background: #39ff14; color: black; box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); }
+
+.bulkRefuse { background: rgba(255, 0, 85, 0.1); color: #ff0055; border: 1px solid rgba(255, 0, 85, 0.2); }
+.bulkRefuse:hover { background: #ff0055; color: white; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4); }
+
+/* --- CARTES --- */
+.cardList { padding: 15px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; }
+
+.card {
+  background: #151921; border: 1px solid rgba(255,255,255,0.05); border-left: 2px solid #444;
+  border-radius: 6px; padding: 12px; position: relative; transition: all 0.2s ease;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10; border-color: rgba(255,255,255,0.2); }
+
+.cardHeader { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.pilotBadge {
+  display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05);
+  padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);
+}
+.pAvatar { width: 18px; height: 18px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: white; font-weight: bold; }
+.pName { font-size: 0.7rem; color: #ccc; font-weight: bold; text-transform: uppercase; }
+
+.cardRef { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: white; font-weight: bold; }
+.cardActions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; }
+
+/* Boutons Contrôle */
+.miniBtn {
+  width: 26px; height: 26px; border-radius: 4px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: 0.2s;
+  background: rgba(255,255,255,0.05); color: #888;
+}
+.miniBtn:hover { background: white; color: black; }
+
+.valBtns { display: flex; gap: 5px; width: 100%; }
+.btnV { flex: 1; border: none; border-radius: 4px; cursor: pointer; height: 28px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.btnOk { background: rgba(57, 255, 20, 0.1); color: #39ff14; border: 1px solid rgba(57, 255, 20, 0.2); }
+.btnOk:hover { background: #39ff14; color: black; }
+.btnKo { background: rgba(255, 0, 85, 0.1); color: #ff0055; border: 1px solid rgba(255, 0, 85, 0.2); }
+.btnKo:hover { background: #ff0055; color: white; }
+
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+/* --- TIMER ZONE SUR LA CARTE --- */
+.timerZone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+  margin-top: 5px;
+}
+
+.timerActive {
+  color: #00f2ea;
+  border-color: rgba(0, 242, 234, 0.3);
+  background: rgba(0, 242, 234, 0.05);
+  animation: pulse 2s infinite;
+}
+
+/* --- CYBER MODAL (REMPLACE ALERT) --- */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex; justify-content: center; align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.cyberModal {
+  width: 450px;
+  background: #0a0f15;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid var(--modal-color, #00f2ea);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 30px var(--modal-glow, rgba(0, 242, 234, 0.1));
+  display: flex; flex-direction: column; gap: 20px;
+  transform: scale(0.95);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.modalIcon {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--modal-color);
+  margin: 0 auto;
+  box-shadow: 0 0 20px var(--modal-glow);
+}
+
+.modalTitle {
+  text-align: center; font-size: 1.2rem; font-weight: 900; color: white; text-transform: uppercase; letter-spacing: 1px;
+}
+
+.modalText {
+  text-align: center; color: #8899a6; font-size: 0.9rem; line-height: 1.5;
+}
+
+.modalActions {
+  display: flex; gap: 15px; margin-top: 10px;
+}
+
+.btnCancel {
+  flex: 1; padding: 12px; background: transparent; border: 1px solid #333; color: #666;
+  border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;
+}
+.btnCancel:hover { background: rgba(255,255,255,0.05); color: white; border-color: #555; }
+
+.btnConfirm {
+  flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 900;
+  background: var(--modal-color); color: #000; transition: 0.2s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.btnConfirm:hover { transform: translateY(-2px); box-shadow: 0 0 20px var(--modal-glow); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { to { transform: scale(1); } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } }

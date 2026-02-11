@@ -1,0 +1,102 @@
+:root {
+  /* --- 🎨 KYNTUS VARIABLES --- */
+  --bg-deep: #02040a;
+  --bg-card: rgba(13, 17, 23, 0.8);
+  
+  --primary: #0070f3;
+  --neon-cyan: #00f2ea;
+  --neon-purple: #7928ca;
+  --neon-green: #39ff14;
+  
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --text-main: #ffffff;
+  --text-muted: #8899a6;
+  
+  --radius-lg: 16px;
+}
+
+/* Base Clean */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background-color: var(--bg-deep); /* Fond Noir Fixe */
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Background Grid (Style Tech) */
+body {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+
+/* Animation Spin (Global hit kan7tajoha f bzaf d lblayess) */
+@keyframes spin {
+  from { --angle: 0deg; }
+  to { --angle: 360deg; }
+}
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+
+/* ... (Garder le code existant pour l'Admin) ... */
+
+/* =========================================
+   🟢 KYNTUS PILOT THEME (ADD-ONS)
+   ========================================= */
+:root {
+  /* Pilot Specific Colors (Ne touche pas à l'Admin) */
+  --pilot-bg: #02040a;
+  --pilot-panel: rgba(10, 15, 25, 0.9);
+  
+  /* Neon Palette */
+  --neon-cyan: #00f2ea;
+  --neon-blue: #0070f3;
+  --neon-green: #39ff14;
+  --neon-red: #ff0055;
+  --neon-orange: #ffaa00;
+}
+
+/* Scrollbar Sombre pour le mode Pilot */
+.dark-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.dark-scroll::-webkit-scrollbar-track {
+  background: #0a0f18;
+}
+.dark-scroll::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+.dark-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+}
+/* Custom Scrollbar for Dark Mode */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0f172a; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155; 
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #475569; 
+}

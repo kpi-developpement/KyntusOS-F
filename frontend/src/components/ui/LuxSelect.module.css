@@ -1,0 +1,120 @@
+/* src/components/ui/LuxSelect.module.css */
+
+.wrapper {
+  position: relative;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  z-index: 50; /* Priorité moyenne */
+}
+
+/* LABEL TECH */
+.label {
+  display: block;
+  font-size: 0.65rem; font-weight: 800; color: #666;
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 8px;
+  transition: color 0.3s;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.label::before {
+  content: ""; display: block; width: 4px; height: 4px; background: var(--neon-cyan, #00f2ea);
+  border-radius: 50%; opacity: 0.5;
+}
+
+.wrapper:hover .label { color: #ccc; }
+.wrapper:hover .label::before { opacity: 1; box-shadow: 0 0 5px var(--neon-cyan, #00f2ea); }
+
+/* TRIGGER (La barre fermée) */
+.trigger {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative; overflow: hidden;
+}
+
+.trigger:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.trigger.active {
+  background: #0a0f15;
+  border-color: #00f2ea;
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.15);
+}
+
+.textVal { color: white; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.5px; }
+.placeholder { color: #555; font-size: 0.9rem; font-style: italic; }
+
+.arrow { color: #666; transition: transform 0.3s; }
+.trigger:hover .arrow { color: white; }
+.rotated { transform: rotate(180deg); color: #00f2ea !important; }
+
+/* DROPDOWN MENU (La liste) */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px); left: 0; width: 100%;
+  background: rgba(8, 12, 18, 0.95); /* Très sombre */
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 1000; /* Priorité MAX pour passer au dessus des cartes */
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  
+  /* Animation d'entrée */
+  transform-origin: top center;
+  animation: unfold 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Scrollbar Custom */
+.dropdown::-webkit-scrollbar { width: 4px; }
+.dropdown::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+.dropdown::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
+
+/* OPTION ITEM */
+.option {
+  padding: 12px 20px;
+  color: #888;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  transition: all 0.1s ease;
+  position: relative;
+}
+
+.option:hover {
+  background: rgba(0, 242, 234, 0.08);
+  color: white;
+  padding-left: 25px; /* Petit mouvement */
+}
+
+/* Indicateur de sélection (Barre gauche) */
+.option::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: #00f2ea; opacity: 0; transition: 0.2s;
+}
+.option:hover::before { opacity: 1; }
+
+.selected {
+  background: rgba(0, 242, 234, 0.15) !important;
+  color: #00f2ea !important;
+  font-weight: bold;
+}
+
+.selected::before { opacity: 1; box-shadow: 0 0 10px #00f2ea; }
+
+.empty { padding: 20px; text-align: center; color: #444; font-size: 0.8rem; font-family: monospace; }
+.disabled { opacity: 0.5; pointer-events: none; }
+
+@keyframes unfold {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

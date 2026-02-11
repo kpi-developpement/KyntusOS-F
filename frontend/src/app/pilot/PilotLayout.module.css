@@ -1,0 +1,28 @@
+/* Le "Space Suit" : Conteneur Global Noir */
+.pilotShell {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  /* Fond Noir Profond (Base) */
+  background-color: #02040a; 
+  color: white;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ❌ SUPPRIMÉ : L'Grid l9dima (::before) li kant mghetya 3la particles */
+/* Daba ghan-khlliw ghir l'couleur k7la + InteractiveBackground (React) yban */
+
+/* Wrapper du contenu des pages */
+.contentWrapper {
+  position: relative;
+  z-index: 10; /* Yji fo9 Particles */
+  
+  /* Espace pour la Navbar Fixe (3D Rail) */
+  padding-top: 120px; 
+  
+  min-height: 100vh;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}

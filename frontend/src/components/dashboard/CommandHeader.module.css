@@ -1,0 +1,37 @@
+.wrapper {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 40px; position: relative;
+}
+
+.wrapper::after {
+  content: ""; position: absolute; bottom: -1px; left: 0; width: 50px; height: 3px;
+  background: #00f0ff; box-shadow: 0 0 15px #00f0ff;
+  animation: scan 3s infinite linear;
+}
+
+.title {
+  font-size: 4rem; font-weight: 900; line-height: 0.9; text-transform: uppercase;
+  color: white; letter-spacing: -3px; position: relative;
+  text-shadow: 2px 0 rgba(255,0,0,0.3), -2px 0 rgba(0,240,255,0.3);
+}
+
+.statusBadge {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 10px;
+  padding: 6px 12px; background: rgba(0, 240, 255, 0.05);
+  border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 4px;
+  font-family: 'JetBrains Mono'; font-size: 0.75rem; color: #00f0ff;
+}
+
+.dot {
+  width: 8px; height: 8px; background: #00f0ff; border-radius: 50%;
+  box-shadow: 0 0 10px #00f0ff; animation: blink 1s infinite;
+}
+
+.metaInfo {
+  text-align: right; font-family: monospace; color: #64748b; font-size: 0.75rem;
+}
+.metaValue { color: #f8fafc; font-weight: bold; }
+
+@keyframes scan { 0% {left:0;} 50% {left:100%;} 100% {left:0;} }
+@keyframes blink { 0%,100% {opacity:1} 50% {opacity:0.3} }

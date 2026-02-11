@@ -1,0 +1,61 @@
+/* src/app/pilot/history/Animations.module.css */
+
+/* 1. LÉVITATION (FLOAT) - Pour les cartes qui restent en l'air */
+@keyframes floatSlow {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes floatMedium {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes floatFast {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+/* 2. TEXTE REVEAL (Blur + Slide) - Très classe */
+@keyframes textBlurIn {
+  0% { 
+    filter: blur(10px); 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  100% { 
+    filter: blur(0); 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* 3. ENTRÉE MAJESTUEUSE (Pour le tableau) */
+@keyframes fadeInUpLuxury {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* CLASSES UTILITAIRES */
+.floating1 { animation: floatSlow 6s ease-in-out infinite; }
+.floating2 { animation: floatMedium 7s ease-in-out infinite 0.5s; } /* Décalé */
+.floating3 { animation: floatFast 5s ease-in-out infinite 1s; } /* Décalé */
+
+.textReveal { 
+  opacity: 0; 
+  animation: textBlurIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+}
+
+.cardEnter {
+  opacity: 0;
+  animation: fadeInUpLuxury 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}

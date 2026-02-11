@@ -1,0 +1,34 @@
+.grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 60px;
+  perspective: 1000px;
+}
+
+.card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 25px;
+  position: relative; overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  transform: translateY(-10px) rotateX(10deg);
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+/* Scanline Effect */
+.card::before {
+  content: ""; position: absolute; top: -100%; left: 0; width: 100%; height: 50%;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
+  transition: 0.5s;
+}
+.card:hover::before { top: 150%; transition: 1s; }
+
+.label {
+  font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.value { font-size: 3.5rem; font-weight: 800; color: white; line-height: 1; }

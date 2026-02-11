@@ -1,0 +1,18 @@
+# --- System ---
+.DS_Store
+.env
+
+# --- Frontend (Next.js) ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
+
+# --- Backend (Spring Boot) ---
+Workflow/target/
+Workflow/help.md
+Workflow/.mvn/wrapper/maven-wrapper.jar
+
+# --- Docker ---
+docker-compose.override.yml

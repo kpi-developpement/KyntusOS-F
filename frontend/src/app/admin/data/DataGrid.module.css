@@ -1,0 +1,196 @@
+/* src/app/admin/data/DataGrid.module.css */
+
+.container {
+  padding: 30px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* --- CONTROL BAR (FIX Z-INDEX) --- */
+.controlBar {
+  /* 🔥 FIX Z-INDEX: Doit être plus haut que le tableau */
+  position: relative;
+  z-index: 100; 
+  
+  background: rgba(10, 15, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #00f2ea;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  animation: slideDown 0.4s ease-out;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.refreshBtn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #00f2ea;
+  width: 45px; height: 45px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.2s;
+}
+.refreshBtn:hover { background: #00f2ea; color: black; box-shadow: 0 0 15px #00f2ea; }
+
+/* --- TABLE CONTAINER (Design Upgrade) --- */
+.gridWrapper {
+  flex: 1;
+  background: rgba(5, 8, 12, 0.85); /* Fond plus sombre */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1; /* Moins que la controlBar */
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: fadeIn 0.6s ease-out;
+}
+
+.tableScroll {
+  overflow: auto;
+  flex: 1;
+  max-height: calc(100vh - 200px);
+}
+
+/* Scrollbar Cyber */
+.tableScroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.tableScroll::-webkit-scrollbar-corner { background: transparent; }
+.tableScroll::-webkit-scrollbar-track { background: #0a0f15; }
+.tableScroll::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.tableScroll::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
+
+/* TABLE STRUCTURE */
+.table {
+  width: 100%;
+  border-collapse: separate; /* Important pour border-spacing */
+  border-spacing: 0;
+  min-width: 1000px;
+}
+
+/* HEADER (HUD STYLE) */
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #0f141e;
+  color: #8899a6;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 18px 20px;
+  text-align: left;
+  border-bottom: 2px solid #222;
+  z-index: 10;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* ROWS (LIGNES) */
+.table tbody tr {
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.table tbody tr td {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.85rem;
+  color: #ccc;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+}
+
+/* 🔥 UPGRADE : HOVER GLOW EFFECT 🔥 */
+.table tbody tr:hover {
+  background: rgba(0, 242, 234, 0.03); /* Cyan très léger */
+}
+
+.table tbody tr:hover td {
+  color: white;
+  border-bottom-color: rgba(0, 242, 234, 0.2);
+}
+
+/* Highlight première cellule (Ref) au survol */
+.table tbody tr:hover td:first-child {
+  color: #00f2ea;
+  text-shadow: 0 0 10px rgba(0, 242, 234, 0.4);
+}
+
+/* Specific Columns */
+.colEps {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: white;
+  transition: color 0.2s;
+}
+
+.colPilot {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 600;
+  color: #ccc;
+}
+.pilotAvatar {
+  width: 26px; height: 26px; background: #1a1d24; 
+  border: 1px solid #333; border-radius: 6px; /* Carré arrondi = plus tech */
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; color: white; font-weight: 900;
+}
+
+/* Status Badges (Pulsing LEDs) */
+.badge {
+  padding: 4px 12px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 6px; min-width: 90px; justify-content: center;
+  letter-spacing: 0.5px;
+}
+
+.statusDot { width: 6px; height: 6px; border-radius: 50%; }
+
+.status_VALIDE { background: rgba(57, 255, 20, 0.1); color: #39ff14; border: 1px solid rgba(57, 255, 20, 0.2); }
+.status_VALIDE .statusDot { background: #39ff14; box-shadow: 0 0 5px #39ff14; }
+
+.status_REJETE { background: rgba(255, 0, 85, 0.1); color: #ff0055; border: 1px solid rgba(255, 0, 85, 0.2); }
+.status_REJETE .statusDot { background: #ff0055; box-shadow: 0 0 5px #ff0055; }
+
+.status_DONE { background: rgba(255, 215, 0, 0.1); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.2); }
+.status_DONE .statusDot { background: #ffd700; animation: blink 1s infinite; }
+
+.status_EN_COURS { background: rgba(0, 242, 234, 0.1); color: #00f2ea; border: 1px solid rgba(0, 242, 234, 0.2); }
+.status_EN_COURS .statusDot { background: #00f2ea; box-shadow: 0 0 5px #00f2ea; }
+
+.status_A_FAIRE { background: rgba(255, 255, 255, 0.05); color: #888; border: 1px solid rgba(255, 255, 255, 0.1); }
+.status_A_FAIRE .statusDot { background: #666; }
+
+/* Empty State */
+.emptyState {
+  padding: 60px; text-align: center; color: #444; font-family: monospace; font-size: 0.9rem;
+  letter-spacing: 2px;
+}
+
+/* Footer Info */
+.footerGrid {
+  padding: 12px 25px; background: #0a0f15; 
+  border-top: 1px solid rgba(255,255,255,0.05); 
+  font-size: 0.75rem; color: #666; font-family: monospace;
+  display: flex; justify-content: space-between;
+}
+
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }

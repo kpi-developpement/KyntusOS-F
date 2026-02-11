@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # 1. DATABASE (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: kyntus-db
+    restart: always
+    environment:
+      POSTGRES_DB: kyntus_db
+      POSTGRES_USER: kyntus_user
+      POSTGRES_PASSWORD: kyntus_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. BACKEND (Spring Boot)
+  backend:
+    build: ./Workflow
+    container_name: kyntus-backend
+    restart: always
+    ports:
+      - "8080:8080" # On expose 8080 pour que le Frontend (Client Browser) puisse le voir
+    depends_on:
+      - db
+    environment:
+      # Hna kan connectiw backend m3a 'db' service
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/kyntus_db
+      SPRING_DATASOURCE_USERNAME: kyntus_user
+      SPRING_DATASOURCE_PASSWORD: kyntus_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+  # 3. FRONTEND (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: kyntus-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    # Pas besoin de depends_on strict car Next.js est client-side fetch principalement
+
+volumes:
+  postgres_data:

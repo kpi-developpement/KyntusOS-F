@@ -1,0 +1,227 @@
+/* Container 3D Space */
+.navbarWrapper {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 1600px;
+  height: 80px;
+  z-index: 1000;
+  perspective: 1500px; /* Profondeur 3D */
+  pointer-events: none; /* Laisse passer le clic sur les côtés */
+}
+
+/* Le Corps Principal (La Barre) */
+.navbarBody {
+  pointer-events: auto; /* Réactive le clic */
+  width: 100%;
+  height: 100%;
+  
+  /* --- ETAT REPOS (Au fond) --- */
+  background: rgba(5, 10, 20, 0.85); /* Un peu transparent */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 2px solid var(--neon-cyan); /* Ligne fine */
+  border-radius: 20px; /* Coins ronds */
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: relative;
+  overflow: hidden;
+  
+  /* 3D Initial : Incliné en arrière */
+  transform: rotateX(10deg) translateY(0) scale(0.98);
+  transform-origin: top center;
+  
+  /* Shadows : Subtils */
+  box-shadow: 
+    0 10px 20px rgba(0,0,0,0.5);
+  
+  backdrop-filter: blur(10px);
+  
+  /* 🔥 ANIMATION 7NINA (Smooth Physics) */
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* --- ETAT HOVER (ACTIVATION) --- */
+/* Mlli la souris 9iss l'wrapper wla body */
+.navbarWrapper:hover .navbarBody {
+  /* 1. Mouvement : Tji l9oddam w t9ad */
+  transform: rotateX(0deg) translateY(5px) scale(1);
+  
+  /* 2. Style : Twelli Solide & Tech */
+  background: rgba(5, 8, 12, 0.98); /* Presque noir total */
+  border-color: rgba(0, 242, 234, 0.5); /* Bordure dwi */
+  border-radius: 12px; /* Coins wellaw 9asse7in chwia (Tech look) */
+  border-bottom-width: 4px; /* Socle ghlid */
+  
+  /* 3. Glow Effect (Ferg3a d dow) */
+  box-shadow: 
+    0 20px 50px rgba(0,0,0,0.8), /* Ombre lta7t */
+    0 0 30px rgba(0, 242, 234, 0.15), /* Glow Cyan global */
+    inset 0 0 20px rgba(0, 112, 243, 0.1); /* Glow ldakhel */
+}
+
+/* --- SCANLINE (Background Effect) --- */
+.scanline {
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: skewX(-20deg);
+  animation: scan 4s infinite linear;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+}
+
+/* Quand on hover, le scanline s'accélère visuellement (devient plus brillant) */
+.navbarWrapper:hover .scanline {
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 234, 0.15), transparent);
+  opacity: 1;
+}
+
+/* --- BRAND ZONE --- */
+.brandZone {
+  display: flex; align-items: center; gap: 15px; z-index: 2;
+}
+
+.logoHex {
+  width: 40px; height: 40px;
+  background: var(--neon-cyan);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 15px var(--neon-cyan);
+  /* L'animation pulse s'arrête au hover pour focus */
+  transition: all 0.3s;
+}
+
+.navbarWrapper:hover .logoHex {
+  background: white; /* Le logo devient blanc au focus */
+  box-shadow: 0 0 20px white;
+  transform: rotate(180deg); /* Petite rotation stylée */
+}
+
+.logoText {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: letter-spacing 0.4s;
+}
+
+.navbarWrapper:hover .logoText {
+  letter-spacing: 4px; /* Le texte s'écarte un peu */
+  color: var(--neon-cyan);
+}
+
+/* --- NAVIGATION ZONE --- */
+.navZone {
+  display: flex; gap: 10px;
+  /* Au repos : Transparent */
+  background: transparent;
+  padding: 5px;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.navbarWrapper:hover .navZone {
+  /* Au hover : Un petit fond pour grouper les boutons */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navLink {
+  text-decoration: none;
+  color: #8899a6;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.navLink:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px); /* Petit saut */
+}
+
+.activeLink {
+  background: var(--neon-cyan);
+  color: black !important;
+  box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
+  font-weight: 900;
+}
+
+/* --- USER ZONE --- */
+.userZone {
+  display: flex; align-items: center; gap: 20px; z-index: 2;
+}
+
+.pilotBadge {
+  background: rgba(0, 112, 243, 0.1);
+  border: 1px solid rgba(0, 112, 243, 0.4);
+  padding: 8px 15px;
+  border-radius: 6px;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.3s;
+}
+
+.navbarWrapper:hover .pilotBadge {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 242, 234, 0.1);
+  box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
+}
+
+.logoutBtn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 0, 85, 0.1);
+  border: 1px solid #ff0055;
+  color: #ff0055;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.logoutBtn:hover {
+  background: #ff0055; color: white;
+  box-shadow: 0 0 15px #ff0055;
+  transform: scale(1.1) rotate(90deg); /* Rotation rouge */
+}
+
+/* --- DECORATIONS (Vis) --- */
+.screw {
+  position: absolute;
+  width: 6px; height: 6px;
+  background: #444;
+  border-radius: 50%;
+  opacity: 0; /* Caché au repos */
+  transition: opacity 0.3s 0.1s; /* Petit délai */
+}
+.tl { top: 10px; left: 10px; }
+.tr { top: 10px; right: 10px; }
+.bl { bottom: 10px; left: 10px; }
+.br { bottom: 10px; right: 10px; }
+
+.navbarWrapper:hover .screw {
+  opacity: 1; /* Apparaissent quand la barre se verrouille */
+  background: var(--neon-cyan);
+  box-shadow: 0 0 5px var(--neon-cyan);
+}
+
+@keyframes scan {
+  0% { left: -100%; }
+  50% { left: 200%; }
+  100% { left: 200%; }
+}

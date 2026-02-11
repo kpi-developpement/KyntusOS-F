@@ -1,0 +1,239 @@
+/* --- LE BOUTON BELL (ORB 3D) --- */
+.orbWrapper {
+  position: fixed;
+  top: 25px;
+  right: 30px;
+  z-index: 10000;
+}
+
+.bellOrb {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #2a2d3d, #050505);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.bellOrb:hover {
+  transform: scale(1.15);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 30px rgba(0, 242, 234, 0.4);
+}
+
+.bellOrb.hasUnread {
+  border-color: #ff0055;
+  animation: urgentPulse 2s infinite;
+}
+
+.bellIcon {
+  color: white;
+  opacity: 0.7;
+  transition: all 0.3s;
+}
+
+.bellOrb:hover .bellIcon {
+  opacity: 1;
+  color: var(--neon-cyan);
+  transform: rotate(15deg);
+}
+
+.badgeCount {
+  position: absolute;
+  top: -5px; right: -5px;
+  background: #ff0055;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #02040a;
+  box-shadow: 0 0 10px #ff0055;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- LE PANNEAU HOLO-FEED --- */
+.dropdown {
+  position: absolute;
+  top: 70px; right: 0;
+  width: 380px;
+  max-height: 500px;
+  background: rgba(5, 8, 14, 0.95);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 
+    0 20px 60px rgba(0,0,0,0.9),
+    0 0 0 1px rgba(255,255,255,0.05);
+  
+  /* Animation d'ouverture Sci-Fi */
+  transform-origin: top right;
+  animation: unfoldHolo 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Header Scanner */
+.header {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scan line animation */
+.header::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -100%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  animation: scanPass 3s infinite;
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: white;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.clearBtn {
+  background: none; border: none;
+  color: #666; font-size: 0.7rem; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.clearBtn:hover { color: #ff0055; text-shadow: 0 0 8px #ff0055; }
+
+/* LISTE DES ITEMS */
+.list {
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 400px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.list::-webkit-scrollbar { width: 3px; }
+.list::-webkit-scrollbar-thumb { background: #333; }
+
+/* --- NOTIFICATION ITEM (Data Chip) --- */
+.item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.2s;
+  animation: slideIn 0.3s ease-out;
+  cursor: default;
+  display: flex; gap: 12px; align-items: start;
+}
+
+.item:hover {
+  background: rgba(255,255,255,0.06);
+  transform: translateX(-5px);
+  border-right: 3px solid var(--neon-color);
+}
+
+/* Couleurs selon le type */
+.success { --neon-color: #39ff14; }
+.info { --neon-color: #00f2ea; }
+.alert { --neon-color: #ff0055; }
+
+.iconBox {
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--neon-color);
+  box-shadow: 0 0 10px var(--neon-color);
+}
+
+.content { flex: 1; }
+
+.msg {
+  color: #eee;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.time {
+  font-size: 0.65rem;
+  color: #666;
+  font-family: monospace;
+}
+
+.newDot {
+  width: 6px; height: 6px;
+  background: var(--neon-color);
+  border-radius: 50%;
+  position: absolute;
+  top: 15px; right: 15px;
+  box-shadow: 0 0 8px var(--neon-color);
+}
+
+/* Empty State */
+.emptyState {
+  padding: 40px; text-align: center; color: #444;
+  font-family: monospace; font-size: 0.8rem;
+}
+
+/* --- TOAST (POPUP SUR ECRAN) --- */
+.toast {
+  position: fixed;
+  top: 30px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.9);
+  border: 1px solid var(--neon-color);
+  padding: 15px 25px;
+  border-radius: 50px;
+  display: flex; align-items: center; gap: 15px;
+  z-index: 10001;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  animation: dropToast 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ANIMATIONS */
+@keyframes urgentPulse {
+  0% { box-shadow: 0 0 0 rgba(255, 0, 85, 0); border-color: rgba(255,0,85,0.5); }
+  70% { box-shadow: 0 0 20px rgba(255, 0, 85, 0.6); border-color: #ff0055; }
+  100% { box-shadow: 0 0 0 rgba(255, 0, 85, 0); border-color: rgba(255,0,85,0.5); }
+}
+
+@keyframes unfoldHolo {
+  from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes dropToast {
+  from { top: -100px; opacity: 0; }
+  to { top: 30px; opacity: 1; }
+}
+
+@keyframes scanPass {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); }
+  80% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}

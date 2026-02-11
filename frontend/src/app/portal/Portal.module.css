@@ -1,0 +1,146 @@
+/* CONTAINER */
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.8s, opacity 0.8s;
+}
+
+/* ZOOM OUT EFFECT */
+.zoomOut {
+  transform: scale(3);
+  opacity: 0;
+  filter: blur(20px);
+}
+
+/* 3D SCENE (Derrière) */
+.sceneWrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* UI OVERLAY (Devant) */
+.uiLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  pointer-events: none; /* Click-through vers la 3D */
+}
+
+/* --- TOP BAR --- */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: monospace;
+  animation: fadeIn 1s ease-out;
+}
+
+.statusBadge {
+  color: #00f2ea;
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(0, 242, 234, 0.05);
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.greenDot {
+  width: 6px; height: 6px; background: #00f2ea;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #00f2ea;
+  animation: pulse 2s infinite;
+}
+
+.codeRun {
+  color: #00f2ea;
+  text-shadow: 0 0 10px rgba(0, 242, 234, 0.5);
+  font-size: 0.7rem;
+}
+
+/* --- CENTER CONTENT (BOUTON DESCENDU) --- */
+.centerContent {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: flex-end; /* Pousse vers le bas */
+  pointer-events: auto;
+  padding-bottom: 80px; /* Espace du bas */
+  height: 100%;
+}
+
+/* LE BOUTON MAJNOUN */
+.crazyBtn {
+  /* Marge ajoutée pour descendre le bouton loin du texte 3D */
+  margin-top: 250px; 
+  
+  position: relative;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 1.2rem;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  padding: 25px 70px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: 4px solid #00f2ea; /* Accent Blue */
+  border-right: 4px solid #00f2ea;
+  cursor: pointer;
+  overflow: hidden;
+  transition: 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  backdrop-filter: blur(10px);
+}
+
+/* Effet Scan qui passe */
+.crazyBtn::before {
+    content: ""; position: absolute; top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 242, 234, 0.5), transparent);
+    transform: skewX(-20deg);
+    animation: shine 3s infinite;
+}
+
+.crazyBtn:hover {
+    background: rgba(0, 242, 234, 0.1);
+    border-color: #00f2ea;
+    box-shadow: 0 0 50px rgba(0, 242, 234, 0.3);
+    letter-spacing: 10px; /* L'texte kayt-tleb */
+    transform: scale(1.05);
+}
+
+.btnContent { position: relative; z-index: 2; display: flex; align-items: center; gap: 15px; }
+
+.arrowAnim { transition: transform 0.3s; }
+.crazyBtn:hover .arrowAnim { transform: translateX(10px); }
+
+.warningText {
+    margin-top: 20px;
+    color: #666; font-family: monospace; font-size: 0.65rem; letter-spacing: 3px;
+    background: rgba(0,0,0,0.8); padding: 5px 15px; border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* --- FOOTER --- */
+.footer {
+  text-align: center; color: #333; font-family: monospace; font-size: 0.6rem;
+  position: absolute; bottom: 10px; width: 100%;
+}
+
+.techStack { display: flex; justify-content: center; align-items: center; gap: 8px; }
+
+/* ANIMATIONS */
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }

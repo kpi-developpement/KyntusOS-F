@@ -1,0 +1,359 @@
+/* ==========================================================================
+   PROJECT ROW MODULE // 2080 TACTICAL HUD
+   ========================================================================== */
+
+.wrapper {
+  /* Scope Variables based on prop passed from React */
+  --bg-void: #020408;
+  --bg-panel: rgba(10, 15, 25, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --neon-glow: var(--p-color); 
+  
+  margin-bottom: 16px;
+  position: relative;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* --- THE STRIP (MAIN ROW) --- */
+.row {
+  position: relative;
+  background: linear-gradient(90deg, rgba(15, 23, 35, 0.9) 0%, rgba(5, 10, 15, 0.95) 100%);
+  border: 1px solid var(--glass-border);
+  border-left: 2px solid var(--glass-border);
+  padding: 20px 30px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backdrop-filter: blur(10px);
+
+  /* Scanline Texture Overlay */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.2) 2px,
+    rgba(0, 0, 0, 0.2) 4px
+  );
+}
+
+/* Row Hover Effects */
+.row:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  border-left-color: var(--p-color);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.8),
+    inset 0 0 20px rgba(255, 255, 255, 0.02);
+}
+
+/* Active State (Open) */
+.active {
+  background: rgba(10, 15, 25, 1);
+  border-color: var(--p-color);
+  border-left-width: 4px;
+  box-shadow: 0 0 25px -5px rgba(var(--p-color), 0.3);
+}
+
+/* --- TYPOGRAPHY & META --- */
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: text-shadow 0.3s;
+}
+
+.row:hover .title {
+  color: #fff;
+  text-shadow: 0 0 8px var(--p-color);
+}
+
+.meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.metaTag {
+  font-size: 0.65rem;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  letter-spacing: 1px;
+}
+
+/* --- PLASMA BAR (The Progress) --- */
+.barContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 400px;
+}
+
+.barLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.barTrack {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--p-color);
+  position: relative;
+  box-shadow: 0 0 10px var(--p-color);
+}
+
+/* Liquid Light Animation inside Bar */
+.barFill::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0; width: 100%;
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.8) 50%, 
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: liquidShine 2s infinite ease-in-out;
+}
+
+/* --- STATS PILLS --- */
+.statsGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.statPill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 6px 12px;
+  border-radius: 4px;
+  min-width: 60px;
+  transition: all 0.3s;
+}
+
+.row:hover .statPill {
+  border-color: var(--p-color);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.statVal {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 0.5rem;
+  color: #64748b;
+  margin-top: 4px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* --- CHEVRON TRIGGER --- */
+.chevronBox {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s ease;
+}
+
+.row:hover .chevronBox {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 15px var(--p-color);
+}
+
+/* ==========================================================================
+   THE VAULT (EXPANDED PANEL)
+   ========================================================================== */
+
+.panel {
+  max-height: 0;
+  overflow: hidden;
+  background: #050505;
+  transition: max-height 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+  position: relative;
+  border-left: 2px solid var(--p-color);
+  margin-left: 10px; /* Indent slightly */
+}
+
+.panel.open {
+  max-height: 1000px; /* Arbitrary high number for animation */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Holo Grid Background */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 30px;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- PILOT CARD (DATA CHIPS) --- */
+.pilotCard {
+  background: rgba(20, 25, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  backdrop-filter: blur(5px);
+  transition: transform 0.2s, border-color 0.2s;
+  
+  /* Sci-Fi Cut Corner */
+  clip-path: polygon(
+    0 0, 
+    100% 0, 
+    100% calc(100% - 15px), 
+    calc(100% - 15px) 100%, 
+    0 100%
+  );
+}
+
+.pilotCard:hover {
+  transform: translateY(-4px);
+  border-color: var(--p-color);
+  background: rgba(20, 25, 40, 0.9);
+  z-index: 2;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,1);
+}
+
+/* Decorative Corner Line */
+.pilotCard::after {
+  content: "";
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 15px; height: 15px;
+  border-left: 1px solid var(--p-color);
+  opacity: 0.5;
+}
+
+.pHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pAvatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--p-color);
+  font-weight: 800;
+  border: 1px solid var(--p-color);
+  box-shadow: 0 0 10px rgba(var(--p-color), 0.2);
+  /* Hexagon Shape optional, keeping square for tactical look */
+}
+
+.pName {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pRole {
+  font-size: 0.6rem;
+  color: #64748b;
+  letter-spacing: 1px;
+}
+
+.pStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 8px 0;
+  margin-top: 5px;
+}
+
+.psItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.psItem:last-child {
+  border-right: none;
+}
+
+.psLbl {
+  font-size: 0.5rem;
+  color: #64748b;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.psVal {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes liquidShine {
+  0% { transform: translateX(-100%); }
+  50%, 100% { transform: translateX(100%); }
+}
+
+/* Mobile Tweaks */
+@media (max-width: 768px) {
+  .row { flex-wrap: wrap; padding: 15px; }
+  .barContainer { order: 3; min-width: 100%; margin: 10px 0; }
+  .statsGroup { flex: 1; }
+}
