@@ -26,7 +26,7 @@ export default function LoginPage() {
     try {
       await new Promise(r => setTimeout(r, 800)); 
 
-      const res = await fetch("http://localhost:8080/api/auth/login", {
+      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })

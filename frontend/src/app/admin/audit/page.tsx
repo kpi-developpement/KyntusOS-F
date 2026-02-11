@@ -14,7 +14,7 @@ export default function AuditPage() {
 
   // 1. Charger le tableau des scores (Leaderboard)
   const loadStats = () => {
-    fetch("http://localhost:8080/api/admin/pilots-stats")
+    fetch("http://kyntusos.kyntus.fr:8082/api/admin/pilots-stats")
       .then(res => res.json())
       .then(data => {
           // On ne garde que les pilotes
@@ -35,7 +35,7 @@ export default function AuditPage() {
     setFoundTask(null);
 
     try {
-        const res = await fetch(`http://localhost:8080/api/admin/search?eps=${epsSearch}`);
+        const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/admin/search?eps=${epsSearch}`);
         if (res.ok) {
             const data = await res.json();
             setFoundTask(data);
@@ -54,7 +54,7 @@ export default function AuditPage() {
     if (!confirm(`Voulez-vous signaler une erreur sur ${foundTask.epsReference} ? \nCela ajoutera +1 erreur au pilote ${foundTask.assignee?.username}.`)) return;
 
     try {
-        const res = await fetch(`http://localhost:8080/api/admin/flag-error/${foundTask.id}`, {
+        const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/admin/flag-error/${foundTask.id}`, {
             method: "POST"
         });
         

@@ -29,7 +29,7 @@ export default function UserManagementPage() {
       // Simulation d'un petit délai pour l'effet "Processing"
       await new Promise(r => setTimeout(r, 800));
 
-      const res = await fetch("http://localhost:8080/api/auth/register", {
+      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

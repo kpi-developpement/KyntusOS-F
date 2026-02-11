@@ -24,14 +24,14 @@ export default function PilotKanban() {
         const u = JSON.parse(stored);
         setUser(u);
     }
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
         .then(res => res.json())
         .then(data => { if(Array.isArray(data)) setTemplates(data); });
   }, []);
 
   const fetchTasks = () => {
     if (!user || !selectedTemplate) return;
-    fetch(`http://localhost:8080/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
+    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTasks(data); else setTasks([]); });
   };
@@ -67,7 +67,7 @@ export default function PilotKanban() {
 
       // API Call
       try {
-          await fetch(`http://localhost:8080/api/tasks/${task.id}/status`, {
+          await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${task.id}/status`, {
               method: "PATCH", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: newStatus })
           });

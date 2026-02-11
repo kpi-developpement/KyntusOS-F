@@ -36,9 +36,9 @@ export default function AdminKanban() {
     setError("");
     try {
         const [resTasks, resPilots, resTemplates] = await Promise.all([
-            fetch("http://localhost:8080/api/tasks"),
-            fetch("http://localhost:8080/api/users/pilots"),
-            fetch("http://localhost:8080/api/templates")
+            fetch("http://kyntusos.kyntus.fr:8082/api/tasks"),
+            fetch("http://kyntusos.kyntus.fr:8082/api/users/pilots"),
+            fetch("http://kyntusos.kyntus.fr:8082/api/templates")
         ]);
 
         if (!resTasks.ok) throw new Error("Erreur Backend");
@@ -78,7 +78,7 @@ export default function AdminKanban() {
     }));
     
     try {
-      const res = await fetch(`http://localhost:8080/api/tasks/${task.id}/status`, {
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${task.id}/status`, {
         method: "PATCH", 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })

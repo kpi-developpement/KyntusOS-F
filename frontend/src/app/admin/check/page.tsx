@@ -18,7 +18,7 @@ export default function InspectorPage() {
   const [task, setTask] = useState<any>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
       .then(res => res.json())
       .then(data => setTemplates(data || []))
       .catch(() => toast({ message: "Erreur chargement templates", type: "error" }));
@@ -33,7 +33,7 @@ export default function InspectorPage() {
     setTask(null);
 
     try {
-        const res = await fetch(`http://localhost:8080/api/admin/search?eps=${epsInput}`);
+        const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/admin/search?eps=${epsInput}`);
         if (res.ok) {
             const foundTask = await res.json();
             if(foundTask.template?.id.toString() !== selectedTemplate) {
@@ -62,7 +62,7 @@ export default function InspectorPage() {
   const handleForceReject = async () => {
       if(!task || !confirm("⚠️ CONFIRMER LE REJET FORCÉ ?")) return;
       try {
-          const res = await fetch(`http://localhost:8080/api/tasks/${task.id}/status`, {
+          const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${task.id}/status`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "REJETE" })

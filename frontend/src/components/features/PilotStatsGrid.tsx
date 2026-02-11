@@ -31,7 +31,7 @@ export default function PilotStatsGrid() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/stats/leaderboard");
+      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/stats/leaderboard");
       if(res.ok) {
         const data = await res.json();
         setStats(data || []);
@@ -49,7 +49,7 @@ export default function PilotStatsGrid() {
   const handleVarSubmit = async (points: number, reason: string) => {
     if (!selectedPilotForVar) return;
     try {
-        await fetch("http://localhost:8080/api/admin/points", {
+        await fetch("http://kyntusos.kyntus.fr:8082/api/admin/points", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pilotId: selectedPilotForVar.id, points, reason })

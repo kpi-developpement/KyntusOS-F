@@ -21,7 +21,7 @@ export default function PilotBoard() {
     const stored = localStorage.getItem("kyntus_user");
     if (stored) setUser(JSON.parse(stored));
 
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTemplates(data); })
         .catch(err => console.error(err));
@@ -31,7 +31,7 @@ export default function PilotBoard() {
   const refreshTasks = () => {
     if (!user || !selectedTemplate) return;
     setLoading(true);
-    fetch(`http://localhost:8080/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
+    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTasks(data); else setTasks([]); })
         .catch(e => console.error(e))
@@ -60,7 +60,7 @@ export default function PilotBoard() {
     // Optimistic UI pour la fluidité de la saisie
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, dynamicData: { ...t.dynamicData, [key]: value } } : t));
     try {
-        await fetch(`http://localhost:8080/api/tasks/${taskId}/data`, {
+        await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/data`, {
             method: "PATCH", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ key, value })
         });
@@ -80,7 +80,7 @@ export default function PilotBoard() {
       }));
 
       try {
-          const res = await fetch(`http://localhost:8080/api/tasks/${taskId}/status`, {
+          const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/status`, {
               method: "PATCH", 
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: newStatus })
