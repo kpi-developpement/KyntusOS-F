@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # Volume v2 li 7ell lina mochkil permissions
+      # Volume v2 bach nt-fadaou machakil permissions l-9dam
       - postgres_data_v2:/var/lib/postgresql/data
 
   # 2. BACKEND (Spring Boot)
@@ -22,12 +22,12 @@ services:
     container_name: kyntus-backend
     restart: always
     ports:
-      # Port 8080 ldakhel, 8082 bra (Host)
+      # L-Backend dima ghadi n-pointiw 3lih b 8082 f Server
       - "8082:8080"
     depends_on:
       - db
     environment:
-      # Config DB Dynamique
+      # Config DB Dynamique bach tkhdem m3a l-container 'db'
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/kyntus_db
       - SPRING_DATASOURCE_USERNAME=kyntus_user
       - SPRING_DATASOURCE_PASSWORD=kyntus_password
@@ -37,7 +37,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      # 🔥 FIX MOHIM: Kan-passiw l-URL wa9t l-Build bach Next.js y-fhemnou
+      # 🔥 HNA FIN KAY-T-7EL L-MOCHKIL:
+      # Kan-siftou l-URL l-Dockerfile wa9t l-Build bach ma-yb9ach "localhost"
       args:
         NEXT_PUBLIC_API_URL: http://kyntusos.kyntus.fr:8082
     container_name: kyntus-frontend
@@ -45,8 +46,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Runtime variable (Ziyada f l-khir)
+      # Variable d l'environnement f l-runtime (Safety net)
       - NEXT_PUBLIC_API_URL=http://kyntusos.kyntus.fr:8082
 
 volumes:
+  # L-volume l-jdid dyalna
   postgres_data_v2:
