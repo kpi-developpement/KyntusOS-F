@@ -1,22 +1,20 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Copy, Check, Hash, Play, Clock, AlertTriangle, AlertOctagon, Lock } from "lucide-react";
+import { Copy, Check, Hash, Play, AlertTriangle, AlertOctagon, Lock, ShieldCheck, Zap } from "lucide-react";
 import styles from "./SmartTaskGrid.module.css";
-import LiveTimer from "../ui/LiveTimer";
 
 interface SmartGridProps {
   tasks: any[];
-  allowedFields: string[]; // ✅ AJOUTÉ: Liste des champs modifiables
+  allowedFields: string[];
   onUpdateData: (taskId: number, key: string, value: any) => void;
   onToggleStatus?: (taskId: number, currentStatus: string) => void;
 }
 
 export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onToggleStatus }: SmartGridProps) {
-  // 🔥 1. Logic d'Isolation (On sépare l'Anomalie du reste)
   const allKeys = tasks.length > 0 && tasks[0].dynamicData ? Object.keys(tasks[0].dynamicData) : [];
-  const anomalyKey = allKeys.find(k => k.toLowerCase().includes("anomalie")); // Trouve "Anomalie", "ANOMALIE", etc.
-  const dynamicCols = allKeys.filter(k => k !== anomalyKey); // Les colonnes normales (PBO, Signal...)
+  const anomalyKey = allKeys.find(k => k.toLowerCase().includes("anomalie"));
+  const dynamicCols = allKeys.filter(k => k !== anomalyKey);
 
   const [editing, setEditing] = useState<{id: number, col: string} | null>(null);
   const [tempValue, setTempValue] = useState("");
@@ -31,7 +29,6 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
 
   const inputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
 
-  // --- ACTIONS ---
   const handleCopyEPS = (id: number, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId({id, type: 'EPS'});
@@ -44,15 +41,7 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
     setTimeout(() => setCopiedId(null), 1500);
   };
 
-  const calculateScore = (seconds: number) => {
-    if (seconds === undefined || seconds === null) return 100;
-    const minutes = seconds / 60;
-    const score = 100 - (minutes * 0.5);
-    return Math.floor(Math.max(10, score));
-  };
-
   const handleInputFocus = (task: any, col: string) => {
-    // ✅ SECURITY CHECK: Si le champ n'est pas allowed, on ne fait rien
     if (!allowedFields.includes(col)) return;
 
     if (task.status === "DONE") return;
@@ -105,15 +94,14 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
         <table className={styles.table}>
           <thead>
             <tr>
-              {onToggleStatus ? <th className={styles.stickyHeader} style={{width:"60px"}}></th> : null}
-              <th className={styles.stickyHeader} style={{width:"90px"}}><Clock size={14} style={{display:"inline", marginRight:5}}/> TIME</th>
-              <th className={styles.stickyHeader} style={{width: "160px"}}><Hash size={14} style={{display:"inline", marginRight:5}}/> REF EPS</th>
+              {onToggleStatus ? <th className={styles.stickyHeader} style={{width:"80px"}}>STATUS</th> : null}
+              <th className={styles.stickyHeader} style={{width: "180px"}}><Hash size={14} className={styles.headerIcon}/> REF EPS</th>
               {dynamicCols.map(col => {
                   const isLocked = !allowedFields.includes(col);
                   return (
-                    <th key={col} className={styles.stickyHeader} style={{minWidth: "150px"}}>
-                        <div style={{display:'flex', alignItems:'center', gap: 5, opacity: isLocked ? 0.6 : 1}}>
-                            {isLocked && <Lock size={12} />} 
+                    <th key={col} className={styles.stickyHeader} style={{minWidth: "160px"}}>
+                        <div className={styles.headerContent} style={{opacity: isLocked ? 0.5 : 1}}>
+                            {isLocked ? <Lock size={12} /> : <Zap size={12} />} 
                             {col.toUpperCase()}
                         </div>
                     </th>
@@ -122,62 +110,61 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
             </tr>
           </thead>
           <tbody>
-            {tasks.map(task => {
+            {tasks.map((task, index) => {
               const isActive = task.status === "EN_COURS";
               const isDone = task.status === "DONE";
-              const safeTime = task.cumulativeTimeSeconds || 0; 
-              const score = calculateScore(safeTime);
               
-              // Check Anomaly Value
               const anomalyVal = anomalyKey ? task.dynamicData[anomalyKey] : null;
               const hasAnomaly = !!anomalyVal;
               
+              // Animation delay stagiaire style
+              const rowStyle = { animationDelay: `${index * 0.05}s` } as React.CSSProperties;
+
               return (
                 <React.Fragment key={task.id}>
-                  {/* --- ROW PRINCIPAL (Les données normales) --- */}
-                  <tr className={`${styles.row} ${isActive ? styles.rowActive : ''} ${isDone ? styles.rowDone : ''} ${hasAnomaly ? styles.rowWithAnomaly : ''}`}>
+                  <tr 
+                    className={`${styles.row} ${isActive ? styles.rowActive : ''} ${isDone ? styles.rowDone : ''} ${hasAnomaly ? styles.rowWithAnomaly : ''}`}
+                    style={rowStyle}
+                  >
                     
+                    {/* --- ACTION BUTTON --- */}
                     <td className={styles.actionCell}>
                         {isDone ? (
-                            <div className={styles.scoreBadge} title={`Score Final: ${score} pts`}>
-                                <span className={styles.scoreVal}>{score}</span>
+                            <div className={styles.doneBadge} title="Mission Terminée & Sécurisée">
+                                <ShieldCheck size={20} className={styles.doneIcon} />
                             </div>
                         ) : (
                             onToggleStatus && (
                               <button 
                                   className={`${styles.actionBtn} ${isActive ? styles.btnActive : styles.btnIdle}`}
                                   onClick={() => handleActionClick(task)}
-                                  title={isActive ? "Terminer" : "Commencer"}
                               >
-                                  {isActive ? <Check size={16} strokeWidth={4} /> : <Play size={12} style={{marginLeft:2}}/>}
+                                  {isActive ? (
+                                    <div className={styles.pulseContainer}>
+                                      <div className={styles.pulseRing}></div>
+                                      <Check size={18} strokeWidth={3} />
+                                    </div>
+                                  ) : (
+                                    <Play size={14} style={{marginLeft:2}}/>
+                                  )}
                               </button>
                             )
                         )}
                     </td>
 
-                    <td className={styles.timerCell}>
-                        {isActive ? (
-                          <LiveTimer startTime={task.lastStartedAt} cumulativeSeconds={safeTime} />
-                        ) : (
-                          <span className={styles.staticTime}>
-                              {formatStaticTime(safeTime, isDone)}
-                          </span>
-                        )}
-                    </td>
-
+                    {/* --- EPS REFERENCE --- */}
                     <td className={styles.epsCell}>
                         <div className={styles.epsWrapper} onClick={() => handleCopyEPS(task.id, task.epsReference)}>
                             <span className={styles.epsText}>{task.epsReference}</span>
                             <div className={`${styles.copyFeedback} ${copiedId?.id === task.id && copiedId?.type === 'EPS' ? styles.copied : ''}`}>
-                               {copiedId?.id === task.id && copiedId?.type === 'EPS' ? <Check size={12} color="#39ff14"/> : <Copy size={12} className={styles.copyIcon}/>}
+                               {copiedId?.id === task.id && copiedId?.type === 'EPS' ? <Check size={14} color="#00f2ea"/> : <Copy size={14} className={styles.copyIcon}/>}
                             </div>
                         </div>
                     </td>
 
+                    {/* --- DYNAMIC FIELDS --- */}
                     {dynamicCols.map(col => {
-                      // ✅ CHECK: EST-CE QUE CE CHAMP EST EDITABLE ?
                       const isEditable = allowedFields.includes(col);
-
                       return (
                         <td key={col} className={styles.dataCell}>
                             <input 
@@ -189,44 +176,40 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
                               onFocus={() => handleInputFocus(task, col)}
                               onBlur={handleBlur}
                               onKeyDown={handleKeyDown}
-                              placeholder={isEditable ? "-" : ""}
+                              placeholder={isEditable ? "..." : ""}
                               autoComplete="off"
-                              // ✅ DISABLE LOGIC
                               disabled={isDone || !isEditable} 
-                              // ✅ STYLE VISUEL POUR READ-ONLY (Inline pour ne pas toucher au CSS)
-                              style={!isEditable ? { 
-                                  cursor: 'not-allowed', 
-                                  color: '#666', 
-                                  borderBottom: '1px solid transparent' 
-                              } : {}}
                             />
-                            {/* N'afficher la ligne de focus que si c'est editable */}
-                            {!isDone && isEditable && <div className={`${styles.focusLine} ${isActive ? styles.lineGreen : ''}`}></div>}
+                            {/* Focus line effect */}
+                            {!isDone && isEditable && <div className={styles.focusLine}></div>}
+                            {/* Glow effect when active */}
+                            {isActive && isEditable && <div className={styles.activeGlow}></div>}
                         </td>
                       );
                     })}
                   </tr>
 
-                  {/* 🔥 --- ROW SECONDAIRE (L'ANOMALIE) --- 🔥 */}
+                  {/* --- ANOMALY ROW (RED) --- */}
                   {hasAnomaly && (
-                    <tr className={styles.anomalyRow}>
-                      <td colSpan={3 + dynamicCols.length}>
+                    <tr className={styles.anomalyRow} style={{animationDelay: `${(index * 0.05) + 0.02}s`}}>
+                      <td colSpan={2 + dynamicCols.length}>
                         <div 
                           className={`${styles.anomalyBanner} ${copiedId?.id === task.id && copiedId?.type === 'ANOMALY' ? styles.anomalyCopied : ''}`}
                           onClick={() => handleCopyAnomaly(task.id, anomalyVal)}
-                          title="Cliquer pour copier l'anomalie"
                         >
                             <div className={styles.anomalyIconBox}>
-                                <AlertOctagon size={18} />
+                                <AlertOctagon size={20} className={styles.anomalyPulse} />
                             </div>
                             <div className={styles.anomalyContent}>
-                                <span className={styles.anomalyLabel}>ANOMALIE CRITIQUE:</span>
+                                <span className={styles.anomalyLabel}>CRITICAL ANOMALY DETECTED</span>
                                 <span className={styles.anomalyText}>{anomalyVal}</span>
                             </div>
                             <div className={styles.anomalyAction}>
                                 {copiedId?.id === task.id && copiedId?.type === 'ANOMALY' ? 
-                                    <span className={styles.copiedMsg}><Check size={14}/> COPIÉ</span> : 
-                                    <Copy size={14} className={styles.copyHintIcon}/>
+                                    <span className={styles.copiedMsg}><Check size={16}/> SYSTEM COPIED</span> : 
+                                    <div className={styles.copyHint}>
+                                      <Copy size={14}/> <span>COPY LOG</span>
+                                    </div>
                                 }
                             </div>
                         </div>
@@ -243,20 +226,21 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
       {confirmModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
+            <div className={styles.modalGlow}></div>
             <div className={styles.modalHeader}>
-              <AlertTriangle size={24} color={confirmModal.type === 'START' ? "#00f2ea" : "#ff0055"} />
-              <h3>{confirmModal.type === 'START' ? 'LANCEMENT MISSION' : 'FIN DE MISSION'}</h3>
+              <AlertTriangle size={28} color={confirmModal.type === 'START' ? "#00f2ea" : "#ff0055"} />
+              <h3>{confirmModal.type === 'START' ? 'INITIATE PROTOCOL' : 'TERMINATE MISSION'}</h3>
             </div>
             <p className={styles.modalText}>
               {confirmModal.type === 'START' 
-                ? "Démarrer le chronomètre pour cette tâche ?" 
-                : "Arrêter le chronomètre et valider la tâche ?"
+                ? "Engage active processing for this unit?" 
+                : "Secure data and archive this mission?"
               }
             </p>
             <div className={styles.modalActions}>
-              <button className={styles.btnCancel} onClick={() => setConfirmModal(null)}>ANNULER</button>
+              <button className={styles.btnCancel} onClick={() => setConfirmModal(null)}>CANCEL</button>
               <button className={`${styles.btnConfirm} ${confirmModal.type === 'START' ? styles.btnConfirmStart : styles.btnConfirmStop}`} onClick={confirmAction}>
-                {confirmModal.type === 'START' ? 'ENGAGER 🚀' : 'VALIDER ✅'}
+                {confirmModal.type === 'START' ? 'ENGAGE' : 'CONFIRM'}
               </button>
             </div>
           </div>
@@ -264,12 +248,4 @@ export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onTo
       )}
     </div>
   );
-}
-
-function formatStaticTime(sec: number, isDone: boolean = false) {
-    if (sec === 0 && isDone) return "00:00";
-    if (!sec) return "--:--";
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
 }

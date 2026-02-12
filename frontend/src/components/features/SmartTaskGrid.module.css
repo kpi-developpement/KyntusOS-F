@@ -1,7 +1,5 @@
-/* src/components/features/SmartTaskGrid.module.css */
-
 /* =========================================
-   1. LAYOUT & SCROLL
+   1. GLOBAL CONTAINER & SCROLL
    ========================================= */
 .container {
   width: 100%;
@@ -9,474 +7,335 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  /* Tech Background Texture */
+  background-image: 
+    linear-gradient(rgba(10, 15, 25, 0.95), rgba(10, 15, 25, 0.95)),
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0, 242, 234, 0.03) 1px, rgba(0, 242, 234, 0.03) 2px);
+  background-size: 100% 100%, 100% 4px;
 }
 
 .tableWrapper {
   flex: 1;
   overflow: auto;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(0, 0, 0, 0.2);
-  
-  /* Scrollbar fine */
   scrollbar-width: thin;
-  scrollbar-color: #333 transparent;
+  scrollbar-color: #00f2ea22 transparent;
+  padding-bottom: 50px; /* Espace pour le scroll */
 }
 
+/* Custom Scrollbar */
 .tableWrapper::-webkit-scrollbar { width: 6px; height: 6px; }
-.tableWrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+.tableWrapper::-webkit-scrollbar-track { background: transparent; }
+.tableWrapper::-webkit-scrollbar-thumb { background: #00f2ea44; border-radius: 3px; }
 .tableWrapper::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
 
 .table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
+  border-collapse: separate; /* Important pour l'espacement entre les lignes */
+  border-spacing: 0 8px; /* Espace vertical entre les rows */
+  padding: 0 15px;
 }
 
 /* =========================================
-   2. HEADERS (STICKY)
+   2. HEADER LUXE
    ========================================= */
 .stickyHeader {
   position: sticky;
   top: 0;
-  background: #0a0f15; /* Fond solide pour cacher le scroll */
-  z-index: 10;
+  background: rgba(10, 15, 25, 0.95);
+  backdrop-filter: blur(12px);
+  z-index: 20;
   padding: 15px 20px;
   text-align: left;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: #8899a6;
-  border-bottom: 2px solid #222;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  white-space: nowrap;
+  border-bottom: 1px solid rgba(0, 242, 234, 0.2);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Rajdhani', 'Eurostile', sans-serif; /* Tech Font */
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 1.5px;
+  color: #00f2ea;
+  text-shadow: 0 0 10px rgba(0, 242, 234, 0.4);
+}
+
+.headerIcon {
+  margin-right: 8px;
+  color: #00f2ea;
 }
 
 /* =========================================
-   3. ROW STYLES (INTÉRACTION)
+   3. ROWS ANIMATIONS & STYLE
    ========================================= */
 .row {
-  transition: background 0.2s ease, border-left 0.2s ease;
-  border-left: 3px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  /* Animation d'entrée */
+  opacity: 0;
+  transform: translateY(10px);
+  animation: slideIn 0.4s forwards;
 }
 
-.row:nth-child(even) { background: rgba(255, 255, 255, 0.01); }
-.row:hover { background: rgba(255, 255, 255, 0.03); }
-
-.rowFocused {
-  background: rgba(255, 255, 255, 0.05);
+.row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: scale(1.002);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-/* 🔥 ROW ACTIVE (CHRONO ON = GREEN TINT) 🔥 */
+@keyframes slideIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- ACTIVE STATE (NEON GREEN) --- */
 .rowActive {
-  background: rgba(57, 255, 20, 0.05) !important; /* Fond Vert très léger */
-  border-left-color: #39ff14 !important; /* Ligne Vert Néon à gauche */
-  box-shadow: inset 0 0 20px rgba(57, 255, 20, 0.05);
+  background: rgba(0, 255, 136, 0.03) !important;
+  border-radius: 8px;
+  box-shadow: 
+    inset 4px 0 0 #00ff88, 
+    0 0 20px rgba(0, 255, 136, 0.05);
+  z-index: 10;
+}
+
+/* Scanline Effect sur la row active */
+.rowActive::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.05), transparent);
+  transform: skewX(-20deg) translateX(-150%);
+  animation: scan 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  100% { transform: skewX(-20deg) translateX(200%); }
+}
+
+/* --- DONE STATE (LOCKED) --- */
+.rowDone {
+  opacity: 0.5;
+  filter: grayscale(0.8);
+  pointer-events: none; /* Désactive clicks */
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* =========================================
-   4. ACTION COLUMN (BUTTONS)
+   4. ACTION BUTTONS (SWITCHES)
    ========================================= */
 .actionCell {
-  width: 60px;
+  width: 80px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 0;
-  vertical-align: middle;
+  padding: 10px;
+  border-radius: 8px 0 0 8px;
 }
 
 .actionBtn {
-  width: 34px; height: 34px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  margin: 0 auto;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-/* ETAT: IDLE (Bouton Play - Gris vers Cyan) */
+/* IDLE (PLAY) */
 .btnIdle {
-  background: #1a1a1a;
-  color: #666;
-  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
 }
 .btnIdle:hover {
   background: #00f2ea;
-  color: black;
-  transform: scale(1.1);
+  color: #000;
   box-shadow: 0 0 15px #00f2ea;
   border-color: #00f2ea;
 }
 
-/* 🔥 ETAT: ACTIVE (Bouton Check - Vert Pulse) 🔥 */
+/* ACTIVE (CHECK) */
 .btnActive {
-  background: #39ff14; /* Vert Néon */
-  color: black;
-  border: 1px solid #39ff14;
-  box-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
-  animation: pulseGreen 2s infinite;
+  background: #00ff88;
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
 }
 .btnActive:hover {
   transform: scale(1.1);
-  background: white; /* Devient blanc pour dire "Valider" */
-  border-color: white;
+  background: #fff;
 }
+
+.pulseContainer { position: relative; display: flex; align-items: center; justify-content: center; }
+.pulseRing {
+  position: absolute; width: 100%; height: 100%; border-radius: 50%;
+  border: 2px solid #00ff88;
+  animation: pulseRipple 1.5s infinite;
+}
+
+@keyframes pulseRipple {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* DONE ICON */
+.doneBadge {
+  display: flex; justify-content: center; alignItems: center;
+  color: #4a5568;
+}
+.rowDone .doneBadge { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
 
 /* =========================================
-   5. TIMER COLUMN
+   5. EPS & INPUTS
    ========================================= */
-.timerCell {
-  padding: 0 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  vertical-align: middle;
-}
-
-.staticTime {
-  font-family: 'JetBrains Mono', monospace;
-  color: #555;
-  font-size: 0.8rem;
-  display: block;
-  text-align: center;
-}
-
-/* =========================================
-   6. EPS REFERENCE COLUMN (COPY)
-   ========================================= */
-.epsCell {
-  padding: 10px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  vertical-align: middle;
-}
+.epsCell { padding: 10px 20px; }
 
 .epsWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 242, 234, 0.05);
+  border: 1px solid rgba(0, 242, 234, 0.1);
   padding: 8px 12px;
   border-radius: 6px;
+  display: flex; justify-content: space-between; alignItems: center;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: 0.2s;
+  transition: 0.3s;
 }
-
 .epsWrapper:hover {
-  border-color: #444;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 242, 234, 0.1);
+  border-color: #00f2ea;
+  box-shadow: 0 0 10px rgba(0, 242, 234, 0.2);
 }
 
 .epsText {
   font-family: 'JetBrains Mono', monospace;
-  color: #00f2ea;
-  font-weight: bold;
+  color: #e2e8f0;
   font-size: 0.9rem;
 }
 
-.copyFeedback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-}
-
-.copyIcon { color: #444; transition: 0.2s; }
-.epsWrapper:hover .copyIcon { color: white; }
-
-.copied { animation: pop 0.3s ease; }
-
-/* =========================================
-   7. DATA INPUT COLUMNS
-   ========================================= */
-.dataCell {
-  padding: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  position: relative;
-  vertical-align: middle;
-}
+/* Inputs */
+.dataCell { position: relative; padding: 0 5px; }
 
 .inputCell {
   width: 100%;
-  height: 50px;
+  height: 44px;
   background: transparent;
   border: none;
-  color: #ccc;
-  padding: 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
   font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  outline: none;
-  transition: 0.2s;
+  font-size: 0.95rem;
+  padding: 0 10px;
+  transition: 0.3s;
 }
-
 .inputCell:focus {
+  outline: none;
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  border-bottom-color: transparent;
 }
+.inputCell::placeholder { color: rgba(255, 255, 255, 0.2); }
 
-/* Focus Line (La ligne qui s'allume en bas) */
+/* Animated Focus Line */
 .focusLine {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0%;
-  height: 2px;
+  position: absolute; bottom: 0; left: 0;
+  width: 0; height: 2px;
   background: #00f2ea;
-  transition: width 0.3s ease, background 0.3s ease;
-  z-index: 5;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px #00f2ea;
 }
-
-.inputCell:focus + .focusLine {
-  width: 100%;
-}
-
-/* Si la row est active, la ligne de focus devient verte aussi */
-.lineGreen {
-  background: #39ff14 !important;
-}
+.inputCell:focus + .focusLine { width: 100%; }
 
 /* =========================================
-   8. ANIMATIONS
+   6. ANOMALY ROW (RED ALERT)
    ========================================= */
-@keyframes pulseGreen {
-  0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(57, 255, 20, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); }
-}
-
-@keyframes pop {
-  0% { transform: scale(0.8); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-/* ... (Garde tout le CSS d'avant : row, inputCell, actionBtn, etc.) ... */
-
-/* =========================================
-   9. CONFIRMATION MODAL
-   ========================================= */
-.modalOverlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-  z-index: 9999; display: flex; justify-content: center; align-items: center;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.modalContent {
-  width: 400px; background: #0a0f15;
-  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px;
-  padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.modalHeader {
-  display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
-}
-.modalHeader h3 {
-  margin: 0; color: white; font-size: 1.2rem; font-weight: 800; letter-spacing: 2px;
-}
-
-.modalText {
-  color: #8899a6; font-size: 0.9rem; line-height: 1.5; margin-bottom: 30px;
-}
-
-.modalActions {
-  display: flex; gap: 15px; width: 100%;
-}
-
-.btnCancel {
-  flex: 1; padding: 15px; background: transparent; border: 1px solid #333;
-  color: #666; font-weight: bold; cursor: pointer; border-radius: 8px;
-  transition: 0.2s;
-}
-.btnCancel:hover { background: rgba(255,255,255,0.05); color: white; }
-
-.btnConfirm {
-  flex: 1; padding: 15px; border: none; font-weight: 900; cursor: pointer;
-  border-radius: 8px; color: black; transition: 0.2s;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-}
-.btnConfirm:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-/* START Style */
-.btnConfirmStart { background: #00f2ea; box-shadow: 0 0 20px rgba(0, 242, 234, 0.2); }
-.btnConfirmStart:hover { box-shadow: 0 0 30px rgba(0, 242, 234, 0.4); }
-
-/* STOP Style */
-.btnConfirmStop { background: #39ff14; box-shadow: 0 0 20px rgba(57, 255, 20, 0.2); }
-.btnConfirmStop:hover { box-shadow: 0 0 30px rgba(57, 255, 20, 0.4); }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes scaleUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-/* ... (Garde le début) ... */
-
-/* =========================================
-   🔥 ÉTATS DE LIGNE (DONE / ACTIVE)
-   ========================================= */
-
-/* ROW ACTIVE (Vert) */
-.rowActive {
-  background: rgba(57, 255, 20, 0.05) !important;
-  border-left-color: #39ff14 !important;
-  box-shadow: inset 0 0 20px rgba(57, 255, 20, 0.05);
-}
-
-/* 🔥 ROW DONE (Tghellef / Disable) 🔥 */
-.rowDone {
-  background: rgba(0, 0, 0, 0.6) !important; /* Fond sombre opaque */
-  border-left-color: #444 !important; /* Bordure grise */
-  opacity: 0.6; /* Tout devient un peu transparent */
-  pointer-events: none; /* Désactive les clics sur toute la ligne (sauf copy EPS si besoin, mais ici on bloque tout pour l'effet "Scellé") */
-  position: relative;
-}
-
-/* On peut garder le copy actif si on veut, mais pointer-events: none sur la row bloque tout.
-   Si tu veux copier l'EPS même après fini, enlève pointer-events: none de .rowDone 
-   et mets-le sur .inputCell uniquement. */
-
-.rowDone .inputCell {
-  color: #555; /* Texte gris */
-  font-style: italic;
-  cursor: not-allowed;
-}
-
-.rowDone .staticTime {
-  color: #444;
-}
-
-.rowDone .epsText {
-  color: #666; /* EPS gris aussi */
-}
-
-/* =========================================
-   🏆 SCORE BADGE (REMPLACE LE BOUTON)
-   ========================================= */
-.scoreBadge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 215, 0, 0.1); /* Fond Or subtil */
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: 6px;
-  width: 40px;
-  height: 36px;
-  margin: 0 auto;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.scoreVal {
-  font-family: 'Inter', sans-serif;
-  font-weight: 900;
-  color: #ffd700; /* Or */
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-.scoreLabel {
-  font-size: 0.5rem;
-  font-weight: bold;
-  color: #ffd700;
-  opacity: 0.7;
-}
-
-@keyframes popIn {
-  from { transform: scale(0); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ... Tes styles existants ... */
-
-/* Highlight Row Parent si Anomalie */
-.rowWithAnomaly td {
-    border-bottom: none; /* Enlever la bordure pour fusionner avec la ligne anomalie */
-    background: rgba(239, 68, 68, 0.05); /* Légère teinte rouge */
-}
-
-/* --- THE ANOMALY BANNER --- */
 .anomalyRow td {
-    padding: 0 10px 10px 10px; /* Espace autour du banner */
-    background: rgba(239, 68, 68, 0.05); /* Continuité du fond rouge */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 10px 15px 10px;
+  border: none;
 }
 
 .anomalyBanner {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: rgba(127, 29, 29, 0.2); /* Rouge sombre */
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    border-radius: 6px;
-    padding: 8px 15px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: 100%;
+  display: flex; align-items: center; gap: 20px;
+  background: linear-gradient(90deg, rgba(255, 0, 85, 0.1), rgba(10, 15, 25, 0));
+  border-left: 4px solid #ff0055;
+  padding: 12px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
-
 .anomalyBanner:hover {
-    background: rgba(127, 29, 29, 0.4);
-    border-color: #ef4444;
-    transform: translateX(4px); /* Petit mouvement */
+  background: linear-gradient(90deg, rgba(255, 0, 85, 0.2), rgba(10, 15, 25, 0.1));
+  transform: translateX(5px);
 }
 
-.anomalyCopied {
-    background: rgba(6, 78, 59, 0.4) !important; /* Vert sombre */
-    border-color: #10b981 !important;
-}
+.anomalyIconBox { color: #ff0055; filter: drop-shadow(0 0 5px #ff0055); }
+.anomalyPulse { animation: pulseRed 2s infinite; }
 
-.anomalyIconBox {
-    color: #ef4444;
-    display: flex;
-    align-items: center;
-}
-
-.anomalyCopied .anomalyIconBox {
-    color: #10b981;
-}
-
-.anomalyContent {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
+.anomalyContent { flex: 1; display: flex; flex-direction: column; }
 .anomalyLabel {
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: #fca5a5;
-    margin-bottom: 2px;
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: #ff0055;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.anomalyText { color: #fff; font-size: 1rem; text-shadow: 0 0 5px rgba(255, 0, 85, 0.5); }
+
+.anomalyAction { color: #666; font-size: 0.8rem; font-weight: bold; }
+.copyHint { display: flex; align-items: center; gap: 6px; transition: 0.3s; }
+.anomalyBanner:hover .copyHint { color: #fff; }
+.copiedMsg { color: #00ff88; display: flex; align-items: center; gap: 5px; }
+
+@keyframes pulseRed {
+  0% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.6; transform: scale(1); }
 }
 
-.anomalyText {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    color: #fee2e2;
-    font-weight: 500;
-    white-space: normal; /* Permettre le retour à la ligne si long */
+/* =========================================
+   7. MODAL (GLASS)
+   ========================================= */
+.modalOverlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+  z-index: 999; display: flex; justify-content: center; align-items: center;
+  animation: fadeIn 0.2s;
 }
 
-.anomalyAction {
-    margin-left: auto;
-    opacity: 0.6;
-    transition: opacity 0.2s;
+.modalContent {
+  background: #0a0f19;
+  border: 1px solid #333;
+  padding: 40px; border-radius: 20px;
+  width: 450px; text-align: center;
+  position: relative; overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
 }
 
-.anomalyBanner:hover .anomalyAction {
-    opacity: 1;
+/* Glow top border */
+.modalGlow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+  background: linear-gradient(90deg, #00f2ea, #00ff88);
 }
 
-.copiedMsg {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #10b981;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
+.modalHeader { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; color: #fff; }
+.modalHeader h3 { font-family: 'Rajdhani', sans-serif; letter-spacing: 2px; text-transform: uppercase; }
 
-.copyHintIcon {
-    color: #fca5a5;
+.modalText { color: #8899a6; margin-bottom: 30px; font-size: 1.1rem; }
+
+.modalActions { display: flex; gap: 20px; }
+.btnCancel {
+  flex: 1; padding: 15px; background: transparent; border: 1px solid #333;
+  color: #666; border-radius: 8px; cursor: pointer; transition: 0.2s;
 }
+.btnCancel:hover { color: #fff; border-color: #fff; }
+
+.btnConfirm {
+  flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold;
+  cursor: pointer; color: #000; letter-spacing: 1px;
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
+  transition: 0.2s;
+}
+.btnConfirm:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 242, 234, 0.6); }
+
+.btnConfirmStart { background: #00f2ea; }
+.btnConfirmStop { background: #00ff88; }

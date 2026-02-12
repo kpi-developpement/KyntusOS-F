@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Activity, Terminal, ArrowRight, ShieldCheck, Clock } from "lucide-react";
+import { Activity, Terminal, ArrowRight } from "lucide-react"; // Clock mchat mn hna
 import SmartTaskGrid from "@/components/features/SmartTaskGrid";
 import SystemIdle from "@/components/ui/SystemIdle";
 import LuxSelect from "@/components/ui/LuxSelect";
@@ -41,23 +41,19 @@ export default function PilotBoard() {
   useEffect(() => { refreshTasks(); }, [user, selectedTemplate]);
 
   // ✅ LOGIC JDIDA: N-determiniw ina champs li EDITABLE
-  // Hna kanjibo ghir les noms dyal les champs li kaynin f Template definition
   const allowedFields = useMemo(() => {
       if (!selectedTemplate) return [];
       const currentTmpl = templates.find(t => t.id.toString() === selectedTemplate);
-      // Ila template 3ndha fields, kan-returniw smiyathum, sinon walo
       return currentTmpl?.fields ? currentTmpl.fields.map((f: any) => f.name) : [];
   }, [selectedTemplate, templates]);
 
   // Update Data (Dynamic Fields)
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
-    // Extra Security: On vérifie aussi ici avant d'envoyer
     if (!allowedFields.includes(key)) {
         toast({message: "CHAMP VEROUILLÉ (IMPORT EXCEL) 🔒", type: "error"});
         return;
     }
 
-    // Optimistic UI pour la fluidité de la saisie
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, dynamicData: { ...t.dynamicData, [key]: value } } : t));
     try {
         await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/data`, {
@@ -67,7 +63,7 @@ export default function PilotBoard() {
     } catch (err) { console.error(err); }
   };
 
-  // ⏱️ CHRONO LOGIC ⏱️
+  // ⏱️ CHRONO LOGIC (HIDDEN IN UI) ⏱️
   const handleStatusToggle = async (taskId: number, currentStatus: string) => {
       let newStatus = "";
       if (currentStatus === "A_FAIRE") newStatus = "EN_COURS";
@@ -91,11 +87,12 @@ export default function PilotBoard() {
               setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
 
               if(newStatus === "EN_COURS") {
-                  toast({message: "CHRONO STARTED ⏱️", type: "info"});
+                  // Message Generic (Bla Timer)
+                  toast({message: "MISSION ENGAGED 🚀", type: "info"});
               }
               if(newStatus === "DONE") {
-                  const timeSpent = Math.round((updatedTask.cumulativeTimeSeconds || 0) / 60);
-                  toast({message: `MISSION COMPLETE (${timeSpent} min) ✅`, type: "success"});
+                  // Hna knt katchouf timeSpent, gl3naha bach may3e9ch
+                  toast({message: `MISSION COMPLETE ✅`, type: "success"});
               }
           } else {
               throw new Error("Server Response Not OK");
@@ -165,7 +162,6 @@ export default function PilotBoard() {
                     <div className={styles.matrixTitle}><Terminal size={20} color="#00f2ea"/> MATRIX VIEW</div>
                     <div className={styles.countBadge}>{tasks.length} ENTRIES</div>
                 </div>
-                {/* ✅ HNA FIN KAN-PASSIW L-LISTE DYAL CHAMPS EDITABLES */}
                 <SmartTaskGrid 
                     tasks={tasks} 
                     allowedFields={allowedFields} 
