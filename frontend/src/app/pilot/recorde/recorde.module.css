@@ -1,0 +1,229 @@
+/* Container & Headers */
+.dashboardContainer {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.headerArea {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.actionBtn {
+  background-color: #0f172a;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionBtn:hover {
+  background-color: #1e293b;
+  transform: translateY(-1px);
+}
+
+/* Modal UI */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: none; border: none; cursor: pointer; color: #666;
+}
+
+.modalHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.modalIcon {
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileLabel {
+  display: block;
+  padding: 2rem;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  text-align: center;
+  color: #64748b;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: border-color 0.2s;
+}
+
+.fileLabel:hover {
+  border-color: #3b82f6;
+}
+
+.modalFooter {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.cancelBtn, .uploadBtn {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background: #e2e8f0; color: #475569;
+}
+
+.uploadBtn {
+  background: #3b82f6; color: white;
+}
+
+.uploadBtn:disabled {
+  background: #93c5fd; cursor: not-allowed;
+}
+
+/* Smart Table Styles */
+.tableCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+.customTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.customTable th {
+  background-color: #f8fafc;
+  padding: 1rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.customTable td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.customTable tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Badges Versioning */
+.badgeV1 {
+  background-color: #f1f5f9;
+  color: #64748b;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgeV2 {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Filter Dropdown */
+.filterWrapper {
+  position: relative;
+}
+
+.filterIconBtn {
+  background: none; border: none; cursor: pointer; padding: 2px;
+}
+
+.filterDropdown {
+  position: absolute;
+  top: 100%; left: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  z-index: 10;
+  min-width: 150px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filterLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #334155;
+  cursor: pointer;
+}
+
+.clearFilterBtn {
+  margin-top: 0.5rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
