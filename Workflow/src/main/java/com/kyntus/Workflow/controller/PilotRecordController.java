@@ -18,7 +18,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pilot-records")
-@CrossOrigin(origins = "*") // 🔥 L'CORS S7I7 DYAL LOCALHOST
+// 🔥 L'GHALAT KAN HNA -> RADINAHA ORIGIN PATTERNS 🔥
+@CrossOrigin(originPatterns = "*")
 public class PilotRecordController {
 
     private final PilotImportService pilotImportService;
