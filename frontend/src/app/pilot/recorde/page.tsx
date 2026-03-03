@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SmartTable from "./components/SmartTable";
 import FileUploadModal from "./ui/FileUploadModal"; 
-import { Terminal, UploadCloud, CheckCircle, Search, X, Trash2, DownloadCloud, History, Clock } from "lucide-react";
+import { Terminal, UploadCloud, CheckCircle, Search, X, Trash2, DownloadCloud, History, Clock, FileText } from "lucide-react";
 
 export default function PilotRecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -11,6 +11,7 @@ export default function PilotRecordsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingHistory, setIsExportingHistory] = useState(false); 
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
@@ -20,14 +21,14 @@ export default function PilotRecordsPage() {
   const [serverVersion, setServerVersion] = useState("");
   const [serverEps, setServerEps] = useState("");
   
-  // 🔥 STATES JDAD DYAL L'VERSIONS DYNAMIQUES W L'HISTORIQUE
   const [dynamicVersions, setDynamicVersions] = useState<string[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [historyEpsInput, setHistoryEpsInput] = useState("");
   const [epsHistoryData, setEpsHistoryData] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // Fetch les versions disponibles fl Backend (V1, V2, V3, V4...)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const fetchDynamicVersions = async () => {
     try {
       const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/versions`);
@@ -35,9 +36,7 @@ export default function PilotRecordsPage() {
         const data = await res.json();
         setDynamicVersions(data);
       }
-    } catch (error) {
-      console.error("Failed to fetch versions", error);
-    }
+    } catch (error) {}
   };
 
   const fetchRecords = async () => {
@@ -54,15 +53,12 @@ export default function PilotRecordsPage() {
         setTotalPages(data.totalPages || 0);
         setTotalItems(data.totalItems || 0);
       }
-    } catch (error) {
-      console.error("Fetch failed", error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) {} 
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
-    fetchDynamicVersions(); // N-fetchiw l'versions f l'wl
+    fetchDynamicVersions();
     fetchRecords();
   }, [page, pageSize, serverVersion, serverEps]);
 
@@ -76,29 +72,25 @@ export default function PilotRecordsPage() {
         setSuccessMsg("Importation MASSIVE réussie !");
         setTimeout(() => setSuccessMsg(""), 4000);
         setPage(0);
-        fetchDynamicVersions(); // N-t2ekdou ila tzadet chi V4 awla V5
+        fetchDynamicVersions(); 
         fetchRecords(); 
       }
-    } catch (error) {
-      console.error("Upload failed", error);
-    }
+    } catch (error) {}
   };
 
   const handleClearDB = async () => {
-    const isConfirmed = window.confirm("⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la base de données ? Cette action est irréversible !");
+    const isConfirmed = window.confirm("⚠️ Voulez-vous vraiment supprimer TOUTE la base de données ?");
     if (!isConfirmed) return;
     try {
       const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/clear`, { method: "DELETE" });
       if (res.ok) {
-        setSuccessMsg("Base de données nettoyée avec succès !");
+        setSuccessMsg("Base de données nettoyée !");
         setTimeout(() => setSuccessMsg(""), 4000);
         setPage(0);
         fetchDynamicVersions();
         fetchRecords(); 
       }
-    } catch (error) {
-      console.error("Clear DB failed", error);
-    }
+    } catch (error) {}
   };
 
   const handleExport = async () => {
@@ -117,13 +109,46 @@ export default function PilotRecordsPage() {
         window.URL.revokeObjectURL(url);
         setSuccessMsg("Exportation Excel réussie !");
         setTimeout(() => setSuccessMsg(""), 4000);
+      }
+    } catch (error) {} 
+    finally { setIsExporting(false); }
+  };
+
+  const handleHistoryFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsExportingHistory(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/export-history/1`, { 
+        method: "POST", 
+        body: formData 
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Historique_EPS_${new Date().toISOString().split("T")[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        
+        setSuccessMsg("Historique généré avec succès !");
+        setTimeout(() => setSuccessMsg(""), 4000);
       } else {
-        alert("Erreur lors de l'exportation.");
+        alert("Erreur: Vérifiez votre fichier.");
       }
     } catch (error) {
-      console.error("Export failed", error);
+      console.error("Export history failed", error);
     } finally {
-      setIsExporting(false);
+      setIsExportingHistory(false);
+      if (fileInputRef.current) fileInputRef.current.value = ""; 
     }
   };
 
@@ -133,7 +158,6 @@ export default function PilotRecordsPage() {
     setPage(0);
   };
 
-  // 🔥 FONCTION JDIDA DYAL L'HISTORIQUE
   const fetchEpsHistory = async () => {
     if (!historyEpsInput) return;
     setLoadingHistory(true);
@@ -143,16 +167,13 @@ export default function PilotRecordsPage() {
         const data = await res.json();
         setEpsHistoryData(data);
       }
-    } catch (error) {
-      console.error("Failed to fetch history", error);
-    } finally {
-      setLoadingHistory(false);
-    }
+    } catch (error) {} 
+    finally { setLoadingHistory(false); }
   };
 
   return (
     <main style={{ padding: "2rem", minHeight: "100vh", backgroundColor: "#020617" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <Terminal size={28} color="#0ff" />
           <h1 style={{ color: "#e2e8f0", margin: 0, fontFamily: "monospace", fontSize: "1.8rem" }}>
@@ -160,15 +181,29 @@ export default function PilotRecordsPage() {
           </h1>
         </div>
         
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <button onClick={handleClearDB} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "rgba(239, 68, 68, 0.05)", color: "#ef4444", border: "1px solid #ef4444", padding: "0.6rem 1.2rem", borderRadius: "4px", cursor: "pointer", fontFamily: "monospace" }}>
             <Trash2 size={18} /> CLEAR DB
           </button>
+          
           <button onClick={handleExport} disabled={isExporting} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: isExporting ? "rgba(57, 255, 20, 0.2)" : "rgba(57, 255, 20, 0.05)", color: "#39ff14", border: "1px solid #39ff14", padding: "0.6rem 1.2rem", borderRadius: "4px", cursor: isExporting ? "wait" : "pointer", fontFamily: "monospace" }}>
             <DownloadCloud size={18} /> {isExporting ? "GÉNÉRATION..." : "EXPORT EXCEL"}
           </button>
+          
           <button onClick={() => setIsModalOpen(true)} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "rgba(0, 255, 255, 0.05)", color: "#0ff", border: "1px solid #0ff", padding: "0.6rem 1.2rem", borderRadius: "4px", cursor: "pointer", fontFamily: "monospace" }}>
             <UploadCloud size={18} /> IMPORT EXCEL
+          </button>
+
+          {/* 🔥 BOUTON EXPORT HISTORIQUE HYBRIDE (.TXT, .CSV, .XLSX) */}
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleHistoryFileUpload} 
+            accept=".txt, .csv, .xlsx, .xls" 
+            style={{ display: 'none' }} 
+          />
+          <button onClick={() => fileInputRef.current?.click()} disabled={isExportingHistory} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: isExportingHistory ? "rgba(255, 165, 0, 0.2)" : "rgba(255, 165, 0, 0.05)", color: "#ffa500", border: "1px solid #ffa500", padding: "0.6rem 1.2rem", borderRadius: "4px", cursor: isExportingHistory ? "wait" : "pointer", fontFamily: "monospace" }}>
+            <FileText size={18} /> {isExportingHistory ? "TRAITEMENT..." : "EXPORT HISTORIQUE PAR EPS"}
           </button>
         </div>
       </div>
@@ -177,7 +212,6 @@ export default function PilotRecordsPage() {
         <Search size={20} color="#64748b" />
         <input type="text" placeholder="Rechercher par idIntervention..." value={serverEps} onChange={(e) => { setServerEps(e.target.value); setPage(0); }} style={{ background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0", padding: "0.5rem 1rem", borderRadius: "4px", outline: "none", width: "300px" }} />
         
-        {/* 🔥 DROPDOWN DYNAMIQUE 🔥 */}
         <select value={serverVersion} onChange={(e) => { setServerVersion(e.target.value); setPage(0); }} style={{ background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0", padding: "0.5rem 1rem", borderRadius: "4px", outline: "none" }}>
           <option value="">Toutes les versions</option>
           {dynamicVersions.map((v) => (
@@ -189,10 +223,9 @@ export default function PilotRecordsPage() {
           <button onClick={clearFilters} style={{ display: "flex", alignItems: "center", gap: "5px", background: "transparent", color: "#ef4444", border: "none", cursor: "pointer", fontSize: "0.9rem" }}><X size={16} /> Effacer</button>
         )}
 
-        {/* 🔥 BOUTON HISTORIQUE (TIMELINE) 🔥 */}
         <div style={{ marginLeft: "auto" }}>
           <button onClick={() => setIsHistoryModalOpen(true)} style={{ display: "flex", alignItems: "center", gap: "8px", backgroundColor: "rgba(168, 85, 247, 0.1)", color: "#a855f7", border: "1px solid #a855f7", padding: "0.5rem 1rem", borderRadius: "4px", cursor: "pointer", fontFamily: "monospace" }}>
-            <History size={18} /> HISTORIQUE COMMENTAIRES
+            <History size={18} /> HISTORIQUE (RECHERCHE RAPIDE)
           </button>
         </div>
       </div>
@@ -205,7 +238,6 @@ export default function PilotRecordsPage() {
       
       <FileUploadModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onUpload={handleUpload} />
 
-      {/* 🔥 MODAL DE L'HISTORIQUE (TIMELINE) 🔥 */}
       {isHistoryModalOpen && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000, backdropFilter: "blur(4px)" }}>
           <div style={{ backgroundColor: "#0f172a", border: "1px solid #334155", borderRadius: "8px", width: "600px", maxWidth: "90%", maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
