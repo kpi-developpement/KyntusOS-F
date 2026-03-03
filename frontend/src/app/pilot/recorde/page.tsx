@@ -30,7 +30,7 @@ export default function PilotRecordsPage() {
   // Fetch les versions disponibles fl Backend (V1, V2, V3, V4...)
   const fetchDynamicVersions = async () => {
     try {
-      const res = await fetch(`http://localhost:8080/api/pilot-records/versions`);
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/versions`);
       if (res.ok) {
         const data = await res.json();
         setDynamicVersions(data);
@@ -43,7 +43,7 @@ export default function PilotRecordsPage() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      let url = `http://localhost:8080/api/pilot-records/1?page=${page}&size=${pageSize}`;
+      let url = `http://kyntusos.kyntus.fr:8082/api/pilot-records/1?page=${page}&size=${pageSize}`;
       if (serverVersion) url += `&version=${serverVersion}`;
       if (serverEps) url += `&eps=${serverEps}`;
 
@@ -70,7 +70,7 @@ export default function PilotRecordsPage() {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const res = await fetch(`http://localhost:8080/api/pilot-records/import/1`, { method: "POST", body: formData });
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/import/1`, { method: "POST", body: formData });
       if (res.ok) {
         setIsModalOpen(false);
         setSuccessMsg("Importation MASSIVE réussie !");
@@ -88,7 +88,7 @@ export default function PilotRecordsPage() {
     const isConfirmed = window.confirm("⚠️ ATTENTION : Voulez-vous vraiment supprimer TOUTE la base de données ? Cette action est irréversible !");
     if (!isConfirmed) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/pilot-records/clear`, { method: "DELETE" });
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/clear`, { method: "DELETE" });
       if (res.ok) {
         setSuccessMsg("Base de données nettoyée avec succès !");
         setTimeout(() => setSuccessMsg(""), 4000);
@@ -104,7 +104,7 @@ export default function PilotRecordsPage() {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/pilot-records/export/1`);
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/export/1`);
       if (res.ok) {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
@@ -138,7 +138,7 @@ export default function PilotRecordsPage() {
     if (!historyEpsInput) return;
     setLoadingHistory(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/pilot-records/history/${historyEpsInput.trim()}`);
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/history/${historyEpsInput.trim()}`);
       if (res.ok) {
         const data = await res.json();
         setEpsHistoryData(data);
