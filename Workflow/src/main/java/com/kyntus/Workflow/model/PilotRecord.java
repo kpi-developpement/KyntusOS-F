@@ -1,36 +1,46 @@
 package com.kyntus.Workflow.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import java.time.LocalDateTime;
+
+import java.util.Date;
 import java.util.Map;
 
 @Entity
+@Table(name = "pilot_records")
 @Data
-@Table(name = "pilot_records", indexes = @Index(name = "idx_pilot_eps", columnList = "epsReference"))
 public class PilotRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "eps_reference", nullable = false)
     private String epsReference;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pilot_id", nullable = false)
-    // 🔥 L'FIX HOWA HADA: Kan-goulou l'Jackson y-fot had l'objet melli ysawb JSON
-    @JsonIgnore
-    private User pilot;
-
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "dynamic_data", columnDefinition = "jsonb")
     private Map<String, Object> dynamicData;
 
-    private String version = "V1";
+    @Column(name = "version")
+    private String version;
 
-    private LocalDateTime importedAt = LocalDateTime.now();
+    @Column(name = "imported_at")
+    private Date importedAt;
+
+    @Column(name = "import_year", nullable = false)
+    private Integer importYear;
+
+    @Column(name = "import_month", nullable = false)
+    private Integer importMonth;
+
+    // 🔥 LA NOUVELLE COLONNE CATEGORY (EX: RACC)
+    @Column(name = "category", nullable = false)
+    private String category;
+
+    @ManyToOne
+    @JoinColumn(name = "pilot_id")
+    private User pilot;
 }

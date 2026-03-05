@@ -18,7 +18,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pilot-records")
-// 🔥 L'GHALAT KAN HNA -> RADINAHA ORIGIN PATTERNS 🔥
 @CrossOrigin(originPatterns = "*")
 public class PilotRecordController {
 
@@ -31,9 +30,14 @@ public class PilotRecordController {
     }
 
     @PostMapping("/import/{pilotId}")
-    public ResponseEntity<?> importPilotData(@RequestParam("file") MultipartFile file, @PathVariable Long pilotId) {
+    public ResponseEntity<?> importPilotData(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("category") String category,
+            @PathVariable Long pilotId) {
         try {
-            pilotImportService.importPilotExcel(file, pilotId);
+            pilotImportService.importPilotExcel(file, pilotId, year, month, category);
             return ResponseEntity.ok().body("{\"message\": \"Importation réussie avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,20 +45,22 @@ public class PilotRecordController {
         }
     }
 
-    // 🔥 RJO3 L'VERSION L'ASSLIYA LI KATFHEMHA "SMART TABLE"
     @GetMapping("/{pilotId}")
     public ResponseEntity<Map<String, Object>> getPilotRecords(
             @PathVariable Long pilotId,
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(required = false) String version,
             @RequestParam(required = false) String eps) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-            Page<PilotRecord> recordsPage = pilotRecordRepository.findAdvancedFilters(version, eps, pageable);
+            Page<PilotRecord> recordsPage = pilotRecordRepository.findAdvancedFilters(category, year, month, version, eps, pageable);
 
             Map<String, Object> response = new HashMap<>();
-            response.put("content", recordsPage.getContent()); // L'DATA KAT-MCHI KIMA HIYA
+            response.put("content", recordsPage.getContent());
             response.put("currentPage", recordsPage.getNumber());
             response.put("totalItems", recordsPage.getTotalElements());
             response.put("totalPages", recordsPage.getTotalPages());
@@ -66,11 +72,15 @@ public class PilotRecordController {
         }
     }
 
+    // 🚀🔥 L'ENDPOINT DE SUPPRESSION CIBLÉ (SNIPER)
     @DeleteMapping("/clear")
-    public ResponseEntity<?> clearDatabase() {
+    public ResponseEntity<?> clearDatabase(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
         try {
-            pilotImportService.clearAllRecords();
-            return ResponseEntity.ok().body("{\"message\": \"Base de données vidée\"}");
+            pilotImportService.clearRecordsByCategoryAndDate(category, year, month);
+            return ResponseEntity.ok().body("{\"message\": \"Base de données nettoyée pour " + category + " (" + month + "/" + year + ")\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -78,12 +88,16 @@ public class PilotRecordController {
     }
 
     @GetMapping("/export/{pilotId}")
-    public ResponseEntity<byte[]> exportPilotRecords(@PathVariable Long pilotId) {
+    public ResponseEntity<byte[]> exportPilotRecords(
+            @PathVariable Long pilotId,
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
         try {
-            byte[] excelData = pilotImportService.exportToExcel(pilotId);
+            byte[] excelData = pilotImportService.exportToExcel(pilotId, year, month, category);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Kyntus_Data_Records.xlsx");
+            headers.setContentDispositionFormData("attachment", "Kyntus_" + category + "_" + year + "_" + month + ".xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,9 +106,9 @@ public class PilotRecordController {
     }
 
     @GetMapping("/versions")
-    public ResponseEntity<List<String>> getAvailableVersions() {
+    public ResponseEntity<List<String>> getAvailableVersions(@RequestParam("category") String category) {
         try {
-            List<String> versions = pilotRecordRepository.findDistinctVersions();
+            List<String> versions = pilotRecordRepository.findDistinctVersions(category);
             return ResponseEntity.ok(versions != null ? versions : new ArrayList<>());
         } catch (Exception e) {
             e.printStackTrace();
@@ -103,9 +117,13 @@ public class PilotRecordController {
     }
 
     @GetMapping("/history/{eps}")
-    public ResponseEntity<List<Map<String, Object>>> getEpsHistory(@PathVariable String eps) {
+    public ResponseEntity<List<Map<String, Object>>> getEpsHistory(
+            @PathVariable String eps,
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
         try {
-            List<PilotRecord> records = pilotRecordRepository.findHistoryByEps(eps);
+            List<PilotRecord> records = pilotRecordRepository.findHistoryByEps(eps, category, year, month);
             List<Map<String, Object>> historyList = new ArrayList<>();
             for (PilotRecord r : records) {
                 Map<String, Object> item = new HashMap<>();
@@ -132,12 +150,17 @@ public class PilotRecordController {
     }
 
     @PostMapping("/export-history/{pilotId}")
-    public ResponseEntity<byte[]> exportHistoryByEpsList(@RequestParam("file") MultipartFile file, @PathVariable Long pilotId) {
+    public ResponseEntity<byte[]> exportHistoryByEpsList(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @PathVariable Long pilotId) {
         try {
-            byte[] excelData = pilotImportService.exportHistoryByEpsList(file, pilotId);
+            byte[] excelData = pilotImportService.exportHistoryByEpsList(file, pilotId, year, month, category);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Kyntus_Historique_EPS.xlsx");
+            headers.setContentDispositionFormData("attachment", "Historique_" + category + "_" + year + "_" + month + ".xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();

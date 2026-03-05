@@ -1,148 +1,208 @@
-.tableContainer {
-  width: 100%;
-  max-height: 75vh;
-  overflow: auto;
-  background: #020617;
+/* SmartTable.module.css - ULTRA PERFORMANCE & PREMIUM DESIGN */
+
+.container {
+  background-color: #0b1120;
   border: 1px solid #1e293b;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  padding-bottom: 50px; /* Bach l'menu dyal filtre lta7t mayt9te3ch */
+  border-radius: 10px;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* Scrollbar Tactical */
-.tableContainer::-webkit-scrollbar { width: 8px; height: 8px; }
-.tableContainer::-webkit-scrollbar-track { background: #0f172a; }
-.tableContainer::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-.tableContainer::-webkit-scrollbar-thumb:hover { background: #0ff; }
+/* HEADER DU TABLEAU */
+.header {
+  padding: 1.25rem 1.5rem;
+  background-color: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-.kntTable {
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: -0.025em;
+}
+
+.totalBadge {
+  background-color: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  letter-spacing: 0.5px;
+}
+
+/* SCROLL AREA OPTIMISÉE */
+.scrollWrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh; /* Garde le tableau dans l'écran */
+  background-color: #0b1120;
+  will-change: transform; /* Hardware Acceleration */
+}
+
+/* SCROLLBAR PREMIUM */
+.scrollWrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+.scrollWrapper::-webkit-scrollbar-track { background: #0b1120; }
+.scrollWrapper::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+.scrollWrapper::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* LE TABLEAU (FIXED POUR LA VITESSE) */
+.table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
-  font-family: 'Courier New', Courier, monospace;
-  color: #e2e8f0;
+  min-width: 1200px;
+}
+
+/* EN-TÊTES FIXES (STICKY) */
+.th {
+  position: sticky;
+  top: 0;
+  background-color: #0f172a;
+  color: #94a3b8;
+  padding: 1rem 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #1e293b;
+  z-index: 10;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* LIGNES (ZERO ANIMATION POUR MAX FPS) */
+.tr {
+  background-color: #0b1120;
+}
+.tr:nth-child(even) {
+  background-color: #0f172a; /* Zebra striping subtil */
+}
+.tr:hover {
+  background-color: #1e293b; /* Changement de couleur instantané, pas de lag */
+}
+
+.td {
+  padding: 0.875rem 1.5rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #1e293b;
   white-space: nowrap;
 }
 
-.kntTable thead {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: #0f172a;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+.epsRef {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
 }
 
-.kntTable th {
-  padding: 1rem;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  color: #0ff;
-  border-bottom: 2px solid #0ff;
+/* BADGES MODERNES (MINIMALISTES) */
+.badge {
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.badgeOk { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+.badgeKo { background-color: rgba(244, 63, 94, 0.15); color: #f43f5e; }
+.badgeWarn { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.badgeNeutral { background-color: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+.badgeVersion { background-color: rgba(139, 92, 246, 0.15); color: #a855f7; font-family: monospace; }
+
+/* CELLULE COMMENTAIRE */
+.commentaire {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #64748b;
 }
 
-.thContent {
+/* FOOTER / PAGINATION */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background-color: #0f172a;
+  border-top: 1px solid #1e293b;
+}
+
+.select {
+  background-color: #0b1120;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  outline: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.select:focus { border-color: #38bdf8; }
+
+.pageControls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  position: relative; /* Darouri bach l'dropdown yban mzyan */
+  gap: 1.5rem;
 }
 
-.kntTable td {
-  padding: 0.8rem 1rem;
-  font-size: 0.85rem;
-  border-bottom: 1px solid #1e293b;
+.pageText {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+.pageHighlight {
+  color: #f8fafc;
+  font-weight: 600;
 }
 
-.kntTable tbody tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
-.kntTable tbody tr:hover { background-color: rgba(0, 255, 255, 0.05); }
-
-.badgeV1 { background: #1e293b; color: #94a3b8; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; }
-.badgeV2 { background: rgba(57, 255, 20, 0.1); color: #39ff14; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; border: 1px solid #39ff14; }
-
-/* 🔥 L'FIX DYAL L'FILTRE HNA 🔥 */
-.filterWrapper { position: relative; }
-
-.filterIconBtn { 
-  background: rgba(255, 255, 255, 0.05); 
-  border: 1px solid transparent; 
-  color: #64748b; 
-  cursor: pointer; 
-  display: flex; 
-  align-items: center; 
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
-
-.filterIconBtn:hover { color: #0ff; border-color: #0ff; background: rgba(0, 255, 255, 0.1); }
-.activeFilter { color: #0ff !important; border-color: #0ff; background: rgba(0, 255, 255, 0.1); }
-
-.filterDropdown {
-  position: absolute; 
-  top: calc(100% + 5px); 
-  left: 0; /* Lss9nah f lissr bach maykhrjch 3la chacha */
-  background: #0f172a; 
-  border: 1px solid #0ff; /* Neon border */
-  border-radius: 6px; 
-  padding: 0.8rem; 
-  z-index: 999; /* Z-index s7i7 */
-  min-width: 200px; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-}
-
-.filterList { 
-  max-height: 180px; 
-  overflow-y: auto; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 6px;
-  padding-right: 5px;
-}
-
-/* Scrollbar sghira l'dropdown */
-.filterList::-webkit-scrollbar { width: 4px; }
-.filterList::-webkit-scrollbar-track { background: transparent; }
-.filterList::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-
-.filterLabel { 
-  display: flex; 
-  align-items: center; 
-  gap: 0.6rem; 
-  font-size: 0.8rem; 
-  cursor: pointer; 
+.pageBtn {
+  background-color: #1e293b;
+  border: 1px solid #334155;
   color: #e2e8f0;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.filterLabel:hover {
-  background: #1e293b;
-}
-
-.kntCheckbox {
-  accent-color: #0ff;
-  width: 14px;
-  height: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
 }
-
-.clearBtn { 
-  background: rgba(239, 68, 68, 0.1); 
-  color: #ef4444; 
-  border: 1px solid rgba(239, 68, 68, 0.3); 
-  border-radius: 4px;
-  margin-top: 5px; 
-  padding: 6px; 
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s;
+.pageBtn:hover:not(:disabled) {
+  background-color: #334155;
+  border-color: #475569;
+  color: #38bdf8;
+}
+.pageBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
-.clearBtn:hover {
-  background: rgba(239, 68, 68, 0.2); 
+/* LOADING STATE */
+.loadingContainer {
+  padding: 8rem 2rem;
+  text-align: center;
+  background-color: #0b1120;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+}
+.loadingText {
+  color: #94a3b8;
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
 }
