@@ -1,5 +1,8 @@
 package com.kyntus.Workflow.service;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -12,6 +15,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,6 +40,7 @@ public class PilotImportService {
     private final DataSource dataSource;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final JsonFactory jsonFactory;
     private final ObjectWriter mapWriter;
 
     public PilotImportService(JdbcTemplate jdbcTemplate, DataSource dataSource, UserRepository userRepository, ObjectMapper objectMapper, PilotRecordRepository pilotRecordRepository) {
@@ -43,34 +48,44 @@ public class PilotImportService {
         this.dataSource = dataSource;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
+        this.jsonFactory = objectMapper.getFactory();
         this.mapWriter = objectMapper.writerFor(Map.class);
     }
 
-    // 🚀🔥 IMPORTATION GOD-TIER (Vitesse Max + Logique Originale Anti-Doublon)
+    // 🚀🔥 IMPORTATION GOD-TIER (Zero Doublons, SQL Standard pour le SELECT, JSONB pour l'INSERT)
     public void importPilotExcel(MultipartFile file, Long pilotId, int year, int month, String category) throws Exception {
         User pilot = userRepository.findAll().stream()
                 .filter(u -> u.getRole().toString().equals("PILOT"))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Pilote non trouvé!"));
 
-        Map<String, Set<Integer>> existingMap = new HashMap<>(250000);
+        Map<String, Set<Integer>> existingHashes = new HashMap<>(250000);
+        Map<String, Set<String>> existingVersions = new HashMap<>(250000);
 
-        String checkSql = "SELECT eps_reference, dynamic_data::text FROM pilot_records WHERE pilot_id = ? AND import_year = ? AND import_month = ? AND category = ?";
+        // 🛡️ FIX 1: Retrait du ::text pour une compatibilité Serveur 100%
+        String checkSql = "SELECT eps_reference, version, dynamic_data FROM pilot_records WHERE pilot_id = ? AND import_year = ? AND import_month = ? AND category = ?";
         jdbcTemplate.setFetchSize(10000);
 
         jdbcTemplate.query(checkSql, rs -> {
             String eps = rs.getString(1);
-            String dataJson = rs.getString(2);
+            String version = rs.getString(2);
+            String dataJson = rs.getString(3); // JDBC lira automatiquement le JSONB en tant que String
+
+            if (version != null) {
+                existingVersions.computeIfAbsent(eps, k -> new HashSet<>(2)).add(version.toUpperCase());
+            }
+
             try {
                 Map<String, Object> rawMap = objectMapper.readValue(dataJson, new TypeReference<Map<String, Object>>() {});
                 Map<String, String> normalizedMap = new HashMap<>(rawMap.size());
                 for(Map.Entry<String, Object> e : rawMap.entrySet()) {
                     normalizedMap.put(e.getKey(), e.getValue() != null ? String.valueOf(e.getValue()).trim() : "");
                 }
-                existingMap.computeIfAbsent(eps, k -> new HashSet<>(2)).add(normalizedMap.hashCode());
+                existingHashes.computeIfAbsent(eps, k -> new HashSet<>(2)).add(normalizedMap.hashCode());
             } catch (Exception ignored) {}
         }, pilot.getId(), year, month, category);
 
+        // 🛡️ FIX 2: Maintien strict du ?::jsonb UNIQUEMENT pour l'insert pour satisfaire PostgreSQL
         String insertSql = "INSERT INTO pilot_records (eps_reference, dynamic_data, version, imported_at, pilot_id, import_year, import_month, category) VALUES (?, ?::jsonb, ?, ?, ?, ?, ?, ?)";
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
@@ -106,6 +121,7 @@ public class PilotImportService {
                 }
 
                 int batchCount = 0;
+
                 while (rowIterator.hasNext()) {
                     org.dhatim.fastexcel.reader.Row row = rowIterator.next();
                     String eps = "";
@@ -122,6 +138,7 @@ public class PilotImportService {
                             if (!eps.isEmpty()) rowIsEmpty = false;
                             continue;
                         }
+
                         if (i == versionColIndex) {
                             explicitVersion = cleanVal;
                             continue;
@@ -129,6 +146,7 @@ public class PilotImportService {
 
                         String colName = colMap.get(i);
                         if (colName == null) continue;
+
                         if (!cleanVal.isEmpty()) rowIsEmpty = false;
                         dynamicData.put(colName, cleanVal);
                     }
@@ -137,13 +155,19 @@ public class PilotImportService {
                     if (eps.isEmpty()) eps = "AUTO-" + Long.toHexString(System.nanoTime());
 
                     int currentHash = dynamicData.hashCode();
-                    Set<Integer> versionsSet = existingMap.getOrDefault(eps, Collections.emptySet());
+                    Set<Integer> hashesSet = existingHashes.getOrDefault(eps, Collections.emptySet());
 
-                    if (versionsSet.contains(currentHash)) continue;
+                    if (hashesSet.contains(currentHash)) continue;
+
+                    Set<String> versionsSet = existingVersions.computeIfAbsent(eps, k -> new HashSet<>(2));
 
                     String finalVersion = (explicitVersion != null && !explicitVersion.isEmpty())
                             ? explicitVersion.toUpperCase()
                             : "V" + (versionsSet.size() + 1);
+
+                    if (versionsSet.contains(finalVersion) && (explicitVersion == null || explicitVersion.isEmpty())) {
+                        finalVersion = "V" + (versionsSet.size() + 1);
+                    }
 
                     String currentDataJson = mapWriter.writeValueAsString(dynamicData);
 
@@ -157,7 +181,8 @@ public class PilotImportService {
                     ps.setString(8, category);
                     ps.addBatch();
 
-                    existingMap.computeIfAbsent(eps, k -> new HashSet<>(2)).add(currentHash);
+                    existingHashes.computeIfAbsent(eps, k -> new HashSet<>(2)).add(currentHash);
+                    versionsSet.add(finalVersion);
 
                     batchCount++;
                     if (batchCount % 10000 == 0) {
@@ -166,6 +191,7 @@ public class PilotImportService {
                         ps.clearBatch();
                     }
                 }
+
                 if (batchCount % 10000 != 0) {
                     ps.executeBatch();
                     conn.commit();
@@ -174,9 +200,10 @@ public class PilotImportService {
         }
     }
 
-    // 🚀🔥 EXPORT GLOBAL (Vitesse Absolue)
+    // 🚀🔥 EXPORT GLOBAL (SQL Clean sans grammaire spécifique)
     @Transactional(readOnly = true)
     public byte[] exportToExcel(Long pilotId, int year, int month, String category) throws Exception {
+
         String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE import_year = ? AND import_month = ? AND category = ?";
         List<String> dbKeys = jdbcTemplate.queryForList(keysSql, String.class, year, month, category);
 
@@ -185,15 +212,17 @@ public class PilotImportService {
                 || h.equalsIgnoreCase("etat") || h.equalsIgnoreCase("commentaire"));
 
         List<String> finalDynamicHeaders = new ArrayList<>(dynamicHeaders);
-        StringBuilder sqlBuilder = new StringBuilder("SELECT eps_reference, version, dynamic_data->>'etat', dynamic_data->>'commentaire'");
-        for (String h : finalDynamicHeaders) {
-            sqlBuilder.append(", dynamic_data->>'").append(h.replace("'", "''")).append("'");
+        Map<String, Integer> headerIndexMap = new HashMap<>();
+        for (int i = 0; i < finalDynamicHeaders.size(); i++) {
+            headerIndexMap.put(finalDynamicHeaders.get(i), i + 4);
         }
-        sqlBuilder.append(", imported_at FROM pilot_records WHERE import_year = ? AND import_month = ? AND category = ?");
+
+        // 🛡️ FIX 3: Retrait du ::text
+        String finalSql = "SELECT eps_reference, version, dynamic_data, imported_at FROM pilot_records WHERE import_year = ? AND import_month = ? AND category = ?";
 
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
              Connection conn = dataSource.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())) {
+             PreparedStatement ps = conn.prepareStatement(finalSql)) {
 
             conn.setAutoCommit(false);
             ps.setFetchSize(10000);
@@ -211,12 +240,39 @@ public class PilotImportService {
             headerRow.createCell(hIdx).setCellValue("IMPORT_DATE");
 
             try (ResultSet rs = ps.executeQuery()) {
-                int rowIdx = 1;
+                int rowNum = 1;
                 while (rs.next()) {
-                    org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
-                    for (int i = 1; i <= finalDynamicHeaders.size() + 5; i++) {
-                        row.createCell(i - 1).setCellValue(rs.getString(i) != null ? rs.getString(i) : "");
-                    }
+                    org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+                    row.createCell(0).setCellValue(rs.getString(1) != null ? rs.getString(1) : "");
+                    row.createCell(1).setCellValue(rs.getString(2) != null ? rs.getString(2) : "");
+                    java.sql.Timestamp importedAt = rs.getTimestamp(4);
+
+                    String dataJson = rs.getString(3);
+
+                    try (JsonParser parser = jsonFactory.createParser(dataJson)) {
+                        while (!parser.isClosed()) {
+                            JsonToken token = parser.nextToken();
+                            if (token == null) break;
+                            if (token == JsonToken.FIELD_NAME) {
+                                String key = parser.getCurrentName();
+                                parser.nextToken();
+                                String value = parser.getText();
+
+                                if (key.equalsIgnoreCase("etat")) {
+                                    row.createCell(2).setCellValue(value);
+                                } else if (key.equalsIgnoreCase("commentaire")) {
+                                    row.createCell(3).setCellValue(value);
+                                } else {
+                                    Integer colIdx = headerIndexMap.get(key);
+                                    if (colIdx != null) {
+                                        row.createCell(colIdx).setCellValue(value != null ? value : "");
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {}
+
+                    row.createCell(finalDynamicHeaders.size() + 4).setCellValue(importedAt != null ? importedAt.toString() : "");
                 }
             }
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -226,13 +282,12 @@ public class PilotImportService {
         }
     }
 
-    // 🚀🔥 EXPORT HISTORIQUE (Fixing the missing method error)
+    // 🚀🔥 EXPORT HISTORIQUE (SQL Clean)
     @Transactional(readOnly = true)
     public byte[] exportHistoryByEpsList(MultipartFile file, Long pilotId, int year, int month, String category) throws Exception {
         Set<String> inputEpsList = new LinkedHashSet<>();
         String filename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
 
-        // 1. Lecture du fichier cible
         if (filename.endsWith(".txt") || filename.endsWith(".csv")) {
             try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
@@ -254,9 +309,7 @@ public class PilotImportService {
                         int epsCol = 0;
                         for (int i = 0; i < header.getCellCount(); i++) {
                             String text = header.getCellText(i);
-                            if (text != null && (text.trim().equalsIgnoreCase("EPS") || text.trim().equalsIgnoreCase("idIntervention"))) {
-                                epsCol = i;
-                            }
+                            if (text != null && (text.trim().equalsIgnoreCase("EPS") || text.trim().equalsIgnoreCase("idIntervention"))) epsCol = i;
                         }
                         while (it.hasNext()) {
                             org.dhatim.fastexcel.reader.Row row = it.next();
@@ -279,14 +332,14 @@ public class PilotImportService {
         List<String> epsArrayList = new ArrayList<>(inputEpsList);
         int batchSize = 5000;
 
-        // 2. Scan BDD ultra rapide (Native JSON)
         try (Connection conn = dataSource.getConnection()) {
             conn.setAutoCommit(false);
             for (int i = 0; i < epsArrayList.size(); i += batchSize) {
                 List<String> subList = epsArrayList.subList(i, Math.min(i + batchSize, epsArrayList.size()));
                 String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
 
-                String sql = "SELECT eps_reference, version, dynamic_data->>'commentaire' FROM pilot_records " +
+                // 🛡️ FIX 4: Retrait du ::text
+                String sql = "SELECT eps_reference, version, dynamic_data FROM pilot_records " +
                         "WHERE import_year = ? AND import_month = ? AND category = ? AND LOWER(TRIM(eps_reference)) IN (" + inSql + ") ORDER BY id ASC";
 
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -299,9 +352,24 @@ public class PilotImportService {
                         while (rs.next()) {
                             String eps = rs.getString(1);
                             String ver = rs.getString(2) != null ? rs.getString(2).trim().toUpperCase() : "V1";
-                            String comm = rs.getString(3);
+                            String dataJson = rs.getString(3);
+                            String comm = "-";
+
+                            try (JsonParser parser = jsonFactory.createParser(dataJson)) {
+                                while (!parser.isClosed()) {
+                                    JsonToken token = parser.nextToken();
+                                    if (token == null) break;
+                                    if (token == JsonToken.FIELD_NAME && parser.getCurrentName().equalsIgnoreCase("commentaire")) {
+                                        parser.nextToken();
+                                        comm = parser.getText();
+                                        if(comm == null || comm.trim().isEmpty()) comm = "-";
+                                        break;
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+
                             allDiscoveredVersions.add(ver);
-                            if (historyMap.containsKey(eps)) historyMap.get(eps).put(ver, comm != null ? comm : "-");
+                            if (historyMap.containsKey(eps)) historyMap.get(eps).put(ver, comm);
                         }
                     }
                 }
@@ -309,7 +377,6 @@ public class PilotImportService {
             conn.commit();
         }
 
-        // 3. Tri et Génération Excel
         List<String> sortedVersions = new ArrayList<>(allDiscoveredVersions);
         sortedVersions.sort((v1, v2) -> {
             try {
@@ -317,11 +384,14 @@ public class PilotImportService {
             } catch (Exception e) { return v1.compareTo(v2); }
         });
 
+        if (sortedVersions.isEmpty()) sortedVersions.add("V1");
+
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(100)) {
+            workbook.setCompressTempFiles(true);
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Historique EPS");
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             headerRow.createCell(0).setCellValue("EPS");
-            for (int i = 0; i < sortedVersions.size(); i++) headerRow.createCell(i + 1).setCellValue("COM " + sortedVersions.get(i));
+            for (int i = 0; i < sortedVersions.size(); i++) headerRow.createCell(i + 1).setCellValue("COMMENTAIRE " + sortedVersions.get(i));
 
             int rIdx = 1;
             for (String originalEps : inputEpsList) {
@@ -340,12 +410,17 @@ public class PilotImportService {
     }
 
     // 🔥 SNIPER DELETE (Anti-Deadlock)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void clearRecordsByCategoryAndDate(String category, int year, int month) {
         String sql = "DELETE FROM pilot_records WHERE id IN (SELECT id FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ? LIMIT 10000)";
-        int deleted;
+        int deletedRows;
         do {
-            deleted = jdbcTemplate.update(sql, category, year, month);
-            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-        } while (deleted > 0);
+            deletedRows = jdbcTemplate.update(sql, category, year, month);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        } while (deletedRows > 0);
     }
 }
