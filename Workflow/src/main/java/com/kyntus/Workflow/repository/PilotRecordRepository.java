@@ -25,9 +25,18 @@ public interface PilotRecordRepository extends JpaRepository<PilotRecord, Long> 
                                           @Param("eps") String eps,
                                           Pageable pageable);
 
-    // 🔥 VERSIONS PAR CATEGORIE (Pour ne pas mélanger les versions du RACC avec un autre type)
+    // 🔥 VERSIONS PAR CATEGORIE (Galinaha kima hiya bach may-tderbch lik l'code qdim)
     @Query("SELECT DISTINCT p.version FROM PilotRecord p WHERE p.category = :category ORDER BY p.version")
     List<String> findDistinctVersions(@Param("category") String category);
+
+    // 🚀🧠 THE SMART DROPDOWN FILTER (ZEDNA HADI BASH YWLLI DKI)
+    @Query("SELECT DISTINCT p.version FROM PilotRecord p WHERE p.category = :category " +
+            "AND (:year IS NULL OR p.importYear = :year) " +
+            "AND (:month IS NULL OR p.importMonth = :month) " +
+            "ORDER BY p.version")
+    List<String> findDistinctVersionsByDate(@Param("category") String category,
+                                            @Param("year") Integer year,
+                                            @Param("month") Integer month);
 
     // 🔥 HISTORIQUE POUR UN EPS DANS UNE CATEGORIE + MOIS + ANNEE
     @Query("SELECT p FROM PilotRecord p WHERE LOWER(p.epsReference) = LOWER(:eps) " +

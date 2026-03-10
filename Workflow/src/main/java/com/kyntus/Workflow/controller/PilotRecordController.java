@@ -29,6 +29,7 @@ public class PilotRecordController {
         this.pilotRecordRepository = pilotRecordRepository;
     }
 
+    // 🔥 FIX: Rje3naha "file" (MultipartFile) wa7ed, 7it l'Frontend kay-looppi w kay-sifethom wa7ed b'wa7ed b'zzerba!
     @PostMapping("/import/{pilotId}")
     public ResponseEntity<?> importPilotData(
             @RequestParam("file") MultipartFile file,
@@ -38,7 +39,7 @@ public class PilotRecordController {
             @PathVariable Long pilotId) {
         try {
             pilotImportService.importPilotExcel(file, pilotId, year, month, category);
-            return ResponseEntity.ok().body("{\"message\": \"Importation réussie avec succès\"}");
+            return ResponseEntity.ok().body("{\"message\": \"Importation du fichier réussie avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -72,7 +73,6 @@ public class PilotRecordController {
         }
     }
 
-    // 🚀🔥 L'ENDPOINT DE SUPPRESSION CIBLÉ (SNIPER)
     @DeleteMapping("/clear")
     public ResponseEntity<?> clearDatabase(
             @RequestParam("category") String category,
@@ -106,10 +106,26 @@ public class PilotRecordController {
     }
 
     @GetMapping("/versions")
-    public ResponseEntity<List<String>> getAvailableVersions(@RequestParam("category") String category) {
+    public ResponseEntity<List<String>> getAvailableVersions(
+            @RequestParam("category") String category,
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "month", required = false) Integer month) {
         try {
-            List<String> versions = pilotRecordRepository.findDistinctVersions(category);
-            return ResponseEntity.ok(versions != null ? versions : new ArrayList<>());
+            List<String> versions = pilotRecordRepository.findDistinctVersionsByDate(category, year, month);
+            if (versions != null) {
+                List<String> mutableVersions = new ArrayList<>(versions);
+                mutableVersions.sort((v1, v2) -> {
+                    try {
+                        int num1 = Integer.parseInt(v1.replaceAll("\\D+", ""));
+                        int num2 = Integer.parseInt(v2.replaceAll("\\D+", ""));
+                        return Integer.compare(num1, num2);
+                    } catch (Exception e) {
+                        return v1.compareTo(v2);
+                    }
+                });
+                return ResponseEntity.ok(mutableVersions);
+            }
+            return ResponseEntity.ok(new ArrayList<>());
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
@@ -161,6 +177,82 @@ public class PilotRecordController {
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             headers.setContentDispositionFormData("attachment", "Historique_" + category + "_" + year + "_" + month + ".xlsx");
+            return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/imported-files")
+    public ResponseEntity<List<String>> getImportedFiles(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+        try {
+            List<String> files = pilotImportService.getImportedFiles(category, year, month);
+            return ResponseEntity.ok(files != null ? files : new ArrayList<>());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<List<String>> getValidationAlerts(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+        try {
+            List<String> alerts = pilotImportService.getValidationAlerts(category, year, month);
+            return ResponseEntity.ok(alerts != null ? alerts : new ArrayList<>());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/alerts-comments")
+    public ResponseEntity<List<String>> getDuplicateCommentAlerts(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+        try {
+            List<String> alerts = pilotImportService.getDuplicateCommentAlerts(category, year, month);
+            return ResponseEntity.ok(alerts != null ? alerts : new ArrayList<>());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/export-alerts")
+    public ResponseEntity<byte[]> exportAlertsToExcel(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+        try {
+            byte[] excelData = pilotImportService.exportAnomaliesToExcel(category, year, month);
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", "Anomalies_Statut_" + category + "_" + year + "_" + month + ".xlsx");
+            return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/export-alerts-comments")
+    public ResponseEntity<byte[]> exportCommentAlertsToExcel(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) {
+        try {
+            byte[] excelData = pilotImportService.exportDuplicateCommentsToExcel(category, year, month);
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", "Anomalies_Commentaires_" + category + "_" + year + "_" + month + ".xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();

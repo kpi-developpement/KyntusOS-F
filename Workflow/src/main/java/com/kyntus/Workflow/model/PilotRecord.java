@@ -36,9 +36,15 @@ public class PilotRecord {
     @Column(name = "import_month", nullable = false)
     private Integer importMonth;
 
-    // 🔥 LA NOUVELLE COLONNE CATEGORY (EX: RACC)
     @Column(name = "category", nullable = false)
     private String category;
+
+    @Column(name = "source_file")
+    private String sourceFile;
+
+    // 🔥 THE TIME-MACHINE COLUMN (Ex: 1, 2, 4...)
+    @Column(name = "file_rank")
+    private Integer fileRank;
 
     @ManyToOne
     @JoinColumn(name = "pilot_id")
