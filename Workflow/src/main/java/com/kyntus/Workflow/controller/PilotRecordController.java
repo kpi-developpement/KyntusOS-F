@@ -29,7 +29,6 @@ public class PilotRecordController {
         this.pilotRecordRepository = pilotRecordRepository;
     }
 
-    // 🔥 FIX: Rje3naha "file" (MultipartFile) wa7ed, 7it l'Frontend kay-looppi w kay-sifethom wa7ed b'wa7ed b'zzerba!
     @PostMapping("/import/{pilotId}")
     public ResponseEntity<?> importPilotData(
             @RequestParam("file") MultipartFile file,
@@ -39,7 +38,7 @@ public class PilotRecordController {
             @PathVariable Long pilotId) {
         try {
             pilotImportService.importPilotExcel(file, pilotId, year, month, category);
-            return ResponseEntity.ok().body("{\"message\": \"Importation du fichier réussie avec succès\"}");
+            return ResponseEntity.ok().body("{\"message\": \"Importation réussie avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -81,6 +80,22 @@ public class PilotRecordController {
         try {
             pilotImportService.clearRecordsByCategoryAndDate(category, year, month);
             return ResponseEntity.ok().body("{\"message\": \"Base de données nettoyée pour " + category + " (" + month + "/" + year + ")\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    // 🗑️ L'ENDPOINT JDID DYAL DELETE SPECIFIC FILE
+    @DeleteMapping("/delete-file")
+    public ResponseEntity<?> deleteSpecificFile(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("filename") String filename) {
+        try {
+            pilotImportService.deleteSpecificFile(category, year, month, filename);
+            return ResponseEntity.ok().body("{\"message\": \"Fichier " + filename + " supprimé avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");

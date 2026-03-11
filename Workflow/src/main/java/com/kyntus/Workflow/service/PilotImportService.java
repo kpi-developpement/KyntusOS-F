@@ -18,13 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.annotation.PostConstruct; // 🔥 IMPORT JDID BASH YKHDEM L'INDEX AUTO
 
 import javax.sql.DataSource;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets; // 🔥 IMPORT FIXED
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -55,17 +56,27 @@ public class PilotImportService {
         this.mapWriter = objectMapper.writerFor(Map.class);
     }
 
+    // 🚀 L'INTELLIGENCE D'LES ARCHITECTES: CREATION AUTO DES INDEX POUR LA RAPIDITE 🚀
+    @PostConstruct
+    public void initIndexes() {
+        try {
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_main ON pilot_records(category, import_year, import_month)");
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_eps ON pilot_records(eps_reference)");
+            System.out.println("✅ [KYNTUS NEXUS] BDD Indexes Vérifiés & Optimisés (Vitesse x100).");
+        } catch (Exception e) {
+            System.out.println("⚠️ [KYNTUS NEXUS] Impossible de créer les Index (peut-être déjà existants).");
+        }
+    }
+
     public static class EpsRecord {
-        public Long id;
         public String eps;
-        public String version;
         public int fileRank;
         public String dataJson;
         public int dataHash;
         public String sourceFile;
 
-        public EpsRecord(Long id, String eps, String version, int fileRank, String dataJson, int dataHash, String sourceFile) {
-            this.id = id; this.eps = eps; this.version = version; this.fileRank = fileRank; this.dataJson = dataJson; this.dataHash = dataHash; this.sourceFile = sourceFile;
+        public EpsRecord(String eps, int fileRank, String dataJson, int dataHash, String sourceFile) {
+            this.eps = eps; this.fileRank = fileRank; this.dataJson = dataJson; this.dataHash = dataHash; this.sourceFile = sourceFile;
         }
     }
 
@@ -80,23 +91,41 @@ public class PilotImportService {
         return sorted.toString().hashCode();
     }
 
-    // 🔥 THE BATCH ENTRY POINT 🔥
+    private int computeDataHashFromJson(String dataJson) {
+        try {
+            Map<String, Object> rawMap = objectMapper.readValue(dataJson, new TypeReference<Map<String, Object>>() {});
+            Map<String, String> strMap = new HashMap<>();
+            for(Map.Entry<String, Object> e : rawMap.entrySet()) {
+                strMap.put(e.getKey(), e.getValue() != null ? String.valueOf(e.getValue()) : "");
+            }
+            return computeDataHash(strMap);
+        } catch(Exception e) { return 0; }
+    }
+
+    private int extractFileRank(String filename) {
+        if (filename == null) return 999999999;
+        Matcher prefixMatcher = Pattern.compile("^(\\d+)-").matcher(filename);
+        if (prefixMatcher.find()) {
+            return Integer.parseInt(prefixMatcher.group(1));
+        }
+        Matcher dateMatcher = Pattern.compile("(\\d{2})(\\d{2})(\\d{4})").matcher(filename);
+        if (dateMatcher.find()) {
+            String day = dateMatcher.group(1);
+            String month = dateMatcher.group(2);
+            String year = dateMatcher.group(3);
+            return Integer.parseInt(year + month + day);
+        }
+        return 999999999;
+    }
+
     public void importPilotExcelBatch(List<MultipartFile> files, Long pilotId, int year, int month, String category) throws Exception {
-        // 1. T-rtib l'fichiers b' l'ordre (1-xxx, 2-xxx, 3-xxx) bash l'Historique yb9a nadi
         List<MultipartFile> mutableFiles = new ArrayList<>(files);
         mutableFiles.sort((f1, f2) -> {
-            int r1 = 999999;
-            int r2 = 999999;
-            String name1 = f1.getOriginalFilename() != null ? f1.getOriginalFilename() : "";
-            String name2 = f2.getOriginalFilename() != null ? f2.getOriginalFilename() : "";
-            Matcher m1 = Pattern.compile("^(\\d+)-").matcher(name1);
-            if (m1.find()) r1 = Integer.parseInt(m1.group(1));
-            Matcher m2 = Pattern.compile("^(\\d+)-").matcher(name2);
-            if (m2.find()) r2 = Integer.parseInt(m2.group(1));
+            int r1 = extractFileRank(f1.getOriginalFilename());
+            int r2 = extractFileRank(f2.getOriginalFilename());
             return Integer.compare(r1, r2);
         });
 
-        // 2. Loop w Importation Chronologique
         for (MultipartFile file : mutableFiles) {
             importPilotExcel(file, pilotId, year, month, category);
         }
@@ -106,43 +135,13 @@ public class PilotImportService {
         User pilot = userRepository.findAll().stream()
                 .filter(u -> u.getRole().toString().equals("PILOT"))
                 .findFirst().orElseThrow(() -> new RuntimeException("Pilote non trouvé!"));
+        Long resolvedPilotId = pilot.getId();
 
         String rawFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "UNKNOWN";
         String filename = new java.io.File(rawFilename).getName();
 
-        int currentFileRank = 999999;
-        Matcher numMatcher = Pattern.compile("^(\\d+)-").matcher(filename);
-        if (numMatcher.find()) {
-            currentFileRank = Integer.parseInt(numMatcher.group(1));
-        }
+        int currentFileRank = extractFileRank(filename);
 
-        Map<String, List<EpsRecord>> dbMap = new HashMap<>(250000);
-        String checkSql = "SELECT id, eps_reference, version, dynamic_data, file_rank, source_file FROM pilot_records WHERE pilot_id = ? AND import_year = ? AND import_month = ? AND category = ?";
-
-        jdbcTemplate.setFetchSize(10000);
-        jdbcTemplate.query(checkSql, rs -> {
-            Long id = rs.getLong(1);
-            String eps = rs.getString(2);
-            String version = rs.getString(3);
-            String dataJson = rs.getString(4);
-            int fRank = rs.getInt(5);
-            if (rs.wasNull()) fRank = 999999;
-            String sFile = rs.getString(6);
-
-            int hash = 0;
-            try {
-                Map<String, Object> rawMap = objectMapper.readValue(dataJson, new TypeReference<Map<String, Object>>() {});
-                Map<String, String> strMap = new HashMap<>();
-                for(Map.Entry<String, Object> e : rawMap.entrySet()) {
-                    strMap.put(e.getKey(), e.getValue() != null ? String.valueOf(e.getValue()) : "");
-                }
-                hash = computeDataHash(strMap);
-            } catch(Exception ignored) {}
-
-            dbMap.computeIfAbsent(eps, k -> new ArrayList<>()).add(new EpsRecord(id, eps, version, fRank, dataJson, hash, sFile));
-        }, pilot.getId(), year, month, category);
-
-        Map<String, EpsRecord> excelRecordsMap = new LinkedHashMap<>();
         try (InputStream inputStream = file.getInputStream();
              ReadableWorkbook wb = new ReadableWorkbook(inputStream)) {
             org.dhatim.fastexcel.reader.Sheet sheet = wb.getFirstSheet();
@@ -163,123 +162,116 @@ public class PilotImportService {
                     }
                 }
 
-                while (rowIterator.hasNext()) {
-                    org.dhatim.fastexcel.reader.Row row = rowIterator.next();
-                    String eps = "";
-                    Map<String, String> dynamicData = new HashMap<>(colMap.size());
-                    boolean rowIsEmpty = true;
+                List<EpsRecord> batch = new ArrayList<>();
+                try (Connection conn = dataSource.getConnection()) {
+                    conn.setAutoCommit(false);
 
-                    for (int i = 0; i < row.getCellCount(); i++) {
-                        String val = row.getCellText(i);
-                        String cleanVal = (val != null) ? val.trim() : "";
-                        if (i == epsColIndex) { eps = cleanVal; if (!eps.isEmpty()) rowIsEmpty = false; continue; }
-                        String colName = colMap.get(i);
-                        if (colName == null) continue;
-                        if (!cleanVal.isEmpty()) rowIsEmpty = false;
-                        dynamicData.put(colName, cleanVal);
+                    while (rowIterator.hasNext()) {
+                        org.dhatim.fastexcel.reader.Row row = rowIterator.next();
+                        String eps = "";
+                        Map<String, String> dynamicData = new HashMap<>(colMap.size());
+                        boolean rowIsEmpty = true;
+
+                        for (int i = 0; i < row.getCellCount(); i++) {
+                            String val = row.getCellText(i);
+                            String cleanVal = (val != null) ? val.trim() : "";
+                            if (i == epsColIndex) { eps = cleanVal; if (!eps.isEmpty()) rowIsEmpty = false; continue; }
+                            String colName = colMap.get(i);
+                            if (colName == null) continue;
+                            if (!cleanVal.isEmpty()) rowIsEmpty = false;
+                            dynamicData.put(colName, cleanVal);
+                        }
+
+                        if (rowIsEmpty) continue;
+                        if (eps.isEmpty()) eps = "AUTO-" + Long.toHexString(System.nanoTime());
+
+                        int dataHash = computeDataHash(dynamicData);
+                        String dataJson = mapWriter.writeValueAsString(dynamicData);
+                        batch.add(new EpsRecord(eps, currentFileRank, dataJson, dataHash, filename));
+
+                        if (batch.size() >= 5000) {
+                            processAndInsertBatch(conn, batch, resolvedPilotId, year, month, category);
+                            batch.clear();
+                        }
                     }
-
-                    if (rowIsEmpty) continue;
-                    if (eps.isEmpty()) eps = "AUTO-" + Long.toHexString(System.nanoTime());
-
-                    int dataHash = computeDataHash(dynamicData);
-                    String dataJson = mapWriter.writeValueAsString(dynamicData);
-                    excelRecordsMap.put(eps, new EpsRecord(null, eps, null, currentFileRank, dataJson, dataHash, filename));
-                }
-            }
-        }
-
-        List<EpsRecord> toInsert = new ArrayList<>();
-        List<EpsRecord> toUpdate = new ArrayList<>();
-        List<EpsRecord> toDelete = new ArrayList<>();
-
-        for (EpsRecord newRec : excelRecordsMap.values()) {
-            List<EpsRecord> history = dbMap.getOrDefault(newRec.eps, new ArrayList<>());
-            history.add(newRec);
-
-            history.sort((a, b) -> {
-                int cmp = Integer.compare(a.fileRank, b.fileRank);
-                if (cmp != 0) return cmp;
-                long idA = a.id == null ? Long.MAX_VALUE : a.id;
-                long idB = b.id == null ? Long.MAX_VALUE : b.id;
-                return Long.compare(idA, idB);
-            });
-
-            int currentV = 1;
-            Integer prevHash = null;
-
-            for (EpsRecord rec : history) {
-                if (prevHash == null || rec.dataHash != prevHash) {
-                    String expectedVersion = "V" + currentV;
-                    if (rec.id == null) {
-                        rec.version = expectedVersion;
-                        toInsert.add(rec);
-                    } else if (rec.version == null || !rec.version.equals(expectedVersion)) {
-                        rec.version = expectedVersion;
-                        toUpdate.add(rec);
-                    }
-                    prevHash = rec.dataHash;
-                    currentV++;
-                } else {
-                    if (rec.id != null) {
-                        toDelete.add(rec);
+                    if (!batch.isEmpty()) {
+                        processAndInsertBatch(conn, batch, resolvedPilotId, year, month, category);
                     }
                 }
             }
         }
+    }
 
+    private void processAndInsertBatch(Connection conn, List<EpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
+        Set<String> epsSet = batch.stream().map(r -> r.eps).collect(Collectors.toSet());
+
+        String inSql = String.join(",", Collections.nCopies(epsSet.size(), "?"));
+        String fetchLatestSql = "SELECT eps_reference, dynamic_data, version FROM (" +
+                "  SELECT eps_reference, dynamic_data, version, " +
+                "         ROW_NUMBER() OVER(PARTITION BY eps_reference ORDER BY file_rank DESC, id DESC) as rn " +
+                "  FROM pilot_records " +
+                "  WHERE category = ? AND import_year = ? AND import_month = ? AND eps_reference IN (" + inSql + ")" +
+                ") t WHERE rn = 1";
+
+        Map<String, Integer> dbLatestHashes = new HashMap<>();
+        Map<String, Integer> dbLatestVersions = new HashMap<>();
+
+        try (PreparedStatement psFetch = conn.prepareStatement(fetchLatestSql)) {
+            psFetch.setString(1, category);
+            psFetch.setInt(2, year);
+            psFetch.setInt(3, month);
+            int pIdx = 4;
+            for (String eps : epsSet) psFetch.setString(pIdx++, eps);
+
+            try (ResultSet rs = psFetch.executeQuery()) {
+                while (rs.next()) {
+                    String eps = rs.getString(1);
+                    String dbJson = rs.getString(2);
+                    String verStr = rs.getString(3);
+
+                    dbLatestHashes.put(eps, computeDataHashFromJson(dbJson));
+
+                    int vNum = 0;
+                    if (verStr != null && verStr.toUpperCase().startsWith("V")) {
+                        try { vNum = Integer.parseInt(verStr.substring(1)); } catch (Exception ignored) {}
+                    }
+                    dbLatestVersions.put(eps, vNum);
+                }
+            }
+        }
+
+        String insertSql = "INSERT INTO pilot_records (eps_reference, dynamic_data, version, imported_at, pilot_id, import_year, import_month, category, source_file, file_rank) VALUES (?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?)";
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(false);
+        int insertCount = 0;
 
-            if (!toDelete.isEmpty()) {
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM pilot_records WHERE id = ?")) {
-                    int count = 0;
-                    for (EpsRecord r : toDelete) {
-                        ps.setLong(1, r.id);
-                        ps.addBatch();
-                        if (++count % 5000 == 0) ps.executeBatch();
-                    }
-                    if (count % 5000 != 0) ps.executeBatch();
+        try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
+            for (EpsRecord rec : batch) {
+                Integer lastHash = dbLatestHashes.get(rec.eps);
+                int lastVNum = dbLatestVersions.getOrDefault(rec.eps, 0);
+
+                if (lastHash == null || lastHash != rec.dataHash) {
+                    String newVersion = "V" + (lastVNum + 1);
+
+                    psInsert.setString(1, rec.eps);
+                    psInsert.setString(2, rec.dataJson);
+                    psInsert.setString(3, newVersion);
+                    psInsert.setTimestamp(4, now);
+                    psInsert.setLong(5, pilotId);
+                    psInsert.setInt(6, year);
+                    psInsert.setInt(7, month);
+                    psInsert.setString(8, category);
+                    psInsert.setString(9, rec.sourceFile);
+                    psInsert.setInt(10, rec.fileRank);
+                    psInsert.addBatch();
+                    insertCount++;
+
+                    dbLatestHashes.put(rec.eps, rec.dataHash);
+                    dbLatestVersions.put(rec.eps, lastVNum + 1);
                 }
             }
-
-            if (!toUpdate.isEmpty()) {
-                try (PreparedStatement ps = conn.prepareStatement("UPDATE pilot_records SET version = ? WHERE id = ?")) {
-                    int count = 0;
-                    for (EpsRecord r : toUpdate) {
-                        ps.setString(1, r.version);
-                        ps.setLong(2, r.id);
-                        ps.addBatch();
-                        if (++count % 5000 == 0) ps.executeBatch();
-                    }
-                    if (count % 5000 != 0) ps.executeBatch();
-                }
-            }
-
-            if (!toInsert.isEmpty()) {
-                String insertSql = "INSERT INTO pilot_records (eps_reference, dynamic_data, version, imported_at, pilot_id, import_year, import_month, category, source_file, file_rank) VALUES (?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?)";
-                try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-                    int count = 0;
-                    for (EpsRecord r : toInsert) {
-                        ps.setString(1, r.eps);
-                        ps.setString(2, r.dataJson);
-                        ps.setString(3, r.version);
-                        ps.setTimestamp(4, now);
-                        ps.setLong(5, pilot.getId());
-                        ps.setInt(6, year);
-                        ps.setInt(7, month);
-                        ps.setString(8, category);
-                        ps.setString(9, r.sourceFile);
-                        ps.setInt(10, r.fileRank);
-                        ps.addBatch();
-                        if (++count % 5000 == 0) ps.executeBatch();
-                    }
-                    if (count % 5000 != 0) ps.executeBatch();
-                }
-            }
-            conn.commit();
+            if (insertCount > 0) psInsert.executeBatch();
         }
+        conn.commit();
     }
 
     @Transactional(readOnly = true)
@@ -288,18 +280,18 @@ public class PilotImportService {
         List<String> files = jdbcTemplate.queryForList(sql, String.class, category, year, month);
 
         files.sort((f1, f2) -> {
-            int n1 = 999999;
-            int n2 = 999999;
-            Matcher m1 = Pattern.compile("^(\\d+)-").matcher(f1);
-            if (m1.find()) n1 = Integer.parseInt(m1.group(1));
-
-            Matcher m2 = Pattern.compile("^(\\d+)-").matcher(f2);
-            if (m2.find()) n2 = Integer.parseInt(m2.group(1));
-
-            return Integer.compare(n1, n2);
+            int r1 = extractFileRank(f1);
+            int r2 = extractFileRank(f2);
+            return Integer.compare(r1, r2);
         });
 
         return files;
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void deleteSpecificFile(String category, int year, int month, String filename) {
+        String sql = "DELETE FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ? AND source_file = ?";
+        jdbcTemplate.update(sql, category, year, month, filename);
     }
 
     @Transactional(readOnly = true)
@@ -505,7 +497,6 @@ public class PilotImportService {
         } while (deletedRows > 0);
     }
 
-    // 🚨 1. DETECTEUR: STATUTS BLOQUÉS (GHER EN_ATTENTE_VALIDATION_BYTEL)
     @Transactional(readOnly = true)
     public List<String> getValidationAlerts(String category, int year, int month) {
         String sql = "SELECT eps_reference, dynamic_data FROM pilot_records " +
@@ -549,7 +540,6 @@ public class PilotImportService {
                     continue;
                 }
 
-                // 🔥 Gher Bytel !
                 if (lastStatus.equalsIgnoreCase("EN_ATTENTE_VALIDATION_BYTEL") &&
                         secondToLastStatus.equalsIgnoreCase("EN_ATTENTE_VALIDATION_BYTEL")) {
                     blockedEps.add(entry.getKey());
@@ -564,7 +554,6 @@ public class PilotImportService {
         return text.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
     }
 
-    // 🚨 2. NOUVEAU DETECTEUR: COMMENTAIRES DUPLIQUÉS (GHER F' BYTEL)
     @Transactional(readOnly = true)
     public List<String> getDuplicateCommentAlerts(String category, int year, int month) {
         String sql = "SELECT eps_reference, dynamic_data FROM pilot_records " +
@@ -612,7 +601,6 @@ public class PilotImportService {
                 String latestEtat = latestRecord.get("etat");
                 String latestCommentRaw = latestRecord.get("commentaire");
 
-                // 🔥 Gher Bytel !
                 if (latestEtat != null && latestEtat.equalsIgnoreCase("EN_ATTENTE_VALIDATION_BYTEL")) {
                     String latestCommentNorm = normalizeText(latestCommentRaw);
 
@@ -665,7 +653,6 @@ public class PilotImportService {
         Map<String, Integer> headerIndexMap = new HashMap<>();
         for (int i = 0; i < finalDynamicHeaders.size(); i++) headerIndexMap.put(finalDynamicHeaders.get(i), i + 4);
 
-        // On exporte uniquement la dernière version du ticket bloqué
         String finalSql = "SELECT DISTINCT ON (eps_reference) eps_reference, version, dynamic_data, imported_at " +
                 "FROM pilot_records " +
                 "WHERE import_year = ? AND import_month = ? AND category = ? " +
