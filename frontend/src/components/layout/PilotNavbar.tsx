@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutList, KanbanSquare, History, LogOut, Terminal, Database } from "lucide-react";
+import { LayoutList, KanbanSquare, History, LogOut, Terminal, Database, Cpu } from "lucide-react";
 import styles from "./PilotNavbar.module.css";
 import { useEffect, useState } from "react";
 
@@ -60,12 +60,20 @@ export default function PilotNavbar() {
             <KanbanSquare size={16} /> Tactical
           </Link>
 
-          {/* 🔥 L'ONGLET JDID DYAL L'INTELLIGENCE & EXCEL 🔥 */}
+          {/* 🔥 L'ONGLET DYAL L'INTELLIGENCE & EXCEL */}
           <Link 
             href="/pilot/recorde" 
             className={`${styles.navLink} ${pathname === '/pilot/recorde' ? styles.activeLink : ''}`}
           >
             <Database size={16} /> Terrain Records
+          </Link>
+
+          {/* 🚀 L'ONGLET JDID DYAL LE PARAMETRAGE (BILLING ENGINE) 🚀 */}
+          <Link 
+            href="/pilot/parametrage" 
+            className={`${styles.navLink} ${pathname === '/pilot/parametrage' ? styles.activeLink : ''}`}
+          >
+            <Cpu size={16} /> Paramétrage
           </Link>
 
           <Link 

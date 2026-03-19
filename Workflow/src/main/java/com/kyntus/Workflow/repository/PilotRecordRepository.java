@@ -46,4 +46,17 @@ public interface PilotRecordRepository extends JpaRepository<PilotRecord, Long> 
                                        @Param("category") String category,
                                        @Param("year") int year,
                                        @Param("month") int month);
+
+    // Zid hadi f' l'interface PilotRecordRepository dyalek
+    @Query("SELECT p FROM PilotRecord p WHERE " +
+            "(LOWER(TRIM(p.epsReference)) IN :epsList) AND " +
+            "(:category IS NULL OR p.category = :category) AND " +
+            "(:year IS NULL OR p.importYear = :year) AND " +
+            "(:month IS NULL OR p.importMonth = :month) " +
+            "ORDER BY p.id ASC")
+    List<PilotRecord> findGlobalHistoryByEpsList(
+            @Param("epsList") List<String> epsList,
+            @Param("category") String category,
+            @Param("year") Integer year,
+            @Param("month") Integer month);
 }

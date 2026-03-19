@@ -3,6 +3,7 @@ package com.kyntus.Workflow.controller;
 import com.kyntus.Workflow.model.PilotRecord;
 import com.kyntus.Workflow.repository.PilotRecordRepository;
 import com.kyntus.Workflow.service.PilotImportService;
+import com.kyntus.Workflow.service.PilotTrackService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,10 +23,12 @@ import java.util.Map;
 public class PilotRecordController {
 
     private final PilotImportService pilotImportService;
+    private final PilotTrackService pilotTrackService; // 🔥 HADA SERVICE JDID
     private final PilotRecordRepository pilotRecordRepository;
 
-    public PilotRecordController(PilotImportService pilotImportService, PilotRecordRepository pilotRecordRepository) {
+    public PilotRecordController(PilotImportService pilotImportService, PilotTrackService pilotTrackService, PilotRecordRepository pilotRecordRepository) {
         this.pilotImportService = pilotImportService;
+        this.pilotTrackService = pilotTrackService;
         this.pilotRecordRepository = pilotRecordRepository;
     }
 
@@ -79,14 +82,13 @@ public class PilotRecordController {
             @RequestParam("month") int month) {
         try {
             pilotImportService.clearRecordsByCategoryAndDate(category, year, month);
-            return ResponseEntity.ok().body("{\"message\": \"Base de données nettoyée pour " + category + " (" + month + "/" + year + ")\"}");
+            return ResponseEntity.ok().body("{\"message\": \"Base de données nettoyée avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 
-    // 🗑️ L'ENDPOINT JDID DYAL DELETE SPECIFIC FILE
     @DeleteMapping("/delete-file")
     public ResponseEntity<?> deleteSpecificFile(
             @RequestParam("category") String category,
@@ -95,7 +97,7 @@ public class PilotRecordController {
             @RequestParam("filename") String filename) {
         try {
             pilotImportService.deleteSpecificFile(category, year, month, filename);
-            return ResponseEntity.ok().body("{\"message\": \"Fichier " + filename + " supprimé avec succès\"}");
+            return ResponseEntity.ok().body("{\"message\": \"Fichier supprimé avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
@@ -112,7 +114,7 @@ public class PilotRecordController {
             byte[] excelData = pilotImportService.exportToExcel(pilotId, year, month, category);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Kyntus_" + category + "_" + year + "_" + month + ".xlsx");
+            headers.setContentDispositionFormData("attachment", "Kyntus_Export.xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -131,20 +133,24 @@ public class PilotRecordController {
                 List<String> mutableVersions = new ArrayList<>(versions);
                 mutableVersions.sort((v1, v2) -> {
                     try {
-                        int num1 = Integer.parseInt(v1.replaceAll("\\D+", ""));
-                        int num2 = Integer.parseInt(v2.replaceAll("\\D+", ""));
-                        return Integer.compare(num1, num2);
-                    } catch (Exception e) {
-                        return v1.compareTo(v2);
-                    }
+                        return Integer.compare(Integer.parseInt(v1.replaceAll("\\D+", "")), Integer.parseInt(v2.replaceAll("\\D+", "")));
+                    } catch (Exception e) { return v1.compareTo(v2); }
                 });
                 return ResponseEntity.ok(mutableVersions);
             }
             return ResponseEntity.ok(new ArrayList<>());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
+    }
+
+    // 🚀 L'ENDPOINT JDID DYAL LES ETATS (POUR LE DROPDOWN) 🚀
+    @GetMapping("/etats")
+    public ResponseEntity<List<String>> getAvailableEtats(
+            @RequestParam("category") String category,
+            @RequestParam(value = "year", required = false) String year,
+            @RequestParam(value = "month", required = false) String month) {
+        try {
+            return ResponseEntity.ok(pilotTrackService.getAvailableEtats(category, year, month));
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
     @GetMapping("/history/{eps}")
@@ -160,7 +166,6 @@ public class PilotRecordController {
                 Map<String, Object> item = new HashMap<>();
                 item.put("version", r.getVersion());
                 item.put("importedAt", r.getImportedAt());
-
                 String commentaire = "-";
                 if (r.getDynamicData() != null) {
                     for (Map.Entry<String, Object> entry : r.getDynamicData().entrySet()) {
@@ -174,24 +179,22 @@ public class PilotRecordController {
                 historyList.add(item);
             }
             return ResponseEntity.ok(historyList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
-    @PostMapping("/export-history/{pilotId}")
-    public ResponseEntity<byte[]> exportHistoryByEpsList(
-            @RequestParam("file") MultipartFile file,
+    // 🚀 L'ENDPOINT TRACK GLOBAL (TEXTAREA + ETAT) 🚀
+    @PostMapping("/export-track-global")
+    public ResponseEntity<byte[]> exportGlobalTrackHistory(
+            @RequestBody List<String> epsList,
             @RequestParam("category") String category,
-            @RequestParam("year") int year,
-            @RequestParam("month") int month,
-            @PathVariable Long pilotId) {
+            @RequestParam(value = "year", required = false) String year,
+            @RequestParam(value = "month", required = false) String month,
+            @RequestParam(value = "etat", required = false) String etat) {
         try {
-            byte[] excelData = pilotImportService.exportHistoryByEpsList(file, pilotId, year, month, category);
+            byte[] excelData = pilotTrackService.exportGlobalTrackHistory(epsList, category, year, month, etat);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Historique_" + category + "_" + year + "_" + month + ".xlsx");
+            headers.setContentDispositionFormData("attachment", "Global_Timeline_" + category + ".xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
@@ -207,10 +210,7 @@ public class PilotRecordController {
         try {
             List<String> files = pilotImportService.getImportedFiles(category, year, month);
             return ResponseEntity.ok(files != null ? files : new ArrayList<>());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
     @GetMapping("/alerts")
@@ -221,10 +221,7 @@ public class PilotRecordController {
         try {
             List<String> alerts = pilotImportService.getValidationAlerts(category, year, month);
             return ResponseEntity.ok(alerts != null ? alerts : new ArrayList<>());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
     @GetMapping("/alerts-comments")
@@ -235,10 +232,7 @@ public class PilotRecordController {
         try {
             List<String> alerts = pilotImportService.getDuplicateCommentAlerts(category, year, month);
             return ResponseEntity.ok(alerts != null ? alerts : new ArrayList<>());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
     @GetMapping("/export-alerts")
@@ -250,12 +244,9 @@ public class PilotRecordController {
             byte[] excelData = pilotImportService.exportAnomaliesToExcel(category, year, month);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Anomalies_Statut_" + category + "_" + year + "_" + month + ".xlsx");
+            headers.setContentDispositionFormData("attachment", "Anomalies_Statut.xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
     @GetMapping("/export-alerts-comments")
@@ -267,11 +258,19 @@ public class PilotRecordController {
             byte[] excelData = pilotImportService.exportDuplicateCommentsToExcel(category, year, month);
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Anomalies_Commentaires_" + category + "_" + year + "_" + month + ".xlsx");
+            headers.setContentDispositionFormData("attachment", "Anomalies_Commentaires.xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
+        } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
+    }
+    // 🧹 L'ENDPOINT POUR NETTOYER LA BASE DE DONNEES SANS LA SUPPRIMER 🧹
+    @DeleteMapping("/deduplicate")
+    public ResponseEntity<?> removeDuplicates() {
+        try {
+            int deletedRows = pilotImportService.removeDuplicates();
+            return ResponseEntity.ok().body("{\"message\": \"Nettoyage réussi ! " + deletedRows + " doublons éliminés.\"}");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 }

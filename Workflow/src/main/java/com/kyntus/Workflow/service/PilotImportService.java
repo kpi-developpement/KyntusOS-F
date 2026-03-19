@@ -716,4 +716,16 @@ public class PilotImportService {
             return out.toByteArray();
         }
     }
+    // 🚀 LE NETTOYEUR QUANTIQUE : Supprime les versions dupliquées et garde la plus récente 🚀
+    @Transactional
+    public int removeDuplicates() {
+        // Cette requête magique groupe par EPS et Version, et supprime tout sauf le dernier inséré (MAX id)
+        String sql = "DELETE FROM pilot_records " +
+                "WHERE id NOT IN (" +
+                "  SELECT MAX(id) " +
+                "  FROM pilot_records " +
+                "  GROUP BY eps_reference, version, category, import_year, import_month" +
+                ")";
+        return jdbcTemplate.update(sql);
+    }
 }
