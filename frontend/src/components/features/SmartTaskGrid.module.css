@@ -1,341 +1,337 @@
-/* =========================================
-   1. GLOBAL CONTAINER & SCROLL
-   ========================================= */
-.container {
-  width: 100%;
-  height: 100%;
+.gridContainer {
+  background: rgba(2, 6, 15, 0.85); 
+  border: 1px solid rgba(0, 242, 234, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(25px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
-  /* Tech Background Texture */
-  background-image: 
-    linear-gradient(rgba(10, 15, 25, 0.95), rgba(10, 15, 25, 0.95)),
-    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0, 242, 234, 0.03) 1px, rgba(0, 242, 234, 0.03) 2px);
-  background-size: 100% 100%, 100% 4px;
-}
-
-.tableWrapper {
   flex: 1;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #00f2ea22 transparent;
-  padding-bottom: 50px; /* Espace pour le scroll */
+  box-shadow: 0 0 50px rgba(0, 242, 234, 0.05), inset 0 0 20px rgba(0, 0, 0, 0.9);
 }
 
-/* Custom Scrollbar */
-.tableWrapper::-webkit-scrollbar { width: 6px; height: 6px; }
-.tableWrapper::-webkit-scrollbar-track { background: transparent; }
-.tableWrapper::-webkit-scrollbar-thumb { background: #00f2ea44; border-radius: 3px; }
-.tableWrapper::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
-
-.table {
-  width: 100%;
-  border-collapse: separate; /* Important pour l'espacement entre les lignes */
-  border-spacing: 0 8px; /* Espace vertical entre les rows */
-  padding: 0 15px;
-}
-
-/* =========================================
-   2. HEADER LUXE
-   ========================================= */
-.stickyHeader {
-  position: sticky;
-  top: 0;
-  background: rgba(10, 15, 25, 0.95);
-  backdrop-filter: blur(12px);
-  z-index: 20;
-  padding: 15px 20px;
-  text-align: left;
+/* --- FILTER BAR --- */
+.filterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  background: rgba(0, 0, 0, 0.7);
   border-bottom: 1px solid rgba(0, 242, 234, 0.2);
-  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
 }
 
-.headerContent {
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  padding: 10px 18px;
+  border-radius: 8px;
+  width: 450px;
+  transition: all 0.3s ease;
+}
+
+.searchBox:focus-within {
+  border-color: #00f2ea;
+  box-shadow: 0 0 15px rgba(0, 242, 234, 0.2), inset 0 0 10px rgba(0, 242, 234, 0.1);
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.95rem;
+  width: 100%;
+  outline: none;
+}
+
+.filterStats {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Rajdhani', 'Eurostile', sans-serif; /* Tech Font */
-  font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 1.5px;
-  color: #00f2ea;
-  text-shadow: 0 0 10px rgba(0, 242, 234, 0.4);
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
 }
 
-.headerIcon {
-  margin-right: 8px;
-  color: #00f2ea;
-}
-
-/* =========================================
-   3. ROWS ANIMATIONS & STYLE
-   ========================================= */
-.row {
-  background: rgba(255, 255, 255, 0.02);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+/* --- TABLE SCROLL & LAYOUT --- */
+.tableWrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
   position: relative;
-  /* Animation d'entrée */
-  opacity: 0;
-  transform: translateY(10px);
-  animation: slideIn 0.4s forwards;
+}
+.tableWrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+.tableWrapper::-webkit-scrollbar-track { background: rgba(0,0,0,0.6); }
+.tableWrapper::-webkit-scrollbar-thumb { background: rgba(0, 242, 234, 0.4); border-radius: 4px; }
+.tableWrapper::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
+
+.cyberTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
 }
 
-.row:hover {
-  background: rgba(255, 255, 255, 0.04);
-  transform: scale(1.002);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-@keyframes slideIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* --- ACTIVE STATE (NEON GREEN) --- */
-.rowActive {
-  background: rgba(0, 255, 136, 0.03) !important;
-  border-radius: 8px;
-  box-shadow: 
-    inset 4px 0 0 #00ff88, 
-    0 0 20px rgba(0, 255, 136, 0.05);
+/* --- HEADER M-QADD M3A DROPDOWNS --- */
+.cyberTable th {
+  position: sticky;
+  top: 0;
+  background: #040814;
+  color: #00f2ea;
+  padding: 1rem;
+  border-bottom: 2px solid rgba(176, 38, 255, 0.5);
   z-index: 10;
+  white-space: nowrap;
+  vertical-align: top;
 }
 
-/* Scanline Effect sur la row active */
-.rowActive::after {
-  content: '';
+.thContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+/* DROPDOWN SELECTORS */
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filterIcon {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.05), transparent);
-  transform: skewX(-20deg) translateX(-150%);
-  animation: scan 2s infinite;
+  left: 6px;
+  color: #b026ff;
   pointer-events: none;
 }
 
-@keyframes scan {
-  100% { transform: skewX(-20deg) translateX(200%); }
-}
-
-/* --- DONE STATE (LOCKED) --- */
-.rowDone {
-  opacity: 0.5;
-  filter: grayscale(0.8);
-  pointer-events: none; /* Désactive clicks */
-  background: rgba(0, 0, 0, 0.3);
-}
-
-/* =========================================
-   4. ACTION BUTTONS (SWITCHES)
-   ========================================= */
-.actionCell {
-  width: 80px;
-  text-align: center;
-  padding: 10px;
-  border-radius: 8px 0 0 8px;
-}
-
-.actionBtn {
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  border: none;
+.headerSelect {
+  width: 100%;
+  min-width: 120px;
+  appearance: none;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(176, 38, 255, 0.4);
+  color: #e2e8f0;
+  padding: 4px 8px 4px 22px; /* L-Espace l-icon */
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  outline: none;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-/* IDLE (PLAY) */
-.btnIdle {
-  background: rgba(255, 255, 255, 0.05);
+.headerSelect:hover, .headerSelect:focus {
+  border-color: #b026ff;
+  box-shadow: 0 0 10px rgba(176, 38, 255, 0.2);
+}
+
+.headerSelect option {
+  background: #0f172a;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-}
-.btnIdle:hover {
-  background: #00f2ea;
-  color: #000;
-  box-shadow: 0 0 15px #00f2ea;
-  border-color: #00f2ea;
 }
 
-/* ACTIVE (CHECK) */
-.btnActive {
-  background: #00ff88;
-  color: #000;
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
-}
-.btnActive:hover {
-  transform: scale(1.1);
-  background: #fff;
-}
-
-.pulseContainer { position: relative; display: flex; align-items: center; justify-content: center; }
-.pulseRing {
-  position: absolute; width: 100%; height: 100%; border-radius: 50%;
-  border: 2px solid #00ff88;
-  animation: pulseRipple 1.5s infinite;
+/* --- STICKY COLUMNS --- */
+.stickyCheck {
+  position: sticky;
+  left: 0;
+  background: #040814;
+  z-index: 11 !important; 
+  width: 50px;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-@keyframes pulseRipple {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
-}
-
-/* DONE ICON */
-.doneBadge {
-  display: flex; justify-content: center; alignItems: center;
-  color: #4a5568;
-}
-.rowDone .doneBadge { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
-
-/* =========================================
-   5. EPS & INPUTS
-   ========================================= */
-.epsCell { padding: 10px 20px; }
-
-.epsWrapper {
-  background: rgba(0, 242, 234, 0.05);
-  border: 1px solid rgba(0, 242, 234, 0.1);
-  padding: 8px 12px;
-  border-radius: 6px;
-  display: flex; justify-content: space-between; alignItems: center;
-  cursor: pointer;
-  transition: 0.3s;
-}
-.epsWrapper:hover {
-  background: rgba(0, 242, 234, 0.1);
-  border-color: #00f2ea;
-  box-shadow: 0 0 10px rgba(0, 242, 234, 0.2);
+.stickyEps {
+  position: sticky;
+  left: 50px; 
+  background: #040814;
+  z-index: 11 !important;
+  border-right: 2px solid rgba(0, 242, 234, 0.2);
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  box-shadow: 5px 0 15px -5px rgba(0,0,0,0.8);
 }
 
 .epsText {
-  font-family: 'JetBrains Mono', monospace;
-  color: #e2e8f0;
-  font-size: 0.9rem;
-}
-
-/* Inputs */
-.dataCell { position: relative; padding: 0 5px; }
-
-.inputCell {
-  width: 100%;
-  height: 44px;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.95rem;
-  padding: 0 10px;
-  transition: 0.3s;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(255,255,255,0.3);
 }
-.inputCell:focus {
-  outline: none;
+
+/* --- ROWS & CELLS --- */
+.tr { transition: background 0.2s ease; }
+.tr td { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 0.8rem 1rem; }
+.tr:hover td { background: rgba(0, 242, 234, 0.04); }
+.trSelected td { background: rgba(176, 38, 255, 0.1) !important; }
+
+/* --- STATUS BUTTONS --- */
+.tdStatus { text-align: center; }
+.statusBtn {
   background: rgba(255, 255, 255, 0.05);
-  border-bottom-color: transparent;
-}
-.inputCell::placeholder { color: rgba(255, 255, 255, 0.2); }
-
-/* Animated Focus Line */
-.focusLine {
-  position: absolute; bottom: 0; left: 0;
-  width: 0; height: 2px;
-  background: #00f2ea;
-  transition: width 0.3s ease;
-  box-shadow: 0 0 10px #00f2ea;
-}
-.inputCell:focus + .focusLine { width: 100%; }
-
-/* =========================================
-   6. ANOMALY ROW (RED ALERT)
-   ========================================= */
-.anomalyRow td {
-  padding: 0 10px 15px 10px;
-  border: none;
-}
-
-.anomalyBanner {
-  display: flex; align-items: center; gap: 20px;
-  background: linear-gradient(90deg, rgba(255, 0, 85, 0.1), rgba(10, 15, 25, 0));
-  border-left: 4px solid #ff0055;
-  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  padding: 6px 14px;
   border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: 'Share Tech Mono', monospace;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
+}
+.statusActive {
+  background: rgba(57, 255, 20, 0.1);
+  border-color: #39ff14;
+  color: #39ff14;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+}
+.statusIdle {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* --- DYNAMIC INPUTS (EDITABLE) --- */
+.tdInput { min-width: 200px; }
+.inputCyberWrapper { position: relative; width: 100%; }
+.dynamicInput {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 242, 234, 0.2);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+.dynamicInput:focus {
+  background: rgba(57, 255, 20, 0.05);
+  border-color: #39ff14;
+  color: #39ff14;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.2), inset 0 0 8px rgba(57, 255, 20, 0.1);
+  transform: scale(1.02);
+}
+
+/* --- READ ONLY TEXT --- */
+.tdReadOnly { min-width: 150px; }
+.readOnlyText {
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  padding: 10px 14px;
+  display: block;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+.gridContainer {
+  background: rgba(2, 6, 15, 0.7); 
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(25px);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-}
-.anomalyBanner:hover {
-  background: linear-gradient(90deg, rgba(255, 0, 85, 0.2), rgba(10, 15, 25, 0.1));
-  transform: translateX(5px);
+  flex: 1;
+  box-shadow: 0 0 50px rgba(0, 242, 234, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.9);
 }
 
-.anomalyIconBox { color: #ff0055; filter: drop-shadow(0 0 5px #ff0055); }
-.anomalyPulse { animation: pulseRed 2s infinite; }
-
-.anomalyContent { flex: 1; display: flex; flex-direction: column; }
-.anomalyLabel {
-  font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: #ff0055;
-  text-transform: uppercase; margin-bottom: 4px;
+/* --- FILTER BAR --- */
+.filterBar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.2rem 1.5rem; background: rgba(0, 0, 0, 0.8);
+  border-bottom: 1px solid rgba(0, 242, 234, 0.2);
 }
-.anomalyText { color: #fff; font-size: 1rem; text-shadow: 0 0 5px rgba(255, 0, 85, 0.5); }
-
-.anomalyAction { color: #666; font-size: 0.8rem; font-weight: bold; }
-.copyHint { display: flex; align-items: center; gap: 6px; transition: 0.3s; }
-.anomalyBanner:hover .copyHint { color: #fff; }
-.copiedMsg { color: #00ff88; display: flex; align-items: center; gap: 5px; }
-
-@keyframes pulseRed {
-  0% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.6; transform: scale(1); }
+.searchBox {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 242, 234, 0.3);
+  padding: 10px 18px; border-radius: 8px; width: 450px; transition: all 0.3s ease;
 }
+.searchBox:focus-within { border-color: #00f2ea; box-shadow: 0 0 15px rgba(0, 242, 234, 0.2); }
+.searchInput { background: transparent; border: none; color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.95rem; width: 100%; outline: none; }
+.filterStats { display: flex; align-items: center; gap: 8px; font-family: 'Share Tech Mono', monospace; font-weight: bold; font-size: 0.9rem; color: #39ff14; }
 
-/* =========================================
-   7. MODAL (GLASS)
-   ========================================= */
-.modalOverlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
-  z-index: 999; display: flex; justify-content: center; align-items: center;
-  animation: fadeIn 0.2s;
+/* --- CUSTOM DROPDOWN --- */
+.customDropdown {
+  position: relative;
+  width: 100%;
+  min-width: 120px;
+  margin-top: 6px;
 }
-
-.modalContent {
-  background: #0a0f19;
-  border: 1px solid #333;
-  padding: 40px; border-radius: 20px;
-  width: 450px; text-align: center;
-  position: relative; overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+.dropdownHeader {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(15, 23, 42, 0.9); border: 1px dashed rgba(176, 38, 255, 0.5);
+  padding: 6px 10px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.75rem;
+  color: #94a3b8; cursor: pointer; transition: all 0.2s;
 }
-
-/* Glow top border */
-.modalGlow {
-  position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-  background: linear-gradient(90deg, #00f2ea, #00ff88);
+.dropdownHeader:hover { border-color: #00f2ea; background: rgba(0, 242, 234, 0.1); }
+.dropdownList {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: rgba(2, 6, 23, 0.95); border: 1px solid #00f2ea;
+  border-radius: 4px; padding: 0; margin: 0; list-style: none;
+  max-height: 200px; overflow-y: auto; z-index: 999;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8); backdrop-filter: blur(10px);
 }
-
-.modalHeader { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; color: #fff; }
-.modalHeader h3 { font-family: 'Rajdhani', sans-serif; letter-spacing: 2px; text-transform: uppercase; }
-
-.modalText { color: #8899a6; margin-bottom: 30px; font-size: 1.1rem; }
-
-.modalActions { display: flex; gap: 20px; }
-.btnCancel {
-  flex: 1; padding: 15px; background: transparent; border: 1px solid #333;
-  color: #666; border-radius: 8px; cursor: pointer; transition: 0.2s;
+.dropdownList::-webkit-scrollbar { width: 4px; }
+.dropdownList::-webkit-scrollbar-thumb { background: #00f2ea; border-radius: 4px; }
+.dropdownItem {
+  padding: 8px 10px; font-size: 0.75rem; color: #e2e8f0; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-.btnCancel:hover { color: #fff; border-color: #fff; }
+.dropdownItem:hover { background: rgba(0, 242, 234, 0.15); color: #00f2ea; }
 
-.btnConfirm {
-  flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold;
-  cursor: pointer; color: #000; letter-spacing: 1px;
-  box-shadow: 0 0 20px rgba(0, 242, 234, 0.3);
-  transition: 0.2s;
-}
-.btnConfirm:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 242, 234, 0.6); }
+/* --- TABLE SCROLL & LAYOUT --- */
+.tableWrapper { flex: 1; overflow-y: auto; overflow-x: auto; position: relative; }
+.tableWrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+.tableWrapper::-webkit-scrollbar-track { background: rgba(0,0,0,0.6); }
+.tableWrapper::-webkit-scrollbar-thumb { background: rgba(0, 242, 234, 0.4); border-radius: 4px; }
 
-.btnConfirmStart { background: #00f2ea; }
-.btnConfirmStop { background: #00ff88; }
+.cyberTable { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; }
+.cyberTable th { position: sticky; top: 0; background: rgba(4, 8, 20, 0.95); backdrop-filter: blur(10px); color: #00f2ea; padding: 1rem; border-bottom: 2px solid rgba(176, 38, 255, 0.5); z-index: 10; white-space: nowrap; vertical-align: top; }
+.thContent { display: flex; flex-direction: column; gap: 4px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; letter-spacing: 1px; }
+
+/* STICKY COLUMNS */
+.stickyCheck { position: sticky; left: 0; background: inherit; z-index: 11 !important; width: 50px; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.05); }
+.stickyEps { position: sticky; left: 50px; background: inherit; z-index: 11 !important; border-right: 2px solid rgba(0, 242, 234, 0.2); padding-left: 1.5rem !important; padding-right: 1.5rem !important; box-shadow: 5px 0 15px -5px rgba(0,0,0,0.8); }
+.epsText { color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; }
+
+/* ROWS */
+.tr { transition: background 0.2s ease; background: transparent; }
+.tr td { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 0.8rem 1rem; background: inherit; }
+.tr:hover { background: rgba(0, 242, 234, 0.08); }
+.trSelected { background: rgba(176, 38, 255, 0.15) !important; }
+
+/* STATUS & INPUTS */
+.tdStatus { text-align: center; }
+.statusBtn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0; padding: 6px 14px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; font-family: 'Share Tech Mono', monospace; cursor: pointer; transition: all 0.3s ease; }
+.statusActive { background: rgba(57, 255, 20, 0.1); border-color: #39ff14; color: #39ff14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.2); }
+.statusIdle { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #f59e0b; }
+
+.tdInput { min-width: 200px; }
+.inputCyberWrapper { position: relative; width: 100%; }
+.dynamicInput { width: 100%; background: rgba(0, 0, 0, 0.8); border: 1px dashed rgba(0, 242, 234, 0.5); color: #fff; padding: 10px 14px; border-radius: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; transition: all 0.3s; outline: none; }
+.dynamicInput:focus { background: rgba(57, 255, 20, 0.05); border: 1px solid #39ff14; color: #39ff14; box-shadow: 0 0 15px rgba(57, 255, 20, 0.2); transform: scale(1.02); }
+
+.tdReadOnly { min-width: 150px; }
+.readOnlyText { color: #64748b; font-family: 'Inter', sans-serif; font-size: 0.85rem; padding: 10px 14px; display: block; background: rgba(255, 255, 255, 0.02); border-radius: 6px; border: 1px dashed rgba(255, 255, 255, 0.1); }
+
+/* --- PAGINATION BAR --- */
+.paginationBar { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: rgba(0, 0, 0, 0.8); border-top: 1px solid rgba(0, 242, 234, 0.2); }
+.pageSizeSelector { color: #94a3b8; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
+.pageSizeSelector select { background: #0f172a; color: #00f2ea; border: 1px solid rgba(0, 242, 234, 0.3); padding: 4px 8px; border-radius: 4px; outline: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+.pageControls { display: flex; align-items: center; gap: 15px; }
+.pageInfo { color: #e2e8f0; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; letter-spacing: 2px; }
+.pageBtn { display: flex; align-items: center; gap: 5px; background: rgba(0, 242, 234, 0.1); color: #00f2ea; border: 1px solid rgba(0, 242, 234, 0.4); padding: 6px 15px; border-radius: 4px; cursor: pointer; font-family: 'Share Tech Mono', monospace; font-weight: bold; transition: all 0.2s; }
+.pageBtn:hover:not(:disabled) { background: #00f2ea; color: #000; box-shadow: 0 0 15px rgba(0, 242, 234, 0.5); }
+.pageBtn:disabled { opacity: 0.3; cursor: not-allowed; border-color: rgba(255,255,255,0.1); color: #64748b; background: transparent; }

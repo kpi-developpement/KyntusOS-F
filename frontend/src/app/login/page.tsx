@@ -45,7 +45,7 @@ export default function LoginPage() {
                 // Hna rje3na l /portal
                 router.push("/portal"); 
             } else if (user.role === "PILOT") {
-                router.push("/pilot/board");
+                router.push("/pilot/home");
             } else {
                 router.push("/");
             }

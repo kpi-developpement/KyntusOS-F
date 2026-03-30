@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutList, KanbanSquare, History, LogOut, Terminal, Database, Cpu } from "lucide-react";
+import { LayoutList, KanbanSquare, History, LogOut, Terminal, Database, Cpu, BarChart2, Receipt } from "lucide-react";
 import styles from "./PilotNavbar.module.css";
 import { useEffect, useState } from "react";
 
@@ -60,7 +60,6 @@ export default function PilotNavbar() {
             <KanbanSquare size={16} /> Tactical
           </Link>
 
-          {/* 🔥 L'ONGLET DYAL L'INTELLIGENCE & EXCEL */}
           <Link 
             href="/pilot/recorde" 
             className={`${styles.navLink} ${pathname === '/pilot/recorde' ? styles.activeLink : ''}`}
@@ -68,12 +67,26 @@ export default function PilotNavbar() {
             <Database size={16} /> Terrain Records
           </Link>
 
-          {/* 🚀 L'ONGLET JDID DYAL LE PARAMETRAGE (BILLING ENGINE) 🚀 */}
           <Link 
             href="/pilot/parametrage" 
             className={`${styles.navLink} ${pathname === '/pilot/parametrage' ? styles.activeLink : ''}`}
           >
             <Cpu size={16} /> Paramétrage
+          </Link>
+
+          <Link 
+            href="/pilot/ventilation" 
+            className={`${styles.navLink} ${pathname === '/pilot/ventilation' ? styles.activeLink : ''}`}
+          >
+            <BarChart2 size={16} /> Ventilation
+          </Link>
+
+          {/* 💰 L'ONGLET JDID DYAL LA FACTURATION (BILLING ENGINE) 💰 */}
+          <Link 
+            href="/pilot/facture" 
+            className={`${styles.navLink} ${pathname === '/pilot/facture' ? styles.activeLink : ''}`}
+          >
+            <Receipt size={16} /> Facturation
           </Link>
 
           <Link 

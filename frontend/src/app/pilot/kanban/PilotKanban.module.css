@@ -1,171 +1,198 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=Share+Tech+Mono&display=swap');
-
 .container {
-    width: 100%; height: 100vh;
-    color: white; font-family: 'Rajdhani', sans-serif;
-    padding: 20px 30px; display: flex; flex-direction: column; overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 10;
 }
 
-/* HEADER STYLE (Keep it clean) */
-.header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 20px; padding-bottom: 15px; z-index: 10;
-    border-bottom: 1px solid rgba(0, 242, 234, 0.2);
-}
-.glitchTitle {
-    font-size: 2.5rem; font-weight: 800; color: #fff; margin: 0;
-    text-shadow: 0 0 15px rgba(0, 242, 234, 0.3); letter-spacing: 2px;
-}
-.subTitle { display: flex; align-items: center; gap: 8px; color: #00f2ea; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; opacity: 0.8; }
-
-/* HUD STATS (Keep it same) */
-.hudContainer { display: flex; gap: 15px; }
-.hudItem {
-    background: rgba(10, 15, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex; align-items: center; gap: 10px; padding: 8px 15px;
-    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
-}
-.hudActive { border-color: #00f2ea; background: rgba(0, 242, 234, 0.05); }
-.hudData { display: flex; flex-direction: column; }
-.hudLabel { font-size: 0.6rem; font-weight: 700; color: #8899a6; }
-.hudValue { font-size: 1.2rem; font-weight: 800; font-family: 'Share Tech Mono'; }
-
-/* --- BOARD GRID & COLUMNS --- */
-.boardGrid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;
-    flex: 1; overflow: hidden; z-index: 10; padding-bottom: 10px;
+.headerHud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: rgba(2, 6, 23, 0.7);
+  border-bottom: 1px solid rgba(57, 255, 20, 0.3);
+  backdrop-filter: blur(20px);
+  margin-bottom: 2rem;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-.column {
-    background: rgba(5, 8, 12, 0.6); backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex; flex-direction: column; overflow: hidden;
-    border-radius: 4px; /* Slight round */
-    position: relative;
-}
-/* Active column Glow */
-.colActive { border-color: rgba(0, 242, 234, 0.3); box-shadow: 0 0 40px rgba(0, 242, 234, 0.05); }
+.pilotInfo { display: flex; flex-direction: column; gap: 5px; }
+.pilotName { color: #fff; font-family: 'Share Tech Mono', monospace; font-size: 1.2rem; font-weight: bold; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 2px; }
+.statusDot { width: 10px; height: 10px; border-radius: 50%; background: #39ff14; box-shadow: 0 0 10px #39ff14; animation: pulse 2s infinite; }
+.roleBadge { color: #f59e0b; font-family: 'Inter', sans-serif; font-size: 0.75rem; letter-spacing: 1px; font-weight: 800; }
 
-/* COLUMN HEADER */
-.colHeader {
-    padding: 15px 20px; background: rgba(0, 0, 0, 0.4);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex; justify-content: space-between; align-items: center;
-}
-.headerTitleBlock { display: flex; flex-direction: column; }
-.colTitle { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
-.colSubtitle { font-size: 0.65rem; color: #556677; font-family: 'Share Tech Mono'; letter-spacing: 2px; }
-.colCount { font-size: 1rem; font-weight: 800; color: #00f2ea; }
-
-/* --- SCROLLING AREA (The Important Part) --- */
-.scrollContainer {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
-    position: relative;
-    /* Custom Scrollbar Styling */
-    scrollbar-width: thin;
-    scrollbar-color: #00f2ea rgba(0,0,0,0.3);
+.centerStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  padding: 8px 16px;
+  border-radius: 50px;
+  color: #39ff14;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
-.scrollContainer::-webkit-scrollbar { width: 4px; }
-.scrollContainer::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-.scrollContainer::-webkit-scrollbar-thumb { background: #00f2ea; border-radius: 0; }
+.selectorZone { display: flex; align-items: center; gap: 15px; }
+.arrowIcon { color: #39ff14; animation: bounceX 2s infinite; }
 
-.taskList {
-    padding: 15px;
-    display: flex; flex-direction: column; gap: 12px; /* Espacement clair */
+.emptyStateWrapper { flex: 1; display: flex; align-items: center; justify-content: center; }
+
+/* ========================================= */
+/* 📊 KANBAN BOARD & COLUMNS                 */
+/* ========================================= */
+.boardContainer {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  overflow-x: auto;
+  padding-bottom: 2rem;
+  height: 100%;
+}
+.boardContainer::-webkit-scrollbar { height: 8px; }
+.boardContainer::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+.boardContainer::-webkit-scrollbar-thumb { background: rgba(57, 255, 20, 0.5); border-radius: 4px; }
+
+.kanbanColumn {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 15, 30, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  backdrop-filter: blur(15px);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* --- CARD STYLE (CLEAN & TECH) --- */
-.card {
-    position: relative; width: 100%;
-    background: rgba(20, 25, 30, 0.85); /* Fond foncé pour lisibilité */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    /* Military Shape */
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
-    transition: all 0.2s ease;
-    opacity: 0; animation: fadeUp 0.3s forwards;
-    cursor: default;
+.columnHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid; /* Color driven by inline style */
 }
 
-.card:hover {
-    transform: translateX(5px); /* Slide léger à droite */
-    border-color: rgba(0, 242, 234, 0.5);
-    box-shadow: -5px 5px 20px rgba(0,0,0,0.5);
+.columnTitle {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
-.cardContent { position: relative; z-index: 2; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-
-/* 1. TOP BAR */
-.cardTopBar { display: flex; justify-content: space-between; align-items: center; }
-.templateBadge {
-    background: rgba(255, 255, 255, 0.1); padding: 3px 8px;
-    font-size: 0.7rem; font-weight: 700; color: #e2e8f0; letter-spacing: 1px;
-    border-radius: 2px; text-transform: uppercase;
-}
-.idBadge { font-family: 'Share Tech Mono'; font-size: 0.65rem; color: #556677; }
-
-/* 2. MAIN INFO (EPS) */
-.mainInfo {
-    background: rgba(0, 0, 0, 0.3); padding: 8px 10px;
-    border-left: 2px solid #556677;
-}
-.epsLabel { font-size: 0.55rem; color: #8899a6; margin-bottom: 2px; }
-.epsValue {
-    font-size: 1.1rem; font-weight: 700; color: #fff;
-    font-family: 'Share Tech Mono'; letter-spacing: 1px;
-    display: flex; align-items: center;
+.columnBadge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
-/* 3. FOOTER ACTIONS */
-.cardFooter { display: flex; margin-top: 5px; }
-
-.btnAction {
-    width: 100%; background: #00f2ea; border: none; padding: 8px;
-    font-family: 'Rajdhani'; font-weight: 800; font-size: 0.8rem;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    cursor: pointer; transition: 0.2s;
-    color: black;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+.columnBody {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.btnAction:hover { background: #fff; box-shadow: 0 0 15px #00f2ea; }
+.columnBody::-webkit-scrollbar { width: 4px; }
+.columnBody::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 
-.btnSecure {
-    width: 100%; background: transparent; border: 1px solid #00f2ea; padding: 8px;
-    font-family: 'Rajdhani'; font-weight: 800; font-size: 0.8rem; color: #00f2ea;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    cursor: pointer; transition: 0.2s;
-}
-.btnSecure:hover { background: rgba(0, 242, 234, 0.1); color: #fff; border-color: #fff; }
-
-.stamp {
-    width: 100%; text-align: center; color: #556677; font-weight: 700; font-size: 0.75rem;
-    border: 1px dashed #334455; padding: 6px; display: flex; align-items: center; justify-content: center; gap: 5px;
-}
-
-/* Card Active Overrides */
-.cardActive { border-left: 3px solid #00f2ea; background: rgba(0, 20, 25, 0.85); }
-.cardActive .mainInfo { border-left-color: #00f2ea; background: rgba(0, 242, 234, 0.05); }
-
-/* Card Done Overrides */
-.cardDone { opacity: 0.6; }
-.cardDone:hover { opacity: 1; }
-
-/* Decor Lines */
-.decorBarLeft {
-    position: absolute; top: 10px; left: 0; width: 3px; height: 30px;
-    background: rgba(255,255,255,0.1);
+/* ========================================= */
+/* 🃏 KANBAN CARDS                           */
+/* ========================================= */
+.cyberCard {
+  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 4px solid; /* Inline color */
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  cursor: grab;
 }
 
-.colFooter {
-    height: 10px; background: rgba(0, 0, 0, 0.3);
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0, 242, 234, 0.1) 5px, rgba(0, 242, 234, 0.1) 10px);
+.cardHeader {
+  display: flex;
+  justify-content: flex-start;
 }
 
-.loader { text-align: center; color: #00f2ea; margin-top: 50px; font-family: 'Share Tech Mono'; animation: blink 1s infinite; }
-.emptyState { text-align: center; color: #445566; margin-top: 50px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.emptyLine { width: 50px; height: 2px; background: #334455; }
+.epsBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
 
-@keyframes fadeUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes blink { 50% { opacity: 0.3; } }
-.spin { animation: spin 2s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255,255,255,0.02);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.dataRow {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+}
+.dataKey { color: #64748b; text-transform: uppercase; font-size: 0.7rem; }
+.dataValue { color: #e2e8f0; font-weight: 600; }
+
+.cardActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.moveBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.moveBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.1);
+}
+.moveBtn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.glowLine {
+  flex: 1;
+  height: 2px;
+  margin: 0 10px;
+  opacity: 0.3;
+  border-radius: 2px;
+  box-shadow: 0 0 10px currentColor;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes bounceX { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }

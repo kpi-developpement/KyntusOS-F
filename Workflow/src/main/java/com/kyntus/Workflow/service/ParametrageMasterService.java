@@ -3,7 +3,6 @@ package com.kyntus.Workflow.service;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-// 🔥 Remarque : On utilise XSSFWorkbook au lieu de SXSSFWorkbook 🔥
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
 import org.springframework.stereotype.Service;
@@ -54,7 +53,6 @@ public class ParametrageMasterService {
 
     public byte[] processParametrageFile(MultipartFile file) throws Exception {
 
-        // 🔥 L'UNIQUE CHANGEMENT EST ICI : XSSFWorkbook au lieu de SXSSFWorkbook 🔥
         try (InputStream inputStream = file.getInputStream();
              ReadableWorkbook wbReader = new ReadableWorkbook(inputStream);
              XSSFWorkbook wbWriter = new XSSFWorkbook()) {
@@ -101,30 +99,45 @@ public class ParametrageMasterService {
 
                     String action = currentRowData.getOrDefault("action", "");
 
+                    // --- EXTRACTION INST ---
                     double instPrice = parseDoubleSafe(currentRowData.get("inst"));
                     String typeInst = currentRowData.getOrDefault("type installation", "");
+                    // 🔥 ZIDNA HADO BASH N-SIFTOUHOM L' INST SERVICE
+                    boolean curZoneComplexe = parseBoolSafe(currentRowData.get("estzonecomplexe"));
+                    boolean curPreAppel = parseBoolSafe(currentRowData.get("estpreappel"));
 
+                    // --- EXTRACTION MES ---
                     double mesPrice = parseDoubleSafe(currentRowData.get("mes"));
                     boolean curInt = parseBoolSafe(currentRowData.get("estdiagnosticinternet"));
                     boolean curTel = parseBoolSafe(currentRowData.get("estdiagnostictelephone"));
                     boolean curTv = parseBoolSafe(currentRowData.get("estdiagnostictv"));
+                    boolean curMes = parseBoolSafe(currentRowData.get("estmiseenservice"));
+                    boolean curBranch = parseBoolSafe(currentRowData.get("estbranchement"));
+                    boolean curWifi = parseBoolSafe(currentRowData.get("estdiagnosticwifi"));
 
+                    // --- EXTRACTION MATERIEL ---
                     double matPrice = parseDoubleSafe(currentRowData.get("materiel"));
                     boolean curFournisseur = parseBoolSafe(currentRowData.get("estfournisseurbytel"));
 
+                    // --- EXTRACTION LOGISTIQUE ---
                     double logPrice = parseDoubleSafe(currentRowData.get("logistique"));
                     int curRepeteurs = parseIntSafe(currentRowData.get("nombrerepeteursposes"));
 
+                    // --- EXTRACTION SUPPORT ---
                     double supPrice = parseDoubleSafe(currentRowData.get("support"));
                     double curDevis = parseDoubleSafe(currentRowData.get("montantdevis"));
 
+                    // 🚀 EXECUTION DES 5 MOTEURS METIERS 🚀
                     Map<String, Object> globalUpdates = new HashMap<>();
-                    globalUpdates.putAll(instService.processInstLogic(instPrice, typeInst, action));
-                    globalUpdates.putAll(mesService.processMesLogic(mesPrice, action, curInt, curTel, curTv));
+
+                    // 🔥 APPEL MIS A JOUR AVEC LES NOUVEAUX BOOLEANS 🔥
+                    globalUpdates.putAll(instService.processInstLogic(instPrice, typeInst, action, curZoneComplexe, curPreAppel));
+                    globalUpdates.putAll(mesService.processMesLogic(mesPrice, action, curInt, curTel, curTv, curMes, curBranch, curWifi));
                     globalUpdates.putAll(matService.processMatLogic(matPrice, action, curFournisseur));
                     globalUpdates.putAll(logService.processLogistiqueLogic(logPrice, action, curRepeteurs));
                     globalUpdates.putAll(supportService.processSupportLogic(supPrice, action, curDevis));
 
+                    // ✍️ ECRITURE DE LA LIGNE DANS LE NOUVEL EXCEL ✍️
                     for (int i = 0; i < headers.size(); i++) {
                         String colName = headers.get(i);
                         String lowerColName = colName.toLowerCase();
@@ -141,21 +154,37 @@ public class ParametrageMasterService {
 
                         if (updatedValue != null) {
                             if (updatedValue instanceof Boolean) {
-                                newCell.setCellValue((Boolean) updatedValue ? "TRUE" : "FALSE");
+                                // 🔥 FORMATAGE STRICT: minuscule et sans espace
+                                newCell.setCellValue((Boolean) updatedValue ? "true" : "false");
                             } else if (updatedValue instanceof Number) {
                                 newCell.setCellValue(((Number) updatedValue).doubleValue());
                             } else {
-                                newCell.setCellValue(updatedValue.toString());
+                                newCell.setCellValue(updatedValue.toString().trim());
                             }
                         } else {
                             String originalValue = currentRowData.get(lowerColName);
-                            try {
-                                if (originalValue.matches("-?\\d+(\\.\\d+)?")) {
-                                    newCell.setCellValue(Double.parseDouble(originalValue));
+                            if (originalValue != null) {
+                                String origClean = originalValue.trim();
+                                String origLower = origClean.toLowerCase();
+
+                                // 🔥 RE-FORMATAGE DES BOOLEANS EXISTANTS EN MINUSCULE
+                                if (origLower.equals("true") || origLower.equals("false") || origLower.equals("vrai") || origLower.equals("faux")) {
+                                    newCell.setCellValue(origLower.equals("true") || origLower.equals("vrai") ? "true" : "false");
                                     continue;
                                 }
-                            } catch (Exception ignored) {}
-                            newCell.setCellValue(originalValue);
+
+                                try {
+                                    // Si c'est un nombre, on l'écrit comme un nombre pour Excel
+                                    if (origClean.matches("-?\\d+(\\.\\d+)?")) {
+                                        newCell.setCellValue(Double.parseDouble(origClean));
+                                        continue;
+                                    }
+                                } catch (Exception ignored) {}
+
+                                newCell.setCellValue(origClean);
+                            } else {
+                                newCell.setCellValue("");
+                            }
                         }
                     }
                 }
@@ -163,7 +192,6 @@ public class ParametrageMasterService {
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             wbWriter.write(out);
-            // wbWriter.dispose(); 🔥 Supprimé car XSSFWorkbook n'en a pas besoin ! 🔥
             return out.toByteArray();
         }
     }

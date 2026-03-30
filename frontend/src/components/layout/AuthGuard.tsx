@@ -33,7 +33,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (user.role === "PILOT" && isAdminArea) {
         // Si un pilote essaie d'aller chez l'admin -> DEHRA (Kick)
         console.warn("INTRUSION DETECTED: PILOT IN ADMIN AREA");
-        router.replace("/pilot/board");
+        // 🔥 HNA KAN L-QALEB! BEDDELNAHA L-HOME 🔥
+        router.replace("/pilot/home"); 
     } 
     else if (user.role === "ADMIN" && isPilotArea) {
         // L'admin peut techniquement voir, mais on peut le rediriger si on veut.

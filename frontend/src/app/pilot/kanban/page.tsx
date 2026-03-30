@@ -1,117 +1,93 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Terminal } from "lucide-react";
+import dynamic from "next/dynamic";
+import { Activity } from "lucide-react"; 
+import SystemIdle from "@/components/ui/SystemIdle";
+import { toast } from "@/components/ui/Toaster";
+
+import KanbanHeader from "./components/KanbanHeader";
+import KanbanBoard from "./components/KanbanBoard";
 import styles from "./PilotKanban.module.css";
-// IMPORT DU BACKGROUND GLOBAL
-import GlobalWarp from "./components/ui/GlobalWarp"; 
-import BoardStats from "./components/BoardStats";
-import KanbanColumn from "./components/KanbanColumn";
+
+// 🚀 DYNAMIC IMPORT DYAL THREE.JS BACKGROUND
+const TacticalBackground = dynamic(() => import("./ux/TacticalBackground"), { ssr: false });
 
 export default function PilotKanban() {
   const [tasks, setTasks] = useState<any[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ todo: 0, inProgress: 0, done: 0 });
 
   useEffect(() => {
     const stored = localStorage.getItem("kyntus_user");
-    if (stored) {
-      const u = JSON.parse(stored);
-      setUser(u);
-      fetchTasks(u.id);
-    }
+    if (stored) setUser(JSON.parse(stored));
+
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
+        .then(res => res.json())
+        .then(data => { if (Array.isArray(data)) setTemplates(data); })
+        .catch(err => console.error(err));
   }, []);
 
-  const fetchTasks = (userId: number) => {
+  const refreshTasks = () => {
+    if (!user || !selectedTemplate) return;
     setLoading(true);
-    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setTasks(data);
-          updateStats(data);
-        }
-      })
-      .finally(() => setLoading(false));
+    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
+        .then(res => res.json())
+        .then(data => { if (Array.isArray(data)) setTasks(data); else setTasks([]); })
+        .catch(e => console.error(e))
+        .finally(() => setLoading(false));
   };
 
-  const updateStats = (data: any[]) => {
-    setStats({
-      todo: data.filter((t) => t.status === "A_FAIRE").length,
-      inProgress: data.filter((t) => t.status === "EN_COURS").length,
-      done: data.filter((t) => ["DONE", "VALIDE", "REJETE"].includes(t.status)).length,
-    });
-  };
+  useEffect(() => { refreshTasks(); }, [user, selectedTemplate]);
 
+  // 🔄 THE MAGIC: Mlli t-klicki, kat-tbddel f' l-Front b-zzerba w kat-sifet l-Back
   const handleMoveTask = async (taskId: number, newStatus: string) => {
-    const oldTasks = [...tasks];
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
-    );
-
+    // Optimistic UI Update (Smuuuth Animation)
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    
     try {
       const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus })
       });
-
       if (!res.ok) throw new Error("Erreur Backend");
-
-      const updatedTask = await res.json();
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
-      updateStats(oldTasks.map((t) => (t.id === taskId ? updatedTask : t)));
-      
-    } catch (error) {
-      console.error(error);
-      setTasks(oldTasks);
+      toast({ message: `TÂCHE DÉPLACÉE VERS ${newStatus} 🎯`, type: "success" });
+    } catch (e) {
+      toast({ message: "ERREUR SYNCHRO - REVERTING", type: "error" });
+      refreshTasks(); 
     }
   };
 
-  const todoTasks = tasks.filter((t) => t.status === "A_FAIRE");
-  const progressTasks = tasks.filter((t) => t.status === "EN_COURS");
-  const doneTasks = tasks.filter((t) => ["DONE", "VALIDE", "REJETE"].includes(t.status)).reverse().slice(0, 10);
+  const missionOptions = templates.map(t => ({ value: t.id.toString(), label: `MISSION: ${t.name.toUpperCase()}` }));
 
   return (
     <div className={styles.container}>
-      {/* BACKGROUND GLOBAL: WARP SPEED */}
-      <GlobalWarp />
+        <TacticalBackground />
+        
+        <KanbanHeader 
+          user={user} 
+          missionOptions={missionOptions} 
+          selectedTemplate={selectedTemplate} 
+          setSelectedTemplate={setSelectedTemplate}
+          tasksCount={tasks.length} 
+        />
 
-      <header className={styles.header}>
-        <div className={styles.titleBlock}>
-          <h1 className={styles.glitchTitle} data-text="MISSION_CONTROL">MISSION_CONTROL</h1>
-          <div className={styles.subTitle}>
-            <Terminal size={14} color="#00f2ea" />
-            <span>UNIT: {user?.username?.toUpperCase()} // LIVE FEED</span>
-          </div>
-        </div>
-        <BoardStats stats={stats} />
-      </header>
-
-      <div className={styles.boardGrid}>
-        <KanbanColumn 
-          title="STAGING AREA" 
-          tasks={todoTasks} 
-          type="TODO" 
-          onAction={handleMoveTask} 
-          loading={loading}
-        />
-        <KanbanColumn 
-          title="ACTIVE PROTOCOLS" 
-          tasks={progressTasks} 
-          type="PROGRESS" 
-          onAction={handleMoveTask}
-          loading={loading}
-        />
-        <KanbanColumn 
-          title="SECURED ARCHIVES" 
-          tasks={doneTasks} 
-          type="DONE" 
-          onAction={handleMoveTask}
-          loading={loading}
-        />
-      </div>
+        {!selectedTemplate ? (
+            <div className={styles.emptyStateWrapper}><SystemIdle /></div>
+        ) : loading ? (
+            <div className={styles.emptyStateWrapper}>
+                <div style={{textAlign:"center", color:"#39ff14", fontFamily:"monospace"}}>
+                    <Activity className="spin" size={40} style={{marginBottom:20}}/>
+                    <div style={{letterSpacing:3}}>SCANNING SECTORS...</div>
+                </div>
+            </div>
+        ) : (
+            <div style={{flex: 1, display:"flex", flexDirection:"column", animation:"fadeIn 0.5s", overflow: "hidden"}}>
+                <KanbanBoard tasks={tasks} onMoveTask={handleMoveTask} />
+            </div>
+        )}
     </div>
   );
 }

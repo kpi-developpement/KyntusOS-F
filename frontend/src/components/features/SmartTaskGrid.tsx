@@ -1,251 +1,262 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Copy, Check, Hash, Play, AlertTriangle, AlertOctagon, Lock, ShieldCheck, Zap } from "lucide-react";
-import styles from "./SmartTaskGrid.module.css";
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, CheckSquare, Square, Zap, Lock, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import styles from './SmartTaskGrid.module.css';
 
-interface SmartGridProps {
-  tasks: any[];
-  allowedFields: string[];
-  onUpdateData: (taskId: number, key: string, value: any) => void;
-  onToggleStatus?: (taskId: number, currentStatus: string) => void;
-}
+// 🎛️ CUSTOM CYBER DROPDOWN (M-bni mn Jdeeer!)
+const CyberDropdown = ({ options, value, onChange, placeholder }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-export default function SmartTaskGrid({ tasks, allowedFields, onUpdateData, onToggleStatus }: SmartGridProps) {
-  const allKeys = tasks.length > 0 && tasks[0].dynamicData ? Object.keys(tasks[0].dynamicData) : [];
-  const anomalyKey = allKeys.find(k => k.toLowerCase().includes("anomalie"));
-  const dynamicCols = allKeys.filter(k => k !== anomalyKey);
-
-  const [editing, setEditing] = useState<{id: number, col: string} | null>(null);
-  const [tempValue, setTempValue] = useState("");
-  const [copiedId, setCopiedId] = useState<{id: number, type: 'EPS'|'ANOMALY'} | null>(null);
-
-  const [confirmModal, setConfirmModal] = useState<{
-    type: 'START' | 'STOP';
-    taskId: number;
-    currentStatus: string;
-    targetCol?: string;
-  } | null>(null);
-
-  const inputRefs = useRef<{[key: string]: HTMLInputElement | null}>({});
-
-  const handleCopyEPS = (id: number, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId({id, type: 'EPS'});
-    setTimeout(() => setCopiedId(null), 1500);
-  };
-
-  const handleCopyAnomaly = (id: number, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId({id, type: 'ANOMALY'});
-    setTimeout(() => setCopiedId(null), 1500);
-  };
-
-  const handleInputFocus = (task: any, col: string) => {
-    if (!allowedFields.includes(col)) return;
-
-    if (task.status === "DONE") return;
-    if (task.status !== "EN_COURS") {
-      if(document.activeElement instanceof HTMLElement) document.activeElement.blur();
-      setConfirmModal({ type: 'START', taskId: task.id, currentStatus: task.status, targetCol: col });
-      return;
-    }
-    setEditing({ id: task.id, col });
-    setTempValue(task.dynamicData[col] || "");
-  };
-
-  const handleActionClick = (task: any) => {
-    if (!onToggleStatus || task.status === "DONE") return;
-    if (task.status === "EN_COURS") {
-      setConfirmModal({ type: 'STOP', taskId: task.id, currentStatus: task.status });
-    } else {
-      setConfirmModal({ type: 'START', taskId: task.id, currentStatus: task.status });
-    }
-  };
-
-  const confirmAction = () => {
-    if (!confirmModal || !onToggleStatus) return;
-    onToggleStatus(confirmModal.taskId, confirmModal.currentStatus);
-    if (confirmModal.type === 'START' && confirmModal.targetCol) {
-      setTimeout(() => {
-        const key = `${confirmModal.taskId}-${confirmModal.targetCol}`;
-        inputRefs.current[key]?.focus();
-      }, 100);
-    }
-    setConfirmModal(null);
-  };
-
-  const handleBlur = () => {
-    if (editing) {
-      onUpdateData(editing.id, editing.col, tempValue);
-      setEditing(null);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") e.currentTarget.blur();
-  };
-
-  if (tasks.length === 0) return null;
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.customDropdown} ref={dropdownRef}>
+      <div className={styles.dropdownHeader} onClick={() => setIsOpen(!isOpen)}>
+        <span style={{ color: value ? '#00f2ea' : '#94a3b8' }}>{value || placeholder}</span>
+        <ChevronDown size={14} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: '0.3s' }} />
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.ul 
+            initial={{ opacity: 0, y: -10, scaleY: 0.8 }} 
+            animate={{ opacity: 1, y: 0, scaleY: 1 }} 
+            exit={{ opacity: 0, y: -10, scaleY: 0.8 }}
+            transition={{ duration: 0.2, originY: 0 }}
+            className={styles.dropdownList}
+          >
+            <li className={styles.dropdownItem} onClick={() => { onChange(""); setIsOpen(false); }}>[ TOUS ]</li>
+            {options.map((opt: string) => (
+              <li key={opt} className={styles.dropdownItem} onClick={() => { onChange(opt); setIsOpen(false); }}>
+                {opt}
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+interface SmartTaskGridProps {
+  tasks: any[];
+  allColumns: string[];       
+  editableColumns: string[];  
+  onUpdateData: (id: number, key: string, val: any) => void;
+  onToggleStatus: (id: number, status: string) => void;
+  selectedTasks: number[];
+  setSelectedTasks: (val: number[] | ((prev: number[]) => number[])) => void;
+}
+
+export default function SmartTaskGrid({ tasks, allColumns, editableColumns, onUpdateData, onToggleStatus, selectedTasks, setSelectedTasks }: SmartTaskGridProps) {
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  
+  // 📄 PAGINATION STATES
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const getUniqueValues = (col: string) => {
+    const vals = new Set<string>();
+    tasks.forEach(t => {
+      if (col === 'STATUS') vals.add(t.status);
+      else if (t.dynamicData && t.dynamicData[col]) {
+        const val = String(t.dynamicData[col]).trim();
+        if (val) vals.add(val);
+      }
+    });
+    return Array.from(vals).sort();
+  };
+
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(t => {
+      if (globalSearch.trim()) {
+        const searchLower = globalSearch.toLowerCase();
+        let matchGlobal = false;
+        if (t.epsReference?.toLowerCase().includes(searchLower)) matchGlobal = true;
+        if (t.status?.toLowerCase().includes(searchLower)) matchGlobal = true;
+        if (t.dynamicData) {
+          for (const key of allColumns) {
+            if (String(t.dynamicData[key] || "").toLowerCase().includes(searchLower)) matchGlobal = true;
+          }
+        }
+        if (!matchGlobal) return false;
+      }
+      for (const [col, filterVal] of Object.entries(columnFilters)) {
+        if (!filterVal) continue;
+        if (col === 'STATUS' && t.status !== filterVal) return false;
+        if (col !== 'STATUS' && String(t.dynamicData?.[col] || "").trim() !== filterVal) return false;
+      }
+      return true;
+    });
+  }, [tasks, globalSearch, columnFilters, allColumns]);
+
+  // 📄 PAGINATION LOGIC
+  const totalPages = Math.ceil(filteredTasks.length / pageSize) || 1;
+  
+  // Reset page to 1 if we filter and current page is now empty
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [filteredTasks.length, totalPages, currentPage]);
+
+  const paginatedTasks = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredTasks.slice(start, start + pageSize);
+  }, [filteredTasks, currentPage, pageSize]);
+
+  const handleFilterChange = (col: string, val: string) => {
+    setColumnFilters(prev => ({ ...prev, [col]: val }));
+    setCurrentPage(1); // Back to first page when filtering
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTasks.length === paginatedTasks.length) setSelectedTasks([]); 
+    else setSelectedTasks(paginatedTasks.map(t => t.id));
+  };
+
+  const toggleSelection = (id: number) => {
+    setSelectedTasks(prev => prev.includes(id) ? prev.filter(tid => tid !== id) : [...prev, id]);
+  };
+
+  if (!tasks || tasks.length === 0) return null;
+
+  return (
+    <div className={styles.gridContainer}>
+      
+      {/* 🔍 FILTER BAR */}
+      <div className={styles.filterBar}>
+        <div className={styles.searchBox}>
+          <Search size={18} color="#00f2ea" />
+          <input type="text" placeholder="Scan Matrix Data..." value={globalSearch} onChange={(e) => {setGlobalSearch(e.target.value); setCurrentPage(1);}} className={styles.searchInput} />
+        </div>
+        <div className={styles.filterStats}>
+          <Zap size={16} color="#39ff14" /> 
+          <motion.span key={filteredTasks.length} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>
+            {filteredTasks.length} ENTITIES FOUND
+          </motion.span>
+        </div>
+      </div>
+
+      {/* 📊 THE CYBER TABLE */}
       <div className={styles.tableWrapper}>
-        <table className={styles.table}>
+        <table className={styles.cyberTable}>
           <thead>
             <tr>
-              {onToggleStatus ? <th className={styles.stickyHeader} style={{width:"80px"}}>STATUS</th> : null}
-              <th className={styles.stickyHeader} style={{width: "180px"}}><Hash size={14} className={styles.headerIcon}/> REF EPS</th>
-              {dynamicCols.map(col => {
-                  const isLocked = !allowedFields.includes(col);
-                  return (
-                    <th key={col} className={styles.stickyHeader} style={{minWidth: "160px"}}>
-                        <div className={styles.headerContent} style={{opacity: isLocked ? 0.5 : 1}}>
-                            {isLocked ? <Lock size={12} /> : <Zap size={12} />} 
-                            {col.toUpperCase()}
-                        </div>
-                    </th>
-                  );
-              })}
+              <th className={styles.stickyCheck}>
+                <div onClick={handleSelectAll} style={{ cursor: 'pointer', marginTop: '10px' }}>
+                  {selectedTasks.length > 0 && selectedTasks.length === paginatedTasks.length 
+                    ? <CheckSquare size={18} color="#00f2ea" /> : <Square size={18} color="#64748b" />}
+                </div>
+              </th>
+              
+              <th className={styles.stickyEps}>
+                <div className={styles.thContent}>EPS_REF</div>
+              </th>
+              
+              <th>
+                <div className={styles.thContent}>
+                  SYS_STATUS
+                  <CyberDropdown 
+                    options={getUniqueValues('STATUS')} 
+                    value={columnFilters['STATUS'] || ""} 
+                    onChange={(val: string) => handleFilterChange('STATUS', val)} 
+                    placeholder="ALL" 
+                  />
+                </div>
+              </th>
+              
+              {allColumns.map(f => (
+                <th key={f}>
+                  <div className={styles.thContent}>
+                    <span>{f.toUpperCase()} {!editableColumns.includes(f) && <Lock size={10} color="#64748b" style={{ marginLeft: '5px' }} />}</span>
+                    <CyberDropdown 
+                      options={getUniqueValues(f)} 
+                      value={columnFilters[f] || ""} 
+                      onChange={(val: string) => handleFilterChange(f, val)} 
+                      placeholder="ALL" 
+                    />
+                  </div>
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody>
-            {tasks.map((task, index) => {
-              const isActive = task.status === "EN_COURS";
-              const isDone = task.status === "DONE";
-              
-              const anomalyVal = anomalyKey ? task.dynamicData[anomalyKey] : null;
-              const hasAnomaly = !!anomalyVal;
-              
-              // Animation delay stagiaire style
-              const rowStyle = { animationDelay: `${index * 0.05}s` } as React.CSSProperties;
-
-              return (
-                <React.Fragment key={task.id}>
-                  <tr 
-                    className={`${styles.row} ${isActive ? styles.rowActive : ''} ${isDone ? styles.rowDone : ''} ${hasAnomaly ? styles.rowWithAnomaly : ''}`}
-                    style={rowStyle}
+          
+          <motion.tbody layout>
+            <AnimatePresence mode="popLayout">
+              {paginatedTasks.map((t) => {
+                const isSelected = selectedTasks.includes(t.id);
+                return (
+                  <motion.tr 
+                    key={t.id} layout
+                    initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                    className={`${styles.tr} ${isSelected ? styles.trSelected : ''}`}
                   >
-                    
-                    {/* --- ACTION BUTTON --- */}
-                    <td className={styles.actionCell}>
-                        {isDone ? (
-                            <div className={styles.doneBadge} title="Mission Terminée & Sécurisée">
-                                <ShieldCheck size={20} className={styles.doneIcon} />
-                            </div>
-                        ) : (
-                            onToggleStatus && (
-                              <button 
-                                  className={`${styles.actionBtn} ${isActive ? styles.btnActive : styles.btnIdle}`}
-                                  onClick={() => handleActionClick(task)}
-                              >
-                                  {isActive ? (
-                                    <div className={styles.pulseContainer}>
-                                      <div className={styles.pulseRing}></div>
-                                      <Check size={18} strokeWidth={3} />
-                                    </div>
-                                  ) : (
-                                    <Play size={14} style={{marginLeft:2}}/>
-                                  )}
-                              </button>
-                            )
-                        )}
+                    <td className={styles.stickyCheck} onClick={() => toggleSelection(t.id)}>
+                      {isSelected ? <CheckSquare size={18} color="#00f2ea" /> : <Square size={18} color="#475569" className={styles.uncheckIcon} />}
                     </td>
 
-                    {/* --- EPS REFERENCE --- */}
-                    <td className={styles.epsCell}>
-                        <div className={styles.epsWrapper} onClick={() => handleCopyEPS(task.id, task.epsReference)}>
-                            <span className={styles.epsText}>{task.epsReference}</span>
-                            <div className={`${styles.copyFeedback} ${copiedId?.id === task.id && copiedId?.type === 'EPS' ? styles.copied : ''}`}>
-                               {copiedId?.id === task.id && copiedId?.type === 'EPS' ? <Check size={14} color="#00f2ea"/> : <Copy size={14} className={styles.copyIcon}/>}
-                            </div>
-                        </div>
+                    <td className={styles.stickyEps}><span className={styles.epsText}>{t.epsReference}</span></td>
+
+                    <td className={styles.tdStatus}>
+                      <button onClick={() => onToggleStatus(t.id, t.status)} className={`${styles.statusBtn} ${t.status === 'EN_COURS' ? styles.statusActive : styles.statusIdle}`}>
+                        {t.status === 'EN_COURS' ? 'IN_PROG' : t.status}
+                      </button>
                     </td>
 
-                    {/* --- DYNAMIC FIELDS --- */}
-                    {dynamicCols.map(col => {
-                      const isEditable = allowedFields.includes(col);
+                    {allColumns.map(f => {
+                      const isEditable = editableColumns.includes(f);
+                      const cellValue = t.dynamicData?.[f] || "";
                       return (
-                        <td key={col} className={styles.dataCell}>
-                            <input 
-                              ref={el => inputRefs.current[`${task.id}-${col}`] = el}
-                              type="text"
-                              className={styles.inputCell}
-                              value={editing?.id === task.id && editing?.col === col ? tempValue : (task.dynamicData[col] || "")}
-                              onChange={(e) => setTempValue(e.target.value)}
-                              onFocus={() => handleInputFocus(task, col)}
-                              onBlur={handleBlur}
-                              onKeyDown={handleKeyDown}
-                              placeholder={isEditable ? "..." : ""}
-                              autoComplete="off"
-                              disabled={isDone || !isEditable} 
-                            />
-                            {/* Focus line effect */}
-                            {!isDone && isEditable && <div className={styles.focusLine}></div>}
-                            {/* Glow effect when active */}
-                            {isActive && isEditable && <div className={styles.activeGlow}></div>}
+                        <td key={f} className={isEditable ? styles.tdInput : styles.tdReadOnly}>
+                          {isEditable ? (
+                            <div className={styles.inputCyberWrapper}>
+                              <input type="text" value={cellValue} onChange={(e) => onUpdateData(t.id, f, e.target.value)} className={styles.dynamicInput} placeholder="..." />
+                            </div>
+                          ) : (
+                            <span className={styles.readOnlyText}>{cellValue || "-"}</span>
+                          )}
                         </td>
                       );
                     })}
-                  </tr>
-
-                  {/* --- ANOMALY ROW (RED) --- */}
-                  {hasAnomaly && (
-                    <tr className={styles.anomalyRow} style={{animationDelay: `${(index * 0.05) + 0.02}s`}}>
-                      <td colSpan={2 + dynamicCols.length}>
-                        <div 
-                          className={`${styles.anomalyBanner} ${copiedId?.id === task.id && copiedId?.type === 'ANOMALY' ? styles.anomalyCopied : ''}`}
-                          onClick={() => handleCopyAnomaly(task.id, anomalyVal)}
-                        >
-                            <div className={styles.anomalyIconBox}>
-                                <AlertOctagon size={20} className={styles.anomalyPulse} />
-                            </div>
-                            <div className={styles.anomalyContent}>
-                                <span className={styles.anomalyLabel}>CRITICAL ANOMALY DETECTED</span>
-                                <span className={styles.anomalyText}>{anomalyVal}</span>
-                            </div>
-                            <div className={styles.anomalyAction}>
-                                {copiedId?.id === task.id && copiedId?.type === 'ANOMALY' ? 
-                                    <span className={styles.copiedMsg}><Check size={16}/> SYSTEM COPIED</span> : 
-                                    <div className={styles.copyHint}>
-                                      <Copy size={14}/> <span>COPY LOG</span>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
+                  </motion.tr>
+                );
+              })}
+            </AnimatePresence>
+          </motion.tbody>
         </table>
       </div>
 
-      {confirmModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalGlow}></div>
-            <div className={styles.modalHeader}>
-              <AlertTriangle size={28} color={confirmModal.type === 'START' ? "#00f2ea" : "#ff0055"} />
-              <h3>{confirmModal.type === 'START' ? 'INITIATE PROTOCOL' : 'TERMINATE MISSION'}</h3>
-            </div>
-            <p className={styles.modalText}>
-              {confirmModal.type === 'START' 
-                ? "Engage active processing for this unit?" 
-                : "Secure data and archive this mission?"
-              }
-            </p>
-            <div className={styles.modalActions}>
-              <button className={styles.btnCancel} onClick={() => setConfirmModal(null)}>CANCEL</button>
-              <button className={`${styles.btnConfirm} ${confirmModal.type === 'START' ? styles.btnConfirmStart : styles.btnConfirmStop}`} onClick={confirmAction}>
-                {confirmModal.type === 'START' ? 'ENGAGE' : 'CONFIRM'}
-              </button>
-            </div>
-          </div>
+      {/* 📄 PAGINATION CONTROLS */}
+      <div className={styles.paginationBar}>
+        <div className={styles.pageSizeSelector}>
+          LIGNES PAR PAGE : 
+          <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
         </div>
-      )}
+        
+        <div className={styles.pageControls}>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className={styles.pageBtn}>
+            <ChevronLeft size={16} /> PREV
+          </button>
+          <span className={styles.pageInfo}>PAGE <span style={{color: '#00f2ea'}}>{currentPage}</span> / {totalPages}</span>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className={styles.pageBtn}>
+            NEXT <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
