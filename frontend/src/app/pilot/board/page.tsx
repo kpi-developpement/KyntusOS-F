@@ -25,7 +25,7 @@ export default function PilotBoard() {
     const stored = localStorage.getItem("kyntus_user");
     if (stored) setUser(JSON.parse(stored));
 
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTemplates(data); })
         .catch(err => console.error(err));
@@ -35,7 +35,7 @@ export default function PilotBoard() {
     if (!user || !selectedTemplate) return;
     setLoading(true);
     setSelectedTasks([]); 
-    fetch(`http://localhost:8080/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
+    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTasks(data); else setTasks([]); })
         .catch(e => console.error(e))
@@ -63,7 +63,7 @@ export default function PilotBoard() {
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, dynamicData: { ...t.dynamicData, [key]: value } } : t));
     try {
-        await fetch(`http://localhost:8080/api/tasks/${taskId}/data`, {
+        await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/data`, {
             method: "PATCH", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ key, value })
         });
@@ -78,7 +78,7 @@ export default function PilotBoard() {
       
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
       try {
-          const res = await fetch(`http://localhost:8080/api/tasks/${taskId}/status`, {
+          const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/status`, {
               method: "PATCH", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: newStatus })
           });
@@ -95,7 +95,7 @@ export default function PilotBoard() {
     setTasks(prev => prev.map(t => selectedTasks.includes(t.id) ? { ...t, dynamicData: { ...t.dynamicData, [columnKey]: value } } : t));
     try {
       await Promise.all(selectedTasks.map(id => 
-        fetch(`http://localhost:8080/api/tasks/${id}/data`, {
+        fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${id}/data`, {
           method: "PATCH", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ key: columnKey, value })
         })
@@ -110,7 +110,7 @@ export default function PilotBoard() {
     setTasks(prev => prev.map(t => selectedTasks.includes(t.id) ? { ...t, status: "DONE" } : t));
     try {
       await Promise.all(selectedTasks.map(id => 
-        fetch(`http://localhost:8080/api/tasks/${id}/status`, {
+        fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${id}/status`, {
           method: "PATCH", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "DONE" })
         })
@@ -123,7 +123,7 @@ export default function PilotBoard() {
   const handlePurgeDoublons = async () => {
     if (!window.confirm("Voulez-vous vraiment purger les doublons ?")) return;
     try {
-      const res = await fetch("http://localhost:8080/api/pilot-records/deduplicate", { method: "DELETE" });
+      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/pilot-records/deduplicate", { method: "DELETE" });
       if (res.ok) { toast({ message: "DOUBLONS PURGÉS 🧹", type: "success" }); refreshTasks(); }
     } catch (e) { toast({ message: "ERREUR LORS DE LA PURGE", type: "error" }); }
   };

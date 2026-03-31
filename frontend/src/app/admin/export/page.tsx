@@ -14,7 +14,7 @@ export default function ExportPage() {
 
   // 1. Fetch Templates
   useEffect(() => {
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
       .then(res => res.json())
       .then(data => setTemplates(data || []))
       .catch(() => toast({ message: "Erreur chargement templates", type: "error" }));
@@ -32,7 +32,7 @@ export default function ExportPage() {
 
     try {
       // Appel Backend
-      const res = await fetch(`http://localhost:8080/api/export/${selectedTemplate}`, {
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/export/${selectedTemplate}`, {
         method: "GET",
       });
 

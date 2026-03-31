@@ -49,8 +49,8 @@ export default function TaskDispatchPage() {
     const init = async () => {
       try {
         const [p, t] = await Promise.all([
-          fetch("http://localhost:8080/api/users/pilots").then(r => r.json()),
-          fetch("http://localhost:8080/api/templates").then(r => r.json())
+          fetch("http://kyntusos.kyntus.fr:8082/api/users/pilots").then(r => r.json()),
+          fetch("http://kyntusos.kyntus.fr:8082/api/templates").then(r => r.json())
         ]);
         setPilots(p.map((x:any) => ({...x, load: Math.floor(Math.random()*60)+10})));
         setTemplates(t);
@@ -69,7 +69,7 @@ export default function TaskDispatchPage() {
   useEffect(() => {
     if (mode === 'MANUAL' && manualTemplateId) {
         setLoading(true);
-        fetch(`http://localhost:8080/api/tasks/unassigned/${manualTemplateId}`)
+        fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/unassigned/${manualTemplateId}`)
             .then(r => r.json()).then(setTasks).finally(() => setLoading(false));
     } else setTasks([]);
   }, [manualTemplateId, mode]);
@@ -77,14 +77,14 @@ export default function TaskDispatchPage() {
   // 3. SMART FILTER LOGIC
   useEffect(() => {
     if(!smartTemplateId) { setAvailableColumns([]); return; }
-    fetch(`http://localhost:8080/api/tasks/columns/${smartTemplateId}`)
+    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/columns/${smartTemplateId}`)
         .then(r=>r.json()).then(setAvailableColumns);
     setSelectedColumnKey(""); setSelectedFilterValues([]);
   }, [smartTemplateId]);
 
   useEffect(() => {
     if(!smartTemplateId || !selectedColumnKey) { setAvailableValues([]); return; }
-    fetch(`http://localhost:8080/api/tasks/values/${smartTemplateId}/${selectedColumnKey}`)
+    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/values/${smartTemplateId}/${selectedColumnKey}`)
         .then(r=>r.json()).then(v => setAvailableValues(v.filter((x:string)=>x)));
     setSelectedFilterValues([]);
   }, [smartTemplateId, selectedColumnKey]);
@@ -106,14 +106,14 @@ export default function TaskDispatchPage() {
     }
 
     try {
-        const res = await fetch("http://localhost:8080/api/dispatch/execute", {
+        const res = await fetch("http://kyntusos.kyntus.fr:8082/api/dispatch/execute", {
             method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)
         });
         if(res.ok) {
             toast({message: "DISPATCH SUCCESSFUL", type: "success"});
             setSelectedTaskIds([]); setSelectedPilotIds([]); setSelectedFilterValues([]);
             if(mode === 'MANUAL') {
-                 const ref = await fetch(`http://localhost:8080/api/tasks/unassigned/${manualTemplateId}`).then(r=>r.json());
+                 const ref = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/unassigned/${manualTemplateId}`).then(r=>r.json());
                  setTasks(ref);
             }
         } else throw new Error();

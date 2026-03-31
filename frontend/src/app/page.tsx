@@ -24,7 +24,7 @@ export default function CommandPage() {
 
   const fetchDashboardData = useCallback(async (isInitial = false) => {
     try {
-      const res = await fetch("http://localhost:8080/api/stats/dashboard-summary");
+      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/stats/dashboard-summary");
       const d = await res.json();
       if (isInitial) {
         setTimeout(() => { setData(d); setLoading(false); setLastUpdate(new Date()); }, 500);
@@ -37,7 +37,7 @@ export default function CommandPage() {
 
   const fetchPilotDetails = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:8080/api/stats/template/${id}/pilots`);
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/stats/template/${id}/pilots`);
       const d = await res.json();
       setPilotsData(prev => ({...prev, [id]: d}));
     } catch(e) { console.error(e); }
@@ -46,7 +46,7 @@ export default function CommandPage() {
   useEffect(() => { setLastUpdate(new Date()); fetchDashboardData(true); }, []);
 
   useEffect(() => {
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS("http://kyntusos.kyntus.fr:8082/ws");
     const stompClient = new Client({
       webSocketFactory: () => socket,
       onConnect: () => { setIsConnected(true); stompClient.subscribe("/topic/workflow-events", (m) => { if(m.body==="TASK_UPDATE") fetchDashboardData(false); }); },

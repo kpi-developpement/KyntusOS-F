@@ -23,7 +23,7 @@ export default function TemplatesPage() {
   }, []);
 
   const fetchTemplates = () => {
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
       .then(res => res.json())
       .then(data => setTemplates(data || []))
       .catch(err => console.error("Erreur templates:", err));
@@ -58,7 +58,7 @@ export default function TemplatesPage() {
           }))
       };
 
-      const res = await fetch("http://localhost:8080/api/templates", {
+      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload), 

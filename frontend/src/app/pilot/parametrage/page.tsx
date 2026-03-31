@@ -6,7 +6,7 @@ import ParametrageTable from './components/ParametrageTable';
 import { Cpu, CheckCircle, AlertTriangle, DownloadCloud } from 'lucide-react';
 import * as XLSX from 'xlsx'; // N'oublie pas: npm install xlsx
 
-const API_BASE = "http://localhost:8080";
+const API_BASE = "http://kyntusos.kyntus.fr:8082";
 
 export default function ParametragePage() {
   const [isProcessing, setIsProcessing] = useState(false);

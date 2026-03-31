@@ -14,7 +14,7 @@ export default function ImportPage() {
 
   // 1. Jib les Templates bach l'utilisateur ykhtar fin ylo7 l'Excel
   useEffect(() => {
-    fetch("http://localhost:8080/api/templates")
+    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
       .then((res) => res.json())
       .then((data) => setTemplates(data || []))
       .catch((err) => console.error("Error fetching templates:", err));
@@ -40,7 +40,7 @@ export default function ImportPage() {
     try {
       // --- HNA FIN KAN L'ERROR ---
       // L'URL s7i7a hiya: /api/import/{templateId}
-      const res = await fetch(`http://localhost:8080/api/import/${selectedTemplate}`, {
+      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/import/${selectedTemplate}`, {
         method: "POST",
         body: formData,
       });

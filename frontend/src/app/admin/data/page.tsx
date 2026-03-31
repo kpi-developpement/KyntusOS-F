@@ -24,8 +24,8 @@ export default function OmniGrid() {
   // 1. Initial Load (Templates & Pilots)
   useEffect(() => {
     Promise.all([
-        fetch("http://localhost:8080/api/templates").then(r => r.json()),
-        fetch("http://localhost:8080/api/users/pilots").then(r => r.json())
+        fetch("http://kyntusos.kyntus.fr:8082/api/templates").then(r => r.json()),
+        fetch("http://kyntusos.kyntus.fr:8082/api/users/pilots").then(r => r.json())
     ]).then(([tmplData, pilotData]) => {
         setTemplates(tmplData || []);
         setPilots(pilotData || []);
@@ -37,7 +37,7 @@ export default function OmniGrid() {
     if(!selectedTemplate) return;
     setLoading(true);
     try {
-        const res = await fetch(`http://localhost:8080/api/tasks?templateId=${selectedTemplate}`);
+        const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?templateId=${selectedTemplate}`);
         if(res.ok) {
             const data = await res.json();
             setTasks(Array.isArray(data) ? data : []);
