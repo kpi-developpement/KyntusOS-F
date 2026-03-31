@@ -13,7 +13,7 @@ export default function RecordDashboard() {
 
   const fetchRecords = async () => {
     try {
-      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/${PILOT_ID}`);
+      const res = await fetch(`http://localhost:8080/api/pilot-records/${PILOT_ID}`);
       const data = await res.json();
       setRecords(data);
     } catch (error) {
@@ -30,7 +30,7 @@ export default function RecordDashboard() {
     formData.append('file', file);
 
     try {
-      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/pilot-records/import/${PILOT_ID}`, {
+      const res = await fetch(`http://localhost:8080/api/pilot-records/import/${PILOT_ID}`, {
         method: 'POST',
         body: formData,
       });

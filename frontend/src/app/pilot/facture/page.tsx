@@ -89,7 +89,7 @@ export default function FacturePage() {
     }
 
     try {
-      const response = await fetch("http://kyntusos.kyntus.fr:8082/api/facture/generate", {
+      const response = await fetch("http://localhost:8080/api/facture/generate", {
         method: "POST",
         body: formData,
       });
