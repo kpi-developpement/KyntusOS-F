@@ -3,6 +3,7 @@ package com.kyntus.Workflow.controller;
 import com.kyntus.Workflow.model.PilotRecord;
 import com.kyntus.Workflow.repository.PilotRecordRepository;
 import com.kyntus.Workflow.service.PilotImportService;
+import com.kyntus.Workflow.service.PilotSecureImportService; // 👈 ZEDNA L-IMPORT DYAL SERVICE JDID
 import com.kyntus.Workflow.service.PilotTrackService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,11 +24,14 @@ import java.util.Map;
 public class PilotRecordController {
 
     private final PilotImportService pilotImportService;
-    private final PilotTrackService pilotTrackService; // 🔥 HADA SERVICE JDID
+    private final PilotSecureImportService pilotSecureImportService; // 👈 DECLARATION
+    private final PilotTrackService pilotTrackService;
     private final PilotRecordRepository pilotRecordRepository;
 
-    public PilotRecordController(PilotImportService pilotImportService, PilotTrackService pilotTrackService, PilotRecordRepository pilotRecordRepository) {
+    // 👈 INJECTION F' CONSTRUCTOR
+    public PilotRecordController(PilotImportService pilotImportService, PilotSecureImportService pilotSecureImportService, PilotTrackService pilotTrackService, PilotRecordRepository pilotRecordRepository) {
         this.pilotImportService = pilotImportService;
+        this.pilotSecureImportService = pilotSecureImportService;
         this.pilotTrackService = pilotTrackService;
         this.pilotRecordRepository = pilotRecordRepository;
     }
@@ -40,6 +44,7 @@ public class PilotRecordController {
             @RequestParam("category") String category,
             @PathVariable Long pilotId) {
         try {
+            // Tqder t-beddel hadi l' pilotSecureImportService.importPilotExcelSecure ila bghiti t-kheddem L-Mouteur Jdid f' l-Import L-3adi
             pilotImportService.importPilotExcel(file, pilotId, year, month, category);
             return ResponseEntity.ok().body("{\"message\": \"Importation réussie avec succès\"}");
         } catch (Exception e) {
@@ -142,7 +147,6 @@ public class PilotRecordController {
         } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
-    // 🚀 L'ENDPOINT JDID DYAL LES ETATS (POUR LE DROPDOWN) 🚀
     @GetMapping("/etats")
     public ResponseEntity<List<String>> getAvailableEtats(
             @RequestParam("category") String category,
@@ -182,7 +186,6 @@ public class PilotRecordController {
         } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
 
-    // 🚀 L'ENDPOINT TRACK GLOBAL (TEXTAREA + ETAT) 🚀
     @PostMapping("/export-track-global")
     public ResponseEntity<byte[]> exportGlobalTrackHistory(
             @RequestBody List<String> epsList,
@@ -262,12 +265,24 @@ public class PilotRecordController {
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
     }
-    // 🧹 L'ENDPOINT POUR NETTOYER LA BASE DE DONNEES SANS LA SUPPRIMER 🧹
+
     @DeleteMapping("/deduplicate")
     public ResponseEntity<?> removeDuplicates() {
         try {
             int deletedRows = pilotImportService.removeDuplicates();
             return ResponseEntity.ok().body("{\"message\": \"Nettoyage réussi ! " + deletedRows + " doublons éliminés.\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    // 🚀 L-VACCIN L-JDID (Le Nettoyeur Quantique) 🚀
+    @DeleteMapping("/fix-69-files")
+    public ResponseEntity<?> fixRetroactiveDuplicates() {
+        try {
+            int deletedRows = pilotSecureImportService.fixRetroactiveDuplicates();
+            return ResponseEntity.ok().body("{\"message\": \"Nettoyage quantique réussi ! " + deletedRows + " doublons éliminés.\"}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
