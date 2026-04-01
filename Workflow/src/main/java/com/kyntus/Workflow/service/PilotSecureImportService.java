@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.Array;
@@ -21,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +46,16 @@ public class PilotSecureImportService {
         this.objectMapper = objectMapper;
         this.mapWriter = objectMapper.writerFor(Map.class);
         this.securityService = securityService;
+    }
+
+    @PostConstruct
+    public void initIndexes() {
+        try {
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_perf ON pilot_records(category, import_year, import_month, eps_reference)");
+            System.out.println("✅ [KYNTUS NEXUS] Index Composite Optimisé (Vitesse Constante) !");
+        } catch (Exception e) {
+            System.out.println("⚠️ [KYNTUS NEXUS] Index déjà existant.");
+        }
     }
 
     @Transactional
@@ -80,22 +92,25 @@ public class PilotSecureImportService {
         }
     }
 
+    // 🧠 THE ULTIMATE DETERMINISTIC FINGERPRINT (L-ALGORITHME L-WA3ER) 🧠
+    // Kay-dir ".sorted()" bash l-Clés dima y-kounou m-steffin, wakha Jackson y-khellet-hom!
     private String generateDataFingerprint(Map<String, String> data) {
-        StringBuilder sb = new StringBuilder(256);
-        for(Map.Entry<String, String> e : data.entrySet()) {
-            sb.append(e.getKey().toLowerCase()).append("=").append(e.getValue().toLowerCase()).append("|");
-        }
-        return sb.toString();
+        return data.entrySet().stream()
+                .filter(e -> e.getValue() != null && !e.getValue().trim().isEmpty())
+                .map(e -> e.getKey().trim().toLowerCase() + "=" + e.getValue().trim().toLowerCase())
+                .sorted() // 👈 HADA HOWA L-FIX L-KBIIR LI GHAY-7BESS LES VERSIONS L-KDOUB !
+                .collect(Collectors.joining("|"));
     }
 
+    // Kay-qra JSON mn DB, kay-rddou Map 3adiya, 3ad kay-dir L-Fingerprint L-M-sttef
     private String extractFingerprintFromJson(String dataJson) {
         try {
             Map<String, Object> rawMap = objectMapper.readValue(dataJson, new TypeReference<Map<String, Object>>() {});
-            TreeMap<String, String> strMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-            for(Map.Entry<String, Object> e : rawMap.entrySet()) {
-                String val = e.getValue() != null ? String.valueOf(e.getValue()).trim() : "";
-                if (!val.isEmpty()) strMap.put(e.getKey().trim(), val);
-            }
+            Map<String, String> strMap = new HashMap<>();
+            rawMap.forEach((k, v) -> {
+                String val = (v != null) ? String.valueOf(v).trim() : "";
+                if (!val.isEmpty()) strMap.put(k, val);
+            });
             return generateDataFingerprint(strMap);
         } catch(Exception e) { return ""; }
     }
@@ -108,7 +123,7 @@ public class PilotSecureImportService {
         return originalFilename;
     }
 
-    // 🚀 L-IMPORTATION SECURISEE 🚀
+    // 🚀 THE V17 IMPORT ENGINE 🚀
     public void importPilotExcelSecure(MultipartFile file, Long pilotId, int year, int month, String category, int ignoredFrontendRank) throws Exception {
         User pilot = userRepository.findAll().stream()
                 .filter(u -> u.getRole().toString().equals("PILOT"))
@@ -126,6 +141,15 @@ public class PilotSecureImportService {
         sessionFilenameCache.put(month, filename);
 
         AtomicBoolean categoryFoundInFile = new AtomicBoolean(false);
+
+        // 🚨 FILENAME BYPASS
+        String upperFilename = filename.toUpperCase();
+        if (upperFilename.contains(category.toUpperCase()) ||
+                (category.equalsIgnoreCase("PRESTA") && upperFilename.contains("RZO")) ||
+                (category.equalsIgnoreCase("RZO") && upperFilename.contains("PRESTA"))) {
+            categoryFoundInFile.set(true);
+        }
+
         List<RawRow> buffer = new ArrayList<>(5000);
 
         try (InputStream inputStream = file.getInputStream();
@@ -165,7 +189,6 @@ public class PilotSecureImportService {
                             String val = row.getCellText(i);
                             String cleanVal = (val != null) ? val.trim() : "";
 
-                            // ⚡ L-EPS dima n-rddouh UPPERCASE hnaya! ⚡
                             if (i == epsColIndex) { eps = cleanVal.toUpperCase(); if (!eps.isEmpty()) rowIsEmpty = false; continue; }
                             if (i == typeInterventionColIndex) rowTypeIntervention = cleanVal;
                             if (i == periodeColIndex) rowPeriode = cleanVal;
@@ -207,7 +230,6 @@ public class PilotSecureImportService {
 
     private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth, String category, String originalFilename, Map<Integer, Integer> sessionRankCache, Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile) throws Exception {
 
-        // ⚡ .stream() 3adi asre3 mn parallelStream() f' l-Mémoire Sghira ⚡
         List<SecureEpsRecord> processed = buffer.stream().map(r -> {
             if (!categoryFoundInFile.get() && securityService.isExpectedCategory(r.typeIntervention, category)) {
                 categoryFoundInFile.set(true);
@@ -215,7 +237,8 @@ public class PilotSecureImportService {
             int targetMonth = securityService.extractTargetMonth(r.periode, defaultMonth);
             String finalEps = r.eps.isEmpty() ? "AUTO-" + UUID.randomUUID().toString().substring(0,8) : r.eps;
 
-            TreeMap<String, String> cleanData = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            // N-nqqiw L-Ar9am mn .0
+            Map<String, String> cleanData = new HashMap<>();
             r.data.forEach((k, v) -> {
                 if (v != null && !v.isEmpty()) {
                     if (v.endsWith(".0") && v.matches("-?\\d+\\.0")) v = v.substring(0, v.length() - 2);
@@ -248,17 +271,18 @@ public class PilotSecureImportService {
         }
     }
 
-    // 🏗️ THE DB INJECTOR (L-INDEX MA-Y-T-QESS'SH HNA)
+    // 🏗️ THE DB INJECTOR (UNNEST + PARALLEL DB PARSING)
     private void processAndInsertSubBatch(Connection conn, List<SecureEpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
         Set<String> epsSet = batch.stream().map(r -> r.eps).collect(Collectors.toSet());
 
-        // ⚡ THE INDEX-FRIENDLY SQL: 7yydna LOWER() w TRIM() bash L-Index y-khdem 100% ⚡
+        // ⚡ THE SPEED FIX: UNNEST kay-bzez 3la DB t-kheddem L-Index ⚡
         String fetchAllSql = "SELECT eps_reference, dynamic_data, version FROM pilot_records " +
-                "WHERE category = ? AND import_year = ? AND import_month = ? AND eps_reference = ANY(?)";
+                "WHERE category = ? AND import_year = ? AND import_month = ? AND eps_reference IN (SELECT * FROM UNNEST(?))";
 
-        Map<String, Set<String>> dbAllFingerprints = new HashMap<>();
-        Map<String, Integer> dbLatestVersions = new HashMap<>();
+        Map<String, Set<String>> dbAllFingerprints = new ConcurrentHashMap<>();
+        Map<String, Integer> dbLatestVersions = new ConcurrentHashMap<>();
 
+        List<String[]> rawDbRecords = new ArrayList<>();
         try (PreparedStatement psFetch = conn.prepareStatement(fetchAllSql)) {
             psFetch.setString(1, category);
             psFetch.setInt(2, year);
@@ -269,23 +293,27 @@ public class PilotSecureImportService {
 
             try (ResultSet rs = psFetch.executeQuery()) {
                 while (rs.next()) {
-                    String eps = rs.getString(1).toUpperCase(); // Dima Majuscule
-                    String dbJson = rs.getString(2);
-                    String verStr = rs.getString(3);
-
-                    dbAllFingerprints.computeIfAbsent(eps, k -> new HashSet<>()).add(extractFingerprintFromJson(dbJson));
-
-                    int vNum = 0;
-                    if (verStr != null && verStr.toUpperCase().startsWith("V")) {
-                        try { vNum = Integer.parseInt(verStr.substring(1)); } catch (Exception ignored) {}
-                    }
-                    int currentMax = dbLatestVersions.getOrDefault(eps, 0);
-                    if (vNum > currentMax) {
-                        dbLatestVersions.put(eps, vNum);
-                    }
+                    rawDbRecords.add(new String[]{ rs.getString(1).toUpperCase(), rs.getString(2), rs.getString(3) });
                 }
             }
         }
+
+        // ⚡ PARALLEL THREADING: JSON Parsing bla ma n-bloukiw L-Main Thread ⚡
+        rawDbRecords.parallelStream().forEach(record -> {
+            String eps = record[0];
+            String dbJson = record[1];
+            String verStr = record[2];
+
+            String fingerprint = extractFingerprintFromJson(dbJson);
+            dbAllFingerprints.computeIfAbsent(eps, k -> Collections.synchronizedSet(new HashSet<>())).add(fingerprint);
+
+            int vNum = 0;
+            if (verStr != null && verStr.toUpperCase().startsWith("V")) {
+                try { vNum = Integer.parseInt(verStr.substring(1)); } catch (Exception ignored) {}
+            }
+            final int finalVNum = vNum;
+            dbLatestVersions.compute(eps, (k, currentMax) -> (currentMax == null || finalVNum > currentMax) ? finalVNum : currentMax);
+        });
 
         String insertSql = "INSERT INTO pilot_records (eps_reference, dynamic_data, version, imported_at, pilot_id, import_year, import_month, category, source_file, file_rank) VALUES (?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?)";
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
@@ -293,11 +321,12 @@ public class PilotSecureImportService {
 
         try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
             for (SecureEpsRecord rec : batch) {
-                String normalizedEps = rec.eps.toUpperCase(); // Dima Majuscule
+                String normalizedEps = rec.eps.toUpperCase();
                 Set<String> existingFingerprints = dbAllFingerprints.getOrDefault(normalizedEps, new HashSet<>());
                 int lastVNum = dbLatestVersions.getOrDefault(normalizedEps, 0);
 
                 if (!existingFingerprints.contains(rec.dataFingerprint)) {
+                    // 👈 L-JSON Kay-t-saweb ghir l-Jdad!
                     String dataJson = mapWriter.writeValueAsString(rec.cleanDataMap);
                     String newVersion = "V" + (lastVNum + 1);
 
