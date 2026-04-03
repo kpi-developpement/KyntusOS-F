@@ -67,7 +67,6 @@ public class PilotSecureImportService {
                 "  GROUP BY eps_reference, category, import_year, import_month, dynamic_data::text" +
                 ")";
         int deletedRows = jdbcTemplate.update(sql);
-        System.out.println("🧹 [KYNTUS NEXUS] PURGE RETROACTIVE TERMINEE : " + deletedRows + " Doublons Supprimés !");
         return deletedRows;
     }
 
@@ -92,20 +91,18 @@ public class PilotSecureImportService {
         }
     }
 
-    // 🧠 THE ULTIMATE DETERMINISTIC FINGERPRINT (L-ALGORITHME L-WA3ER) 🧠
-    // Kay-dir ".sorted()" bash l-Clés dima y-kounou m-steffin, wakha Jackson y-khellet-hom!
     private String generateDataFingerprint(Map<String, String> data) {
         return data.entrySet().stream()
                 .filter(e -> e.getValue() != null && !e.getValue().trim().isEmpty())
                 .map(e -> e.getKey().trim().toLowerCase() + "=" + e.getValue().trim().toLowerCase())
-                .sorted() // 👈 HADA HOWA L-FIX L-KBIIR LI GHAY-7BESS LES VERSIONS L-KDOUB !
+                .sorted()
                 .collect(Collectors.joining("|"));
     }
 
-    // Kay-qra JSON mn DB, kay-rddou Map 3adiya, 3ad kay-dir L-Fingerprint L-M-sttef
+    @SuppressWarnings("unchecked")
     private String extractFingerprintFromJson(String dataJson) {
         try {
-            Map<String, Object> rawMap = objectMapper.readValue(dataJson, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> rawMap = objectMapper.readValue(dataJson, Map.class);
             Map<String, String> strMap = new HashMap<>();
             rawMap.forEach((k, v) -> {
                 String val = (v != null) ? String.valueOf(v).trim() : "";
@@ -123,8 +120,11 @@ public class PilotSecureImportService {
         return originalFilename;
     }
 
-    // 🚀 THE V17 IMPORT ENGINE 🚀
+    // 🚀 L-IMPORTATION SECURISEE 🚀
     public void importPilotExcelSecure(MultipartFile file, Long pilotId, int year, int month, String category, int ignoredFrontendRank) throws Exception {
+        // 🔥 FIX 1: N-Neqiyou l-Category mn ay espace zayed
+        String safeCategory = category != null ? category.trim() : "";
+
         User pilot = userRepository.findAll().stream()
                 .filter(u -> u.getRole().toString().equals("PILOT"))
                 .findFirst().orElseThrow(() -> new RuntimeException("Pilote non trouvé!"));
@@ -136,21 +136,22 @@ public class PilotSecureImportService {
         Map<Integer, String> sessionFilenameCache = new HashMap<>();
         String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
 
-        Integer maxRank = jdbcTemplate.queryForObject(rankSql, Integer.class, category, year, month);
+        Integer maxRank = jdbcTemplate.queryForObject(rankSql, Integer.class, safeCategory, year, month);
         sessionRankCache.put(month, (maxRank != null ? maxRank : 0) + 1);
         sessionFilenameCache.put(month, filename);
 
         AtomicBoolean categoryFoundInFile = new AtomicBoolean(false);
 
-        // 🚨 FILENAME BYPASS
-        String upperFilename = filename.toUpperCase();
-        if (upperFilename.contains(category.toUpperCase()) ||
-                (category.equalsIgnoreCase("PRESTA") && upperFilename.contains("RZO")) ||
-                (category.equalsIgnoreCase("RZO") && upperFilename.contains("PRESTA"))) {
+        // 🚨 OVERRIDE ABSOLU W BULLETPROOF (RZO / PRESTA) 🚨
+        String upperFilename = filename.toUpperCase().replaceAll("[\\s_\\-]", "");
+        if (safeCategory.equalsIgnoreCase("PRESTA") || safeCategory.equalsIgnoreCase("RZO")) {
+            // Kima bghiti, n-qeeblou ay fichier dyal PRESTA / RZO
+            categoryFoundInFile.set(true);
+        } else if (upperFilename.contains(safeCategory.toUpperCase().replaceAll("[\\s_\\-]", ""))) {
             categoryFoundInFile.set(true);
         }
 
-        List<RawRow> buffer = new ArrayList<>(5000);
+        List<RawRow> buffer = new ArrayList<>(10000);
 
         try (InputStream inputStream = file.getInputStream();
              ReadableWorkbook wb = new ReadableWorkbook(inputStream)) {
@@ -172,10 +173,26 @@ public class PilotSecureImportService {
                         String colName = headerRow.getCellText(i);
                         if (colName != null && !colName.trim().isEmpty()) {
                             colName = colName.trim();
-                            if (colName.equalsIgnoreCase("idIntervention") || colName.equalsIgnoreCase("EPS")) epsColIndex = i;
-                            else if (colName.equalsIgnoreCase("typeIntervention")) { typeInterventionColIndex = i; colMap.put(i, colName); }
-                            else if (colName.equalsIgnoreCase("periode") || colName.equalsIgnoreCase("période")) { periodeColIndex = i; colMap.put(i, colName); }
-                            else if (!colName.equalsIgnoreCase("IMPORT_DATE") && !colName.equalsIgnoreCase("VER") && !colName.equalsIgnoreCase("VERSION")) colMap.put(i, colName);
+                            String checkName = colName.toLowerCase().replaceAll("[\\s'’_\\-]", "");
+
+                            if (checkName.equals("idintervention") || checkName.equals("eps")) {
+                                if (epsColIndex == -1) epsColIndex = i;
+                            }
+                            else if (checkName.equals("typeintervention") || checkName.equals("typedintervention")) {
+                                if (typeInterventionColIndex == -1) {
+                                    typeInterventionColIndex = i;
+                                    colMap.put(i, colName);
+                                }
+                            }
+                            else if (checkName.equals("periode") || checkName.equals("période") || checkName.equals("priode")) {
+                                if (periodeColIndex == -1) {
+                                    periodeColIndex = i;
+                                    colMap.put(i, colName);
+                                }
+                            }
+                            else if (!checkName.equals("importdate") && !checkName.equals("ver") && !checkName.equals("version")) {
+                                colMap.put(i, colName);
+                            }
                         }
                     }
 
@@ -203,19 +220,19 @@ public class PilotSecureImportService {
 
                         buffer.add(new RawRow(eps, rowTypeIntervention, rowPeriode, data));
 
-                        if (buffer.size() >= 5000) {
-                            processBufferChunk(conn, buffer, resolvedPilotId, year, month, category, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile);
+                        if (buffer.size() >= 10000) {
+                            processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile);
                             buffer.clear();
                         }
                     }
 
                     if (!buffer.isEmpty()) {
-                        processBufferChunk(conn, buffer, resolvedPilotId, year, month, category, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile);
+                        processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile);
                         buffer.clear();
                     }
 
                     if (!categoryFoundInFile.get()) {
-                        throw new RuntimeException("🚨 SECURITY BREACH: Fichier rejeté. Catégorie non trouvée.");
+                        throw new RuntimeException("🚨 SECURITY BREACH [V20]: Le fichier ["+filename+"] ne contient aucune intervention de type [" + safeCategory + "]. Fichier rejeté.");
                     }
 
                     conn.commit();
@@ -230,18 +247,17 @@ public class PilotSecureImportService {
 
     private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth, String category, String originalFilename, Map<Integer, Integer> sessionRankCache, Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile) throws Exception {
 
-        List<SecureEpsRecord> processed = buffer.stream().map(r -> {
+        List<SecureEpsRecord> processed = buffer.parallelStream().map(r -> {
             if (!categoryFoundInFile.get() && securityService.isExpectedCategory(r.typeIntervention, category)) {
                 categoryFoundInFile.set(true);
             }
             int targetMonth = securityService.extractTargetMonth(r.periode, defaultMonth);
             String finalEps = r.eps.isEmpty() ? "AUTO-" + UUID.randomUUID().toString().substring(0,8) : r.eps;
 
-            // N-nqqiw L-Ar9am mn .0
-            Map<String, String> cleanData = new HashMap<>();
+            TreeMap<String, String> cleanData = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             r.data.forEach((k, v) -> {
                 if (v != null && !v.isEmpty()) {
-                    if (v.endsWith(".0") && v.matches("-?\\d+\\.0")) v = v.substring(0, v.length() - 2);
+                    if (v.endsWith(".0") && v.matches("-?\\\\d+\\\\.0")) v = v.substring(0, v.length() - 2);
                     cleanData.put(k.trim(), v);
                 }
             });
@@ -271,13 +287,12 @@ public class PilotSecureImportService {
         }
     }
 
-    // 🏗️ THE DB INJECTOR (UNNEST + PARALLEL DB PARSING)
     private void processAndInsertSubBatch(Connection conn, List<SecureEpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
         Set<String> epsSet = batch.stream().map(r -> r.eps).collect(Collectors.toSet());
 
-        // ⚡ THE SPEED FIX: UNNEST kay-bzez 3la DB t-kheddem L-Index ⚡
+        String inSql = String.join(",", Collections.nCopies(epsSet.size(), "?"));
         String fetchAllSql = "SELECT eps_reference, dynamic_data, version FROM pilot_records " +
-                "WHERE category = ? AND import_year = ? AND import_month = ? AND eps_reference IN (SELECT * FROM UNNEST(?))";
+                "WHERE category = ? AND import_year = ? AND import_month = ? AND eps_reference IN (" + inSql + ")";
 
         Map<String, Set<String>> dbAllFingerprints = new ConcurrentHashMap<>();
         Map<String, Integer> dbLatestVersions = new ConcurrentHashMap<>();
@@ -288,8 +303,8 @@ public class PilotSecureImportService {
             psFetch.setInt(2, year);
             psFetch.setInt(3, month);
 
-            Array sqlArray = conn.createArrayOf("text", epsSet.toArray(new String[0]));
-            psFetch.setArray(4, sqlArray);
+            int pIdx = 4;
+            for (String eps : epsSet) psFetch.setString(pIdx++, eps);
 
             try (ResultSet rs = psFetch.executeQuery()) {
                 while (rs.next()) {
@@ -298,7 +313,6 @@ public class PilotSecureImportService {
             }
         }
 
-        // ⚡ PARALLEL THREADING: JSON Parsing bla ma n-bloukiw L-Main Thread ⚡
         rawDbRecords.parallelStream().forEach(record -> {
             String eps = record[0];
             String dbJson = record[1];
@@ -326,7 +340,6 @@ public class PilotSecureImportService {
                 int lastVNum = dbLatestVersions.getOrDefault(normalizedEps, 0);
 
                 if (!existingFingerprints.contains(rec.dataFingerprint)) {
-                    // 👈 L-JSON Kay-t-saweb ghir l-Jdad!
                     String dataJson = mapWriter.writeValueAsString(rec.cleanDataMap);
                     String newVersion = "V" + (lastVNum + 1);
 

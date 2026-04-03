@@ -3,7 +3,7 @@ package com.kyntus.Workflow.controller;
 import com.kyntus.Workflow.model.PilotRecord;
 import com.kyntus.Workflow.repository.PilotRecordRepository;
 import com.kyntus.Workflow.service.PilotImportService;
-import com.kyntus.Workflow.service.PilotSecureImportService; // 👈 ZEDNA L-IMPORT DYAL SERVICE JDID
+import com.kyntus.Workflow.service.PilotSecureImportService; // 👈 L-MOUTEUR L-JDID
 import com.kyntus.Workflow.service.PilotTrackService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +28,6 @@ public class PilotRecordController {
     private final PilotTrackService pilotTrackService;
     private final PilotRecordRepository pilotRecordRepository;
 
-    // 👈 INJECTION F' CONSTRUCTOR
     public PilotRecordController(PilotImportService pilotImportService, PilotSecureImportService pilotSecureImportService, PilotTrackService pilotTrackService, PilotRecordRepository pilotRecordRepository) {
         this.pilotImportService = pilotImportService;
         this.pilotSecureImportService = pilotSecureImportService;
@@ -36,6 +35,7 @@ public class PilotRecordController {
         this.pilotRecordRepository = pilotRecordRepository;
     }
 
+    // 🚀 L-ENDPOINT DYAL L-IMPORT (MODIFIÉ BASH Y-KHEDDEM L-MOUTEUR V21) 🚀
     @PostMapping("/import/{pilotId}")
     public ResponseEntity<?> importPilotData(
             @RequestParam("file") MultipartFile file,
@@ -44,8 +44,8 @@ public class PilotRecordController {
             @RequestParam("category") String category,
             @PathVariable Long pilotId) {
         try {
-            // Tqder t-beddel hadi l' pilotSecureImportService.importPilotExcelSecure ila bghiti t-kheddem L-Mouteur Jdid f' l-Import L-3adi
-            pilotImportService.importPilotExcel(file, pilotId, year, month, category);
+            // 🔥 THE FIX: Daba L-Import ghay-douz nishan f' L-Mouteur L-Secure L-Jdid (V21) 🔥
+            pilotSecureImportService.importPilotExcelSecure(file, pilotId, year, month, category, 0);
             return ResponseEntity.ok().body("{\"message\": \"Importation réussie avec succès\"}");
         } catch (Exception e) {
             e.printStackTrace();
@@ -277,7 +277,7 @@ public class PilotRecordController {
         }
     }
 
-    // 🚀 L-VACCIN L-JDID (Le Nettoyeur Quantique) 🚀
+    // 🚀 THE PURGE VACCINE 🚀
     @DeleteMapping("/fix-69-files")
     public ResponseEntity<?> fixRetroactiveDuplicates() {
         try {
