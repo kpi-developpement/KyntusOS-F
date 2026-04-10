@@ -122,7 +122,6 @@ public class PilotSecureImportService {
 
     // 🚀 L-IMPORTATION SECURISEE 🚀
     public void importPilotExcelSecure(MultipartFile file, Long pilotId, int year, int month, String category, int ignoredFrontendRank) throws Exception {
-        // 🔥 FIX 1: N-Neqiyou l-Category mn ay espace zayed
         String safeCategory = category != null ? category.trim() : "";
 
         User pilot = userRepository.findAll().stream()
@@ -142,10 +141,8 @@ public class PilotSecureImportService {
 
         AtomicBoolean categoryFoundInFile = new AtomicBoolean(false);
 
-        // 🚨 OVERRIDE ABSOLU W BULLETPROOF (RZO / PRESTA) 🚨
         String upperFilename = filename.toUpperCase().replaceAll("[\\s_\\-]", "");
         if (safeCategory.equalsIgnoreCase("PRESTA") || safeCategory.equalsIgnoreCase("RZO")) {
-            // Kima bghiti, n-qeeblou ay fichier dyal PRESTA / RZO
             categoryFoundInFile.set(true);
         } else if (upperFilename.contains(safeCategory.toUpperCase().replaceAll("[\\s_\\-]", ""))) {
             categoryFoundInFile.set(true);
@@ -240,6 +237,9 @@ public class PilotSecureImportService {
                 } catch (Exception e) {
                     conn.rollback();
                     throw e;
+                } finally {
+                    // 🛡️ STRATÉGIE DE NETTOYAGE : Forcer la libération de la RAM (Garbage Collector)
+                    System.gc();
                 }
             }
         }
@@ -247,7 +247,8 @@ public class PilotSecureImportService {
 
     private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth, String category, String originalFilename, Map<Integer, Integer> sessionRankCache, Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile) throws Exception {
 
-        List<SecureEpsRecord> processed = buffer.parallelStream().map(r -> {
+        // 🛑 REMOVED parallelStream() - Memory Saver!
+        List<SecureEpsRecord> processed = buffer.stream().map(r -> {
             if (!categoryFoundInFile.get() && securityService.isExpectedCategory(r.typeIntervention, category)) {
                 categoryFoundInFile.set(true);
             }
@@ -313,7 +314,8 @@ public class PilotSecureImportService {
             }
         }
 
-        rawDbRecords.parallelStream().forEach(record -> {
+        // 🛑 REMOVED parallelStream() - Memory Saver!
+        rawDbRecords.stream().forEach(record -> {
             String eps = record[0];
             String dbJson = record[1];
             String verStr = record[2];

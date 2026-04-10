@@ -41,7 +41,7 @@ public class MesProcessorService {
     public Map<String, MesResult> processMesData(
             MultipartFile fichierA, Map<String, String> diagWifiMap,
             Map<String, QaProcessorService.QaData> qaMap,
-            Map<String, String> offreMap) throws Exception { // 👈 Zidna offreMap hna
+            Map<String, String> offreMap) throws Exception {
 
         Map<String, MesResult> mesDataMap = new HashMap<>();
 
@@ -78,7 +78,6 @@ public class MesProcessorService {
 
                 if (!etat.equals("TERMINEE_OK")) continue;
 
-                // 🔥 L-LIBELLÉ MN FICHIER INTERVENTION (Ila malqahash, kay-rje3 dyal A) 🔥
                 String libelleOffreA = getCellValueAsString(safeGetCell(row, colOffreA)).trim();
                 String libelleOffre = offreMap.getOrDefault(codeInter, libelleOffreA);
 
@@ -87,11 +86,13 @@ public class MesProcessorService {
                 MesResult mesResult = new MesResult();
                 mesResult.codeInter = codeInter;
                 mesResult.codeInterDup = codeInter;
-                mesResult.libelleOffre = libelleOffre; // 👈 100% Nadi
+                mesResult.libelleOffre = libelleOffre;
                 mesResult.internet = getCellValueAsString(safeGetCell(row, colInternet)).trim();
                 mesResult.phone = getCellValueAsString(safeGetCell(row, colPhone)).trim();
                 mesResult.tv = getCellValueAsString(safeGetCell(row, colTv)).trim();
-                mesResult.diagWifi = diagWifiMap.getOrDefault(codeInter, "FAUX");
+
+                // 🔥 L-FIX HNA: Ila malqahch y-khelliha Vide machi "FAUX" 🔥
+                mesResult.diagWifi = diagWifiMap.getOrDefault(codeInter, "");
 
                 mesResult.mesQuest = qaData.mesQuest;
                 mesResult.questionTv = qaData.questionTv;
@@ -119,10 +120,9 @@ public class MesProcessorService {
                     mesResult.typeMes = "";
                 }
 
-                // 🔥 L-QALEB JDID DYAL TV = NOK 🔥
                 if ("Branchement IAD TV".equals(mesResult.typeMes)) {
                     if ("NOK".equalsIgnoreCase(mesResult.tv)) {
-                        mesResult.typeMes = "Branchement IAD"; // Bddelna Smiya
+                        mesResult.typeMes = "Branchement IAD";
                     }
                 }
 
@@ -143,10 +143,9 @@ public class MesProcessorService {
                     }
                 }
 
-                // 🔥 MT Y-T-7SEB M3A TV=NOK 🔥
                 mesResult.mt = 0;
                 if ("Branchement IAD TV".equals(mesResult.typeMes)) mesResult.mt = 10;
-                else if ("Branchement IAD".equals(mesResult.typeMes)) mesResult.mt = 5; // 👈 Ghat-7et 5DH
+                else if ("Branchement IAD".equals(mesResult.typeMes)) mesResult.mt = 5;
                 else if ("Branchement IAD (Voir QUESTION TV)".equals(mesResult.typeMes)) mesResult.mt = 5;
                 else if ("Branchement IAD (Voir offre)".equals(mesResult.typeMes)) mesResult.mt = 5;
                 else if ("MES 1/2/3 P".equals(mesResult.typeMes)) {

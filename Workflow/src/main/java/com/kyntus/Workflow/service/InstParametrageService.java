@@ -70,18 +70,30 @@ public class InstParametrageService {
 
         Map<String, Object> updates = new HashMap<>();
 
-        // 🚨 CONDITION RJA3AT: System kay-touchi GHIR ila kanet Action = Contester 🚨
+        // 🚨 PROTECTON L-LUWWLA: Khass darouri Action tkoun "Contester" 🚨
         if (action == null || action.trim().isEmpty()) return updates;
         String actionClean = action.trim().toLowerCase();
         if (actionClean.startsWith("valid")) return updates;
         if (!actionClean.startsWith("contest")) return updates;
 
+        // 🔥 L-QAI3DA J-JDIDA (DAKHEL F CONTESTER) 🔥
+        // Ila kant INST = 48, update direct l'BRASSAGE_PM w salina l-khedma.
+        if (Math.abs(instPrice - 48.0) <= 0.05) {
+            updates.put("typeIntervention", "BRASSAGE_PM");
+            return updates;
+        }
+
+        // =========================================================
+        // L-Baqiya dyal l-Qawa3id (Ila makantch 48)
+        // =========================================================
         InstRule rule = getRuleFuzzy(instPrice);
         if (rule == null) {
             return updates;
         }
 
-        updates.put("typeRaccordement", rule.typeRaccordement);
+        if (rule.typeRaccordement != null) {
+            updates.put("typeRaccordement", rule.typeRaccordement);
+        }
 
         boolean ruleZoneComplexe = rule.estZoneComplexe != null ? rule.estZoneComplexe : false;
         boolean rulePreAppel = rule.estPreAppel != null ? rule.estPreAppel : false;
@@ -89,7 +101,8 @@ public class InstParametrageService {
         updates.put("estZoneComplexe", Boolean.TRUE.equals(currentZoneComplexe) || ruleZoneComplexe);
         updates.put("estPreAppel", Boolean.TRUE.equals(currentPreAppel) || rulePreAppel);
 
-        if (rule.typeIntervention.equals("RACCORDEMENT REPARATION")) {
+        // L-Mantiq dyal typeIntervention
+        if (rule.typeIntervention != null && rule.typeIntervention.equals("RACCORDEMENT REPARATION")) {
             String typeInstClean = (typeInstallation != null) ? typeInstallation.trim().toUpperCase() : "";
 
             if (typeInstClean.startsWith("O") || typeInstClean.startsWith("0")) {
@@ -99,7 +112,7 @@ public class InstParametrageService {
             } else {
                 updates.put("typeIntervention", "RACCORDEMENT");
             }
-        } else {
+        } else if (rule.typeIntervention != null) {
             updates.put("typeIntervention", rule.typeIntervention);
         }
 

@@ -20,4 +20,4 @@ COPY --from=builder /app/target/*.jar app.jar
 
 # IMPORTANT: Ldakhel d Container, Spring Boot ba9i f 8080
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms1g", "-Xmx4g", "-jar", "app.jar"]

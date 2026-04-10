@@ -108,6 +108,11 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
             currentErrors.push(`[${file.name}] : ${errorData.error || "Erreur inconnue"}`);
             uploadHasErrors = true;
         }
+
+        // 🛡️ TACTIQUE DE RESPIRATION : On attend 1.5s pour laisser la RAM de Tomcat se vider (Garbage Collector)
+        if (i < sortedNewFiles.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
       }
 
       setUploadStats({ current: sortedNewFiles.length, total: sortedNewFiles.length, percentage: 100 });

@@ -47,6 +47,12 @@ public class MesParametrageService {
         if (actionClean.startsWith("valid")) return updates;
         if (!actionClean.startsWith("contest")) return updates;
 
+        // 🔥 L-QALEB HNA: Dkhelna l-Contester, 3ad n-choufou MES = 10 🔥
+        if (mesPrice == 10.0) {
+            updates.put("estDiagnosticTv", true);
+            currentTv = true; // Kan-updatiw l-variable locale bash l-calcul d-les autres règles may-t-ghlatch
+        }
+
         MesRule rule = DICTIONARY.get(mesPrice);
         if (rule == null) return updates;
 
@@ -57,12 +63,6 @@ public class MesParametrageService {
         boolean isIntTrue = Boolean.TRUE.equals(currentInternet);
         boolean isTelTrue = Boolean.TRUE.equals(currentTel);
         boolean isTvTrue = Boolean.TRUE.equals(currentTv);
-
-        // Qai3da dyal 10
-        if (mesPrice == 10.0) {
-            updates.put("estDiagnosticTv", true);
-            isTvTrue = true;
-        }
 
         int currentCount = (isIntTrue ? 1 : 0) + (isTelTrue ? 1 : 0) + (isTvTrue ? 1 : 0);
 

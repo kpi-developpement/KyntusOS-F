@@ -38,7 +38,7 @@ public class FactureMasterService {
             Map<String, QaProcessorService.QaData> qaMap,
             Map<String, MesProcessorService.MesResult> mesMap,
             Map<String, String> offreMap,
-            Map<String, Double> devisMap) throws Exception { // 🔥 Zidna devisMap hna 🔥
+            Map<String, Double> devisMap) throws Exception {
 
         try (InputStream is = fichierAVide.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
@@ -87,7 +87,6 @@ public class FactureMasterService {
                 else if (header.equals("TOTAL")) colTotal = cell.getColumnIndex();
                 else if (header.equals("TVC")) colTvcInput = cell.getColumnIndex();
 
-                // 🧹 T-tqeeyad dyal les colonnes li ghadi n-khebbiyouhom 🧹
                 if (COLS_TO_HIDE.contains(header)) {
                     hiddenColIndices.add(cell.getColumnIndex());
                 }
@@ -119,24 +118,20 @@ public class FactureMasterService {
                 setCellValue(row, colLogistique, repVal);
                 setCellValue(row, colRepeteurOut, repVal);
 
-                // ==========================================
-                // 🛠️ SUPPORT, TVC & DEVIS (MANUAL OVERRIDE) 🛠️
-                // ==========================================
+                // SUPPORT, TVC & DEVIS
                 String tvcTypologie = tvcMap.getOrDefault(codeInter, "");
                 double supportVal = (tvcTypologie.equalsIgnoreCase("Durée") || tvcTypologie.equalsIgnoreCase("Longueur")) ? 200.0 : 0.0;
 
-                // 🔥 THE MAGIC HAPPENS HERE: Ila kayn f' Devis, bddel SUPPORT d-zzez! 🔥
                 if (devisMap != null && devisMap.containsKey(codeInter)) {
                     supportVal = devisMap.get(codeInter);
-                    // N-Sayviwha 7ta f' la colonne DEVIS bash t-bqa trace
                     setCellValue(row, colDevisOut, String.valueOf(supportVal));
                 }
 
                 setCellValue(row, colSupport, String.valueOf(supportVal));
                 setCellValue(row, colTvcOut, tvcTypologie);
 
-                // DIAG WIFI
-                setCellValue(row, colDiagWifiOut, diagWifiMap.getOrDefault(codeInter, "FAUX"));
+                // 🔥 L-FIX HNA: Ila malqahch y-khelliha Vide machi "FAUX" 🔥
+                setCellValue(row, colDiagWifiOut, diagWifiMap.getOrDefault(codeInter, ""));
 
                 // MATERIEL
                 String tvcInputVal = "";
@@ -204,19 +199,16 @@ public class FactureMasterService {
                 double prixEth = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colPrixHtEth)));
                 double deplacement = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colDeplacement)));
 
-                // 🎯 TOTAL kay-stafeed mn l-Override dyal SUPPORT 🎯
                 double totalFacture = prixGoulotte + prixEth + finalInstallation + mesVal + materielVal + supportVal + logistiqueVal + deplacement;
                 setCellValue(row, colTotal, String.valueOf(totalFacture));
             }
 
-            // 🧹 N-KHEBBIW LES COLONNES MN L-FICHIER A REMPLIS 🧹
+            // HIDE COLUMNS
             for (int hideIdx : hiddenColIndices) {
                 sheet.setColumnHidden(hideIdx, true);
             }
 
-            // ==========================================
             // CREATION DYAL LES SHEETS JDAD
-            // ==========================================
             Sheet sheetTvc = workbook.createSheet("TVC");
             createHeaderRow(sheetTvc, "Intervention", "Typologie");
             int r = 1;
