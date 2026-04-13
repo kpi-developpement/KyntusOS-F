@@ -3,7 +3,7 @@ package com.kyntus.Workflow.controller;
 import com.kyntus.Workflow.model.PilotRecord;
 import com.kyntus.Workflow.repository.PilotRecordRepository;
 import com.kyntus.Workflow.service.PilotImportService;
-import com.kyntus.Workflow.service.PilotSecureImportService; // 👈 L-MOUTEUR L-JDID
+import com.kyntus.Workflow.service.PilotSecureImportService;
 import com.kyntus.Workflow.service.PilotTrackService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +24,7 @@ import java.util.Map;
 public class PilotRecordController {
 
     private final PilotImportService pilotImportService;
-    private final PilotSecureImportService pilotSecureImportService; // 👈 DECLARATION
+    private final PilotSecureImportService pilotSecureImportService;
     private final PilotTrackService pilotTrackService;
     private final PilotRecordRepository pilotRecordRepository;
 
@@ -44,7 +44,6 @@ public class PilotRecordController {
             @RequestParam("category") String category,
             @PathVariable Long pilotId) {
         try {
-            // 🔥 THE FIX: Daba L-Import ghay-douz nishan f' L-Mouteur L-Secure L-Jdid (V21) 🔥
             pilotSecureImportService.importPilotExcelSecure(file, pilotId, year, month, category, 0);
             return ResponseEntity.ok().body("{\"message\": \"Importation réussie avec succès\"}");
         } catch (Exception e) {

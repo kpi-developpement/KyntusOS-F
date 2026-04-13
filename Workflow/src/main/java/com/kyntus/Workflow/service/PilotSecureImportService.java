@@ -1,6 +1,5 @@
 package com.kyntus.Workflow.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.kyntus.Workflow.model.User;
@@ -9,16 +8,17 @@ import com.kyntus.Workflow.repository.UserRepository;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.InputStream;
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -51,23 +51,18 @@ public class PilotSecureImportService {
     @PostConstruct
     public void initIndexes() {
         try {
+            jdbcTemplate.execute("ALTER TABLE pilot_records ADD COLUMN IF NOT EXISTS data_hash INTEGER");
             jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_perf ON pilot_records(category, import_year, import_month, eps_reference)");
-            System.out.println("✅ [KYNTUS NEXUS] Index Composite Optimisé (Vitesse Constante) !");
+            System.out.println("✅ [KYNTUS NEXUS] Architecture Ultime (Absolute Shield + Hyper Speed) Prête !");
         } catch (Exception e) {
-            System.out.println("⚠️ [KYNTUS NEXUS] Index déjà existant.");
+            System.out.println("⚠️ [KYNTUS NEXUS] Index déjà existants.");
         }
     }
 
     @Transactional
     public int fixRetroactiveDuplicates() {
-        String sql = "DELETE FROM pilot_records " +
-                "WHERE id NOT IN (" +
-                "  SELECT MAX(id) " +
-                "  FROM pilot_records " +
-                "  GROUP BY eps_reference, category, import_year, import_month, dynamic_data::text" +
-                ")";
-        int deletedRows = jdbcTemplate.update(sql);
-        return deletedRows;
+        String sql = "DELETE FROM pilot_records WHERE id NOT IN (SELECT MAX(id) FROM pilot_records GROUP BY eps_reference, category, import_year, import_month, dynamic_data::text)";
+        return jdbcTemplate.update(sql);
     }
 
     private static class RawRow {
@@ -81,35 +76,24 @@ public class PilotSecureImportService {
     public static class SecureEpsRecord {
         public String eps;
         public Map<String, String> cleanDataMap;
-        public String dataFingerprint;
+        public int dataHash;
         public String sourceFile;
         public int fileRank, targetYear, targetMonth;
 
-        public SecureEpsRecord(String eps, Map<String, String> cleanDataMap, String dataFingerprint, int targetYear, int targetMonth) {
-            this.eps = eps; this.cleanDataMap = cleanDataMap; this.dataFingerprint = dataFingerprint;
+        public SecureEpsRecord(String eps, Map<String, String> cleanDataMap, int dataHash, int targetYear, int targetMonth) {
+            this.eps = eps; this.cleanDataMap = cleanDataMap; this.dataHash = dataHash;
             this.targetYear = targetYear; this.targetMonth = targetMonth;
         }
     }
 
-    private String generateDataFingerprint(Map<String, String> data) {
-        return data.entrySet().stream()
-                .filter(e -> e.getValue() != null && !e.getValue().trim().isEmpty())
-                .map(e -> e.getKey().trim().toLowerCase() + "=" + e.getValue().trim().toLowerCase())
-                .sorted()
-                .collect(Collectors.joining("|"));
-    }
-
-    @SuppressWarnings("unchecked")
-    private String extractFingerprintFromJson(String dataJson) {
-        try {
-            Map<String, Object> rawMap = objectMapper.readValue(dataJson, Map.class);
-            Map<String, String> strMap = new HashMap<>();
-            rawMap.forEach((k, v) -> {
-                String val = (v != null) ? String.valueOf(v).trim() : "";
-                if (!val.isEmpty()) strMap.put(k, val);
-            });
-            return generateDataFingerprint(strMap);
-        } catch(Exception e) { return ""; }
+    // 🚀 L-VITESSE X100: Msse7na Stream API w drna StringBuilder 🚀
+    private int generateDataHash(Map<String, String> data) {
+        StringBuilder sb = new StringBuilder();
+        // L-Map deja m-retiyba (TreeMap) w khawya mn l-nulls
+        for (Map.Entry<String, String> entry : data.entrySet()) {
+            sb.append(entry.getKey().toLowerCase()).append("=").append(entry.getValue().toLowerCase()).append("|");
+        }
+        return sb.toString().hashCode();
     }
 
     private String adaptFilename(String originalFilename, int newMonth) {
@@ -120,21 +104,29 @@ public class PilotSecureImportService {
         return originalFilename;
     }
 
-    // 🚀 L-IMPORTATION SECURISEE 🚀
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void importPilotExcelSecure(MultipartFile file, Long pilotId, int year, int month, String category, int ignoredFrontendRank) throws Exception {
-        String safeCategory = category != null ? category.trim() : "";
+        long globalStartTime = System.currentTimeMillis();
+        long totalExcelReadTime = 0;
+        long totalProcessingTime = 0;
 
+        String safeCategory = category != null ? category.trim() : "";
         User pilot = userRepository.findAll().stream()
                 .filter(u -> u.getRole().toString().equals("PILOT"))
                 .findFirst().orElseThrow(() -> new RuntimeException("Pilote non trouvé!"));
         Long resolvedPilotId = pilot.getId();
 
         String filename = new java.io.File(file.getOriginalFilename() != null ? file.getOriginalFilename() : "UNKNOWN").getName();
+        System.out.println("\n🚀 --- DÉBUT TRAITEMENT: [" + filename + "] ---");
 
         Map<Integer, Integer> sessionRankCache = new HashMap<>();
         Map<Integer, String> sessionFilenameCache = new HashMap<>();
-        String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
+        Set<String> loadedCaches = new HashSet<>();
 
+        // 🔥 L-QALEB JDID: Set<Integer> machi Integer, bash n-7efdou l-HISTORIQUE KAMEL dyal l-EPS 🔥
+        Map<String, Set<Integer>> memoryShieldCache = new ConcurrentHashMap<>();
+
+        String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
         Integer maxRank = jdbcTemplate.queryForObject(rankSql, Integer.class, safeCategory, year, month);
         sessionRankCache.put(month, (maxRank != null ? maxRank : 0) + 1);
         sessionFilenameCache.put(month, filename);
@@ -158,6 +150,13 @@ public class PilotSecureImportService {
             try (Connection conn = dataSource.getConnection()) {
                 conn.setAutoCommit(false);
 
+                try (Statement st = conn.createStatement()) {
+                    st.execute("CREATE TEMP TABLE IF NOT EXISTS temp_pilot_records (" +
+                            "eps_reference VARCHAR, dynamic_data JSONB, data_hash INTEGER, " +
+                            "source_file VARCHAR, file_rank INTEGER) ON COMMIT PRESERVE ROWS");
+                }
+
+                long readStart = System.currentTimeMillis();
                 try (Stream<org.dhatim.fastexcel.reader.Row> rowStream = sheet.openStream()) {
                     Iterator<org.dhatim.fastexcel.reader.Row> rowIterator = rowStream.iterator();
                     if (!rowIterator.hasNext()) return;
@@ -214,65 +213,110 @@ public class PilotSecureImportService {
                         }
 
                         if (rowIsEmpty) continue;
-
                         buffer.add(new RawRow(eps, rowTypeIntervention, rowPeriode, data));
 
                         if (buffer.size() >= 10000) {
-                            processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile);
+                            totalExcelReadTime += (System.currentTimeMillis() - readStart);
+
+                            long processStart = System.currentTimeMillis();
+                            processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile, loadedCaches, memoryShieldCache);
+                            totalProcessingTime += (System.currentTimeMillis() - processStart);
+
                             buffer.clear();
+                            readStart = System.currentTimeMillis();
                         }
                     }
 
                     if (!buffer.isEmpty()) {
-                        processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile);
+                        totalExcelReadTime += (System.currentTimeMillis() - readStart);
+
+                        long processStart = System.currentTimeMillis();
+                        processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile, loadedCaches, memoryShieldCache);
+                        totalProcessingTime += (System.currentTimeMillis() - processStart);
+
                         buffer.clear();
                     }
 
                     if (!categoryFoundInFile.get()) {
-                        throw new RuntimeException("🚨 SECURITY BREACH [V20]: Le fichier ["+filename+"] ne contient aucune intervention de type [" + safeCategory + "]. Fichier rejeté.");
+                        throw new RuntimeException("🚨 SECURITY BREACH: Le fichier ["+filename+"] ne contient aucune intervention valide.");
                     }
-
-                    conn.commit();
 
                 } catch (Exception e) {
                     conn.rollback();
                     throw e;
                 } finally {
-                    // 🛡️ STRATÉGIE DE NETTOYAGE : Forcer la libération de la RAM (Garbage Collector)
+                    try (Statement st = conn.createStatement()) { st.execute("DROP TABLE IF EXISTS temp_pilot_records"); } catch(Exception ignored){}
                     System.gc();
                 }
             }
         }
+
+        long globalEndTime = System.currentTimeMillis();
+        System.out.println("📊 --- BILAN DE PERFORMANCE POUR [" + filename + "] ---");
+        System.out.println("⏱️ Temps total Backend: " + (globalEndTime - globalStartTime) + " ms");
+        System.out.println("📖 Temps de lecture Excel (FastExcel): " + totalExcelReadTime + " ms");
+        System.out.println("⚙️ Temps de traitement (Hash + RAM + SQL): " + totalProcessingTime + " ms");
+        System.out.println("------------------------------------------------------\n");
     }
 
-    private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth, String category, String originalFilename, Map<Integer, Integer> sessionRankCache, Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile) throws Exception {
+    private void ensureCacheLoaded(Connection conn, String category, int year, int month, Set<String> loadedCaches, Map<String, Set<Integer>> memoryShieldCache) throws Exception {
+        String cacheKey = year + "-" + month;
+        if (!loadedCaches.contains(cacheKey)) {
+            long startTime = System.currentTimeMillis();
+            // 🛡️ THE ABSOLUTE SHIELD: Kay-jbed ga3 l-Historique dyal l-Hashes machi ghir t-tali
+            String sql = "SELECT eps_reference, data_hash FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ? AND data_hash IS NOT NULL";
 
-        // 🛑 REMOVED parallelStream() - Memory Saver!
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, category);
+                ps.setInt(2, year);
+                ps.setInt(3, month);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        String fullKey = rs.getString(1).toUpperCase() + "_" + cacheKey;
+                        memoryShieldCache.computeIfAbsent(fullKey, k -> new HashSet<>()).add(rs.getInt(2));
+                    }
+                }
+            }
+            loadedCaches.add(cacheKey);
+            System.out.println("🛡️ [KYNTUS SHIELD] L'Historique complet chargé en RAM en " + (System.currentTimeMillis() - startTime) + "ms !");
+        }
+    }
+
+    private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth, String category, String originalFilename, Map<Integer, Integer> sessionRankCache, Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile, Set<String> loadedCaches, Map<String, Set<Integer>> memoryShieldCache) throws Exception {
+
+        long startHash = System.currentTimeMillis();
         List<SecureEpsRecord> processed = buffer.stream().map(r -> {
             if (!categoryFoundInFile.get() && securityService.isExpectedCategory(r.typeIntervention, category)) {
                 categoryFoundInFile.set(true);
             }
             int targetMonth = securityService.extractTargetMonth(r.periode, defaultMonth);
-            String finalEps = r.eps.isEmpty() ? "AUTO-" + UUID.randomUUID().toString().substring(0,8) : r.eps;
 
             TreeMap<String, String> cleanData = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             r.data.forEach((k, v) -> {
                 if (v != null && !v.isEmpty()) {
-                    if (v.endsWith(".0") && v.matches("-?\\\\d+\\\\.0")) v = v.substring(0, v.length() - 2);
+                    if (v.endsWith(".0") && v.matches("-?\\d+\\.0")) v = v.substring(0, v.length() - 2);
                     cleanData.put(k.trim(), v);
                 }
             });
 
-            return new SecureEpsRecord(finalEps, cleanData, generateDataFingerprint(cleanData), defaultYear, targetMonth);
+            int calculatedHash = generateDataHash(cleanData);
+            String finalEps = r.eps.isEmpty() ? "AUTO-" + Math.abs(calculatedHash) : r.eps.toUpperCase();
+
+            return new SecureEpsRecord(finalEps, cleanData, calculatedHash, defaultYear, targetMonth);
         }).collect(Collectors.toList());
+        long hashTime = System.currentTimeMillis() - startHash;
 
         Map<String, List<SecureEpsRecord>> groupedBatch = processed.stream()
                 .collect(Collectors.groupingBy(r -> r.targetYear + "-" + r.targetMonth));
 
         String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
+
         for (List<SecureEpsRecord> group : groupedBatch.values()) {
             int gYear = group.get(0).targetYear;
             int gMonth = group.get(0).targetMonth;
+            String cacheKeyMap = gYear + "-" + gMonth;
+
+            ensureCacheLoaded(conn, category, gYear, gMonth, loadedCaches, memoryShieldCache);
 
             if (!sessionRankCache.containsKey(gMonth)) {
                 Integer mRank = jdbcTemplate.queryForObject(rankSql, Integer.class, category, gYear, gMonth);
@@ -282,90 +326,94 @@ public class PilotSecureImportService {
             int rowFileRank = sessionRankCache.get(gMonth);
             String rowFilename = sessionFilenameCache.get(gMonth);
 
-            group.forEach(r -> { r.fileRank = rowFileRank; r.sourceFile = rowFilename; });
+            long startFilter = System.currentTimeMillis();
+            List<SecureEpsRecord> pureNewData = group.stream().filter(rec -> {
+                String fullKey = rec.eps + "_" + cacheKeyMap;
+                Set<Integer> existingHashes = memoryShieldCache.get(fullKey);
+                // 🛑 BLOCK ANY MATCH IN HISTORY (Machi ghir V4, 7ta V1 y-tblocka) 🛑
+                if (existingHashes != null && existingHashes.contains(rec.dataHash)) return false;
+                rec.fileRank = rowFileRank;
+                rec.sourceFile = rowFilename;
+                return true;
+            }).collect(Collectors.toList());
+            long filterTime = System.currentTimeMillis() - startFilter;
 
-            processAndInsertSubBatch(conn, group, pilotId, gYear, gMonth, category);
+            if (pureNewData.isEmpty()) {
+                System.out.println("⏩ [KYNTUS SHIELD] RAM Filter: Bloc de " + group.size() + " doublons (Historique) ignoré en " + filterTime + "ms (Hashing: " + hashTime + "ms)");
+                continue;
+            }
+
+            long startSql = System.currentTimeMillis();
+            executePureSqlMerge(conn, pureNewData, pilotId, gYear, gMonth, category);
+            long sqlTime = System.currentTimeMillis() - startSql;
+            System.out.println("💾 [SQL MERGE] " + pureNewData.size() + " nouvelles lignes insérées en " + sqlTime + "ms");
+
+            for (SecureEpsRecord rec : pureNewData) {
+                memoryShieldCache.computeIfAbsent(rec.eps + "_" + cacheKeyMap, k -> new HashSet<>()).add(rec.dataHash);
+            }
         }
     }
 
-    private void processAndInsertSubBatch(Connection conn, List<SecureEpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
-        Set<String> epsSet = batch.stream().map(r -> r.eps).collect(Collectors.toSet());
-
-        String inSql = String.join(",", Collections.nCopies(epsSet.size(), "?"));
-        String fetchAllSql = "SELECT eps_reference, dynamic_data, version FROM pilot_records " +
-                "WHERE category = ? AND import_year = ? AND import_month = ? AND eps_reference IN (" + inSql + ")";
-
-        Map<String, Set<String>> dbAllFingerprints = new ConcurrentHashMap<>();
-        Map<String, Integer> dbLatestVersions = new ConcurrentHashMap<>();
-
-        List<String[]> rawDbRecords = new ArrayList<>();
-        try (PreparedStatement psFetch = conn.prepareStatement(fetchAllSql)) {
-            psFetch.setString(1, category);
-            psFetch.setInt(2, year);
-            psFetch.setInt(3, month);
-
-            int pIdx = 4;
-            for (String eps : epsSet) psFetch.setString(pIdx++, eps);
-
-            try (ResultSet rs = psFetch.executeQuery()) {
-                while (rs.next()) {
-                    rawDbRecords.add(new String[]{ rs.getString(1).toUpperCase(), rs.getString(2), rs.getString(3) });
-                }
-            }
+    private void executePureSqlMerge(Connection conn, List<SecureEpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
+        try (Statement st = conn.createStatement()) {
+            st.execute("TRUNCATE temp_pilot_records");
         }
 
-        // 🛑 REMOVED parallelStream() - Memory Saver!
-        rawDbRecords.stream().forEach(record -> {
-            String eps = record[0];
-            String dbJson = record[1];
-            String verStr = record[2];
-
-            String fingerprint = extractFingerprintFromJson(dbJson);
-            dbAllFingerprints.computeIfAbsent(eps, k -> Collections.synchronizedSet(new HashSet<>())).add(fingerprint);
-
-            int vNum = 0;
-            if (verStr != null && verStr.toUpperCase().startsWith("V")) {
-                try { vNum = Integer.parseInt(verStr.substring(1)); } catch (Exception ignored) {}
-            }
-            final int finalVNum = vNum;
-            dbLatestVersions.compute(eps, (k, currentMax) -> (currentMax == null || finalVNum > currentMax) ? finalVNum : currentMax);
-        });
-
-        String insertSql = "INSERT INTO pilot_records (eps_reference, dynamic_data, version, imported_at, pilot_id, import_year, import_month, category, source_file, file_rank) VALUES (?, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?)";
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        int insertCount = 0;
-
-        try (PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
-            for (SecureEpsRecord rec : batch) {
-                String normalizedEps = rec.eps.toUpperCase();
-                Set<String> existingFingerprints = dbAllFingerprints.getOrDefault(normalizedEps, new HashSet<>());
-                int lastVNum = dbLatestVersions.getOrDefault(normalizedEps, 0);
-
-                if (!existingFingerprints.contains(rec.dataFingerprint)) {
-                    String dataJson = mapWriter.writeValueAsString(rec.cleanDataMap);
-                    String newVersion = "V" + (lastVNum + 1);
-
-                    psInsert.setString(1, normalizedEps);
-                    psInsert.setString(2, dataJson);
-                    psInsert.setString(3, newVersion);
-                    psInsert.setTimestamp(4, now);
-                    psInsert.setLong(5, pilotId);
-                    psInsert.setInt(6, year);
-                    psInsert.setInt(7, month);
-                    psInsert.setString(8, category);
-                    psInsert.setString(9, rec.sourceFile);
-                    psInsert.setInt(10, rec.fileRank);
-
-                    psInsert.addBatch();
-                    insertCount++;
-
-                    existingFingerprints.add(rec.dataFingerprint);
-                    dbAllFingerprints.put(normalizedEps, existingFingerprints);
-                    dbLatestVersions.put(normalizedEps, lastVNum + 1);
-                }
-            }
-            if (insertCount > 0) psInsert.executeBatch();
+        Map<String, SecureEpsRecord> uniqueBatch = new LinkedHashMap<>();
+        for (SecureEpsRecord rec : batch) {
+            uniqueBatch.put(rec.eps.toUpperCase(), rec);
         }
+
+        String insertTempSql = "INSERT INTO temp_pilot_records (eps_reference, dynamic_data, data_hash, source_file, file_rank) VALUES (?, ?::jsonb, ?, ?, ?)";
+        try (PreparedStatement psTemp = conn.prepareStatement(insertTempSql)) {
+            for (SecureEpsRecord rec : uniqueBatch.values()) {
+                psTemp.setString(1, rec.eps.toUpperCase());
+                psTemp.setString(2, mapWriter.writeValueAsString(rec.cleanDataMap));
+                psTemp.setInt(3, rec.dataHash);
+                psTemp.setString(4, rec.sourceFile);
+                psTemp.setInt(5, rec.fileRank);
+                psTemp.addBatch();
+            }
+            psTemp.executeBatch();
+        }
+
+        // 🚀 SQL UPDATE: Hna SQL 7ta howa kay-chouf l-Historique Kamel 🚀
+        String megaMergeSql =
+                "WITH MaxVersions AS (" +
+                        "    SELECT eps_reference, MAX(CAST(SUBSTRING(version FROM 2) AS INTEGER)) as max_v " +
+                        "    FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ? " +
+                        "    GROUP BY eps_reference " +
+                        ") " +
+                        "INSERT INTO pilot_records (eps_reference, dynamic_data, version, imported_at, pilot_id, import_year, import_month, category, source_file, file_rank, data_hash) " +
+                        "SELECT " +
+                        "    t.eps_reference, " +
+                        "    t.dynamic_data, " +
+                        "    'V' || (COALESCE(m.max_v, 0) + 1), " +
+                        "    ?, ?, ?, ?, ?, t.source_file, t.file_rank, t.data_hash " +
+                        "FROM temp_pilot_records t " +
+                        "LEFT JOIN MaxVersions m ON t.eps_reference = m.eps_reference " +
+                        "WHERE NOT EXISTS ( " +
+                        "    SELECT 1 FROM pilot_records p2 " +
+                        "    WHERE p2.eps_reference = t.eps_reference AND p2.data_hash = t.data_hash " +
+                        "      AND p2.category = ? AND p2.import_year = ? AND p2.import_month = ? " +
+                        ")";
+
+        try (PreparedStatement psMerge = conn.prepareStatement(megaMergeSql)) {
+            psMerge.setString(1, category);
+            psMerge.setInt(2, year);
+            psMerge.setInt(3, month);
+            psMerge.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            psMerge.setLong(5, pilotId);
+            psMerge.setInt(6, year);
+            psMerge.setInt(7, month);
+            psMerge.setString(8, category);
+            psMerge.setString(9, category);
+            psMerge.setInt(10, year);
+            psMerge.setInt(11, month);
+            psMerge.executeUpdate();
+        }
+
+        conn.commit();
     }
 
     @Transactional
