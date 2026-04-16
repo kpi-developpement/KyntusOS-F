@@ -71,17 +71,19 @@ public class ParametrageMasterService {
                 Row headerRowWriter = outputSheet.createRow(0);
 
                 List<String> headers = new ArrayList<>();
-                Map<String, Integer> colIndexMap = new HashMap<>();
+                List<String> normalizedHeaders = new ArrayList<>(); // 🔥 SYSTEME ANTI-CASSE DES COLONNES 🔥
 
                 for (int i = 0; i < headerRowReader.getCellCount(); i++) {
                     String colName = headerRowReader.getCellText(i);
                     if (colName != null) {
                         String cleanName = colName.trim();
                         headers.add(cleanName);
-                        colIndexMap.put(cleanName.toLowerCase(), i);
+                        // Convertit "Type Installation" ola "type_installation" l -> "typeinstallation"
+                        normalizedHeaders.add(cleanName.toLowerCase().replaceAll("[\\s_'-]", ""));
                         headerRowWriter.createCell(i).setCellValue(cleanName);
                     } else {
                         headers.add("");
+                        normalizedHeaders.add("");
                     }
                 }
 
@@ -94,15 +96,19 @@ public class ParametrageMasterService {
                     Map<String, String> currentRowData = new HashMap<>();
                     for (int i = 0; i < headers.size(); i++) {
                         String cellValue = (i < rowReader.getCellCount()) ? rowReader.getCellText(i) : "";
-                        currentRowData.put(headers.get(i).toLowerCase(), cellValue != null ? cellValue.trim() : "");
+                        // On stocke la donnée avec la clé NORMALISÉE (minuscule sans espace)
+                        currentRowData.put(normalizedHeaders.get(i), cellValue != null ? cellValue.trim() : "");
                     }
 
-                    String action = currentRowData.getOrDefault("action", "");
+                    String action = currentRowData.getOrDefault("action", currentRowData.getOrDefault("statut", ""));
 
                     // --- EXTRACTION INST ---
-                    double instPrice = parseDoubleSafe(currentRowData.get("inst"));
-                    String typeInst = currentRowData.getOrDefault("type installation", "");
-                    // 🔥 ZIDNA HADO BASH N-SIFTOUHOM L' INST SERVICE
+                    // On cherche "inst" wla "mt" f cas où tbedlat smia
+                    String instStr = currentRowData.get("inst");
+                    if (instStr == null || instStr.isEmpty()) instStr = currentRowData.get("mt");
+                    double instPrice = parseDoubleSafe(instStr);
+
+                    String typeInst = currentRowData.getOrDefault("typeinstallation", "");
                     boolean curZoneComplexe = parseBoolSafe(currentRowData.get("estzonecomplexe"));
                     boolean curPreAppel = parseBoolSafe(currentRowData.get("estpreappel"));
 
@@ -127,10 +133,9 @@ public class ParametrageMasterService {
                     double supPrice = parseDoubleSafe(currentRowData.get("support"));
                     double curDevis = parseDoubleSafe(currentRowData.get("montantdevis"));
 
-                    // 🚀 EXECUTION DES 5 MOTEURS METIERS 🚀
+                    // 🚀 EXECUTION DES MOTEURS METIERS 🚀
                     Map<String, Object> globalUpdates = new HashMap<>();
 
-                    // 🔥 APPEL MIS A JOUR AVEC LES NOUVEAUX BOOLEANS 🔥
                     globalUpdates.putAll(instService.processInstLogic(instPrice, typeInst, action, curZoneComplexe, curPreAppel));
                     globalUpdates.putAll(mesService.processMesLogic(mesPrice, action, curInt, curTel, curTv, curMes, curBranch, curWifi));
                     globalUpdates.putAll(matService.processMatLogic(matPrice, action, curFournisseur));
@@ -140,13 +145,15 @@ public class ParametrageMasterService {
                     // ✍️ ECRITURE DE LA LIGNE DANS LE NOUVEL EXCEL ✍️
                     for (int i = 0; i < headers.size(); i++) {
                         String colName = headers.get(i);
-                        String lowerColName = colName.toLowerCase();
+                        String normColName = normalizedHeaders.get(i);
 
                         Cell newCell = rowWriter.createCell(i);
 
                         Object updatedValue = null;
                         for (Map.Entry<String, Object> entry : globalUpdates.entrySet()) {
-                            if (entry.getKey().equalsIgnoreCase(colName)) {
+                            // On normalise aussi la clé du Map d'update bach t-matchi 100% m3a l'Excel
+                            String normalizedUpdateKey = entry.getKey().toLowerCase().replaceAll("[\\s_'-]", "");
+                            if (normalizedUpdateKey.equals(normColName)) {
                                 updatedValue = entry.getValue();
                                 break;
                             }
@@ -154,7 +161,6 @@ public class ParametrageMasterService {
 
                         if (updatedValue != null) {
                             if (updatedValue instanceof Boolean) {
-                                // 🔥 FORMATAGE STRICT: minuscule et sans espace
                                 newCell.setCellValue((Boolean) updatedValue ? "true" : "false");
                             } else if (updatedValue instanceof Number) {
                                 newCell.setCellValue(((Number) updatedValue).doubleValue());
@@ -162,19 +168,17 @@ public class ParametrageMasterService {
                                 newCell.setCellValue(updatedValue.toString().trim());
                             }
                         } else {
-                            String originalValue = currentRowData.get(lowerColName);
+                            String originalValue = currentRowData.get(normColName);
                             if (originalValue != null) {
                                 String origClean = originalValue.trim();
                                 String origLower = origClean.toLowerCase();
 
-                                // 🔥 RE-FORMATAGE DES BOOLEANS EXISTANTS EN MINUSCULE
                                 if (origLower.equals("true") || origLower.equals("false") || origLower.equals("vrai") || origLower.equals("faux")) {
                                     newCell.setCellValue(origLower.equals("true") || origLower.equals("vrai") ? "true" : "false");
                                     continue;
                                 }
 
                                 try {
-                                    // Si c'est un nombre, on l'écrit comme un nombre pour Excel
                                     if (origClean.matches("-?\\d+(\\.\\d+)?")) {
                                         newCell.setCellValue(Double.parseDouble(origClean));
                                         continue;

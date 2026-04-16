@@ -51,13 +51,16 @@ public class InterventionProcessorService {
                 Cell cellInter = safeGetCell(row, colInter);
                 Cell cellOffre = safeGetCell(row, colOffre);
 
-                if (cellInter == null || cellOffre == null) continue;
+                // L'Intervention darori tkon, mais l'Offre 3adi tkon nulle
+                if (cellInter == null) continue;
 
                 String intervention = getCellValueAsString(cellInter).trim();
-                String offre = getCellValueAsString(cellOffre).trim();
+                // Extraction sécurisée : ila kant la cellule khawya (null), n-stockiw "" (vide)
+                String offre = (cellOffre == null) ? "" : getCellValueAsString(cellOffre).trim();
 
-                if (!intervention.isEmpty() && !offre.isEmpty()) {
-                    offreMap.put(intervention, offre); // Daba ghat-sayva nishan!
+                // 🔥 L-FIX HNA : N-sauviw f l'Map wakha tkon l'Offre khawya bach t-écraser les autres données 🔥
+                if (!intervention.isEmpty()) {
+                    offreMap.put(intervention, offre);
                 }
             }
         }

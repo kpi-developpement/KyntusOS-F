@@ -91,7 +91,6 @@ public class MesProcessorService {
                 mesResult.phone = getCellValueAsString(safeGetCell(row, colPhone)).trim();
                 mesResult.tv = getCellValueAsString(safeGetCell(row, colTv)).trim();
 
-                // 🔥 L-FIX HNA: Ila malqahch y-khelliha Vide machi "FAUX" 🔥
                 mesResult.diagWifi = diagWifiMap.getOrDefault(codeInter, "");
 
                 mesResult.mesQuest = qaData.mesQuest;
@@ -102,23 +101,41 @@ public class MesProcessorService {
                 boolean isSpecialOffre = offreLower.contains("fit") || offreLower.contains("b&you") ||
                         offreLower.contains("byou") || offreLower.contains("-26 ans") ||
                         offreLower.contains("asso");
+
                 boolean isMatLivOui = mesResult.matLiv.equals("OUI") || mesResult.matLiv.equals("OUI !!!");
 
+                // 🔥 THE NEW STRATEGIC FLAG 🔥
+                boolean isDiagWifiSet = mesResult.diagWifi.equals("VRAI") || mesResult.diagWifi.equals("FAUX");
+
+                // ==========================================================
                 // Calcul dyal TYPE MES
-                if (mesResult.matLiv.equals("NON")) {
-                    mesResult.typeMes = "NOK";
-                } else if (isMatLivOui && isSpecialOffre) {
-                    mesResult.typeMes = "Branchement IAD (Voir offre)";
-                } else if (isMatLivOui && (mesResult.mesQuest.equals("Message_CleEnMainSAO") ||
-                        mesResult.mesQuest.equals("Message_CleEnMain") || mesResult.diagWifi.equals("VRAI"))) {
-                    mesResult.typeMes = "MES 1/2/3 P";
-                } else if (isMatLivOui && !isSpecialOffre && !mesResult.questionTv.isEmpty()) {
-                    mesResult.typeMes = "Branchement IAD (Voir QUESTION TV)";
-                } else if (isMatLivOui && !isSpecialOffre && mesResult.questionTv.isEmpty()) {
-                    mesResult.typeMes = "Branchement IAD TV";
+                // ==========================================================
+                if (isDiagWifiSet) {
+                    // 🚀 SI DIAG WIFI = VRAI ou FAUX (Override Actif)
+                    if (isMatLivOui) {
+                        mesResult.typeMes = "MES 1/2/3 P"; // J'ai utilisé 1/2/3 P bach t-machi m3a l'format dyal l'code dyalek
+                    } else {
+                        // Si NON
+                        mesResult.typeMes = "NOK";
+                    }
                 } else {
-                    mesResult.typeMes = "";
+                    // ⚙️ SI DIAG WIFI = VIDE (Formule Classique)
+                    if (mesResult.matLiv.equals("NON")) {
+                        mesResult.typeMes = "NOK";
+                    } else if (isMatLivOui && isSpecialOffre) {
+                        mesResult.typeMes = "Branchement IAD (Voir offre)";
+                    } else if (isMatLivOui && (mesResult.mesQuest.equals("Message_CleEnMainSAO") ||
+                            mesResult.mesQuest.equals("Message_CleEnMain") || mesResult.diagWifi.equals("VRAI"))) {
+                        mesResult.typeMes = "MES 1/2/3 P";
+                    } else if (isMatLivOui && !isSpecialOffre && !mesResult.questionTv.isEmpty()) {
+                        mesResult.typeMes = "Branchement IAD (Voir QUESTION TV)";
+                    } else if (isMatLivOui && !isSpecialOffre && mesResult.questionTv.isEmpty()) {
+                        mesResult.typeMes = "Branchement IAD TV";
+                    } else {
+                        mesResult.typeMes = "";
+                    }
                 }
+                // ==========================================================
 
                 if ("Branchement IAD TV".equals(mesResult.typeMes)) {
                     if ("NOK".equalsIgnoreCase(mesResult.tv)) {
