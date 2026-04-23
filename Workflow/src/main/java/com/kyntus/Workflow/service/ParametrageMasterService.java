@@ -3,6 +3,9 @@ package com.kyntus.Workflow.service;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
 import org.springframework.stereotype.Service;
@@ -59,6 +62,11 @@ public class ParametrageMasterService {
 
             Sheet outputSheet = wbWriter.createSheet("Resultat_Parametrage");
 
+            // 🎨 CRÉATION DU STYLE VERT (UNE SEULE FOIS POUR NE PAS CORROMPRE LE FICHIER) 🎨
+            XSSFCellStyle greenStyle = wbWriter.createCellStyle();
+            greenStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+            greenStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
             org.dhatim.fastexcel.reader.Sheet inputSheet = wbReader.getFirstSheet();
             try (Stream<org.dhatim.fastexcel.reader.Row> rowStream = inputSheet.openStream()) {
                 Iterator<org.dhatim.fastexcel.reader.Row> rowIterator = rowStream.iterator();
@@ -71,19 +79,17 @@ public class ParametrageMasterService {
                 Row headerRowWriter = outputSheet.createRow(0);
 
                 List<String> headers = new ArrayList<>();
-                List<String> normalizedHeaders = new ArrayList<>(); // 🔥 SYSTEME ANTI-CASSE DES COLONNES 🔥
+                Map<String, Integer> colIndexMap = new HashMap<>();
 
                 for (int i = 0; i < headerRowReader.getCellCount(); i++) {
                     String colName = headerRowReader.getCellText(i);
                     if (colName != null) {
                         String cleanName = colName.trim();
                         headers.add(cleanName);
-                        // Convertit "Type Installation" ola "type_installation" l -> "typeinstallation"
-                        normalizedHeaders.add(cleanName.toLowerCase().replaceAll("[\\s_'-]", ""));
+                        colIndexMap.put(cleanName.toLowerCase(), i);
                         headerRowWriter.createCell(i).setCellValue(cleanName);
                     } else {
                         headers.add("");
-                        normalizedHeaders.add("");
                     }
                 }
 
@@ -96,23 +102,17 @@ public class ParametrageMasterService {
                     Map<String, String> currentRowData = new HashMap<>();
                     for (int i = 0; i < headers.size(); i++) {
                         String cellValue = (i < rowReader.getCellCount()) ? rowReader.getCellText(i) : "";
-                        // On stocke la donnée avec la clé NORMALISÉE (minuscule sans espace)
-                        currentRowData.put(normalizedHeaders.get(i), cellValue != null ? cellValue.trim() : "");
+                        currentRowData.put(headers.get(i).toLowerCase(), cellValue != null ? cellValue.trim() : "");
                     }
 
-                    String action = currentRowData.getOrDefault("action", currentRowData.getOrDefault("statut", ""));
+                    String action = currentRowData.getOrDefault("action", "");
 
-                    // --- EXTRACTION INST ---
-                    // On cherche "inst" wla "mt" f cas où tbedlat smia
-                    String instStr = currentRowData.get("inst");
-                    if (instStr == null || instStr.isEmpty()) instStr = currentRowData.get("mt");
-                    double instPrice = parseDoubleSafe(instStr);
-
-                    String typeInst = currentRowData.getOrDefault("typeinstallation", "");
+                    // --- EXTRACTIONS ---
+                    double instPrice = parseDoubleSafe(currentRowData.get("inst"));
+                    String typeInst = currentRowData.getOrDefault("type installation", "");
                     boolean curZoneComplexe = parseBoolSafe(currentRowData.get("estzonecomplexe"));
                     boolean curPreAppel = parseBoolSafe(currentRowData.get("estpreappel"));
 
-                    // --- EXTRACTION MES ---
                     double mesPrice = parseDoubleSafe(currentRowData.get("mes"));
                     boolean curInt = parseBoolSafe(currentRowData.get("estdiagnosticinternet"));
                     boolean curTel = parseBoolSafe(currentRowData.get("estdiagnostictelephone"));
@@ -121,21 +121,17 @@ public class ParametrageMasterService {
                     boolean curBranch = parseBoolSafe(currentRowData.get("estbranchement"));
                     boolean curWifi = parseBoolSafe(currentRowData.get("estdiagnosticwifi"));
 
-                    // --- EXTRACTION MATERIEL ---
                     double matPrice = parseDoubleSafe(currentRowData.get("materiel"));
                     boolean curFournisseur = parseBoolSafe(currentRowData.get("estfournisseurbytel"));
 
-                    // --- EXTRACTION LOGISTIQUE ---
                     double logPrice = parseDoubleSafe(currentRowData.get("logistique"));
                     int curRepeteurs = parseIntSafe(currentRowData.get("nombrerepeteursposes"));
 
-                    // --- EXTRACTION SUPPORT ---
                     double supPrice = parseDoubleSafe(currentRowData.get("support"));
                     double curDevis = parseDoubleSafe(currentRowData.get("montantdevis"));
 
                     // 🚀 EXECUTION DES MOTEURS METIERS 🚀
                     Map<String, Object> globalUpdates = new HashMap<>();
-
                     globalUpdates.putAll(instService.processInstLogic(instPrice, typeInst, action, curZoneComplexe, curPreAppel));
                     globalUpdates.putAll(mesService.processMesLogic(mesPrice, action, curInt, curTel, curTv, curMes, curBranch, curWifi));
                     globalUpdates.putAll(matService.processMatLogic(matPrice, action, curFournisseur));
@@ -145,34 +141,57 @@ public class ParametrageMasterService {
                     // ✍️ ECRITURE DE LA LIGNE DANS LE NOUVEL EXCEL ✍️
                     for (int i = 0; i < headers.size(); i++) {
                         String colName = headers.get(i);
-                        String normColName = normalizedHeaders.get(i);
+                        String lowerColName = colName.toLowerCase();
 
                         Cell newCell = rowWriter.createCell(i);
 
+                        // L-valeur li kant f l'fichier 9bel l'update
+                        String originalValue = currentRowData.get(lowerColName);
+                        String origClean = (originalValue != null) ? originalValue.trim() : "";
+                        String origLower = origClean.toLowerCase();
+
                         Object updatedValue = null;
                         for (Map.Entry<String, Object> entry : globalUpdates.entrySet()) {
-                            // On normalise aussi la clé du Map d'update bach t-matchi 100% m3a l'Excel
-                            String normalizedUpdateKey = entry.getKey().toLowerCase().replaceAll("[\\s_'-]", "");
-                            if (normalizedUpdateKey.equals(normColName)) {
+                            if (entry.getKey().equalsIgnoreCase(colName)) {
                                 updatedValue = entry.getValue();
                                 break;
                             }
                         }
 
+                        boolean isModified = false; // Flag bash n3erfo wach bssa7 bedelna l-valeur
+
                         if (updatedValue != null) {
                             if (updatedValue instanceof Boolean) {
-                                newCell.setCellValue((Boolean) updatedValue ? "true" : "false");
-                            } else if (updatedValue instanceof Number) {
-                                newCell.setCellValue(((Number) updatedValue).doubleValue());
-                            } else {
-                                newCell.setCellValue(updatedValue.toString().trim());
-                            }
-                        } else {
-                            String originalValue = currentRowData.get(normColName);
-                            if (originalValue != null) {
-                                String origClean = originalValue.trim();
-                                String origLower = origClean.toLowerCase();
+                                boolean newVal = (Boolean) updatedValue;
+                                boolean oldVal = origLower.equals("true") || origLower.equals("vrai") || origLower.equals("1");
 
+                                if (newVal != oldVal) isModified = true;
+                                newCell.setCellValue(newVal ? "true" : "false");
+
+                            } else if (updatedValue instanceof Number) {
+                                double newVal = ((Number) updatedValue).doubleValue();
+                                double oldVal = 0.0;
+                                try { if (!origClean.isEmpty()) oldVal = Double.parseDouble(origClean.replace(",", ".")); } catch (Exception ignored) {}
+
+                                if (newVal != oldVal) isModified = true;
+                                newCell.setCellValue(newVal);
+
+                            } else {
+                                String newVal = updatedValue.toString().trim();
+                                if (!newVal.equalsIgnoreCase(origClean)) isModified = true;
+
+                                newCell.setCellValue(newVal);
+                            }
+
+                            // 🟩 COLORIAGE EN VERT SI LA VALEUR A CHANGE 🟩
+                            if (isModified) {
+                                newCell.setCellStyle(greenStyle);
+                            }
+
+                        } else {
+                            // Ketba dyal l-valeur l-qdyma (bla changement)
+                            if (originalValue != null) {
+                                // RE-FORMATAGE DES BOOLEANS EXISTANTS
                                 if (origLower.equals("true") || origLower.equals("false") || origLower.equals("vrai") || origLower.equals("faux")) {
                                     newCell.setCellValue(origLower.equals("true") || origLower.equals("vrai") ? "true" : "false");
                                     continue;
