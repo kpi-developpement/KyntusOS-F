@@ -10,7 +10,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/dispatch")
-@CrossOrigin(origins = "http://localhost:3000")
 public class DispatchController {
 
     private final DispatchService dispatchService;

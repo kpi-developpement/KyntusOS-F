@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/parametrage")
-@CrossOrigin(originPatterns = "*")
 public class ParametrageController {
 
     private final ParametrageMasterService parametrageMasterService;

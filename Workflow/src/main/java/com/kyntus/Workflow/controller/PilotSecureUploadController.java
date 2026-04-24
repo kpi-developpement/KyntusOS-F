@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/secure-upload")
-@CrossOrigin(originPatterns = "*")
 public class PilotSecureUploadController {
 
     private final PilotSecureImportService pilotSecureImportService;

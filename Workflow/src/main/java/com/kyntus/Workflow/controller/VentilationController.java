@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ventilation")
-@CrossOrigin(originPatterns = "*")
 public class VentilationController {
 
     private final VentilationMasterService ventilationMasterService;

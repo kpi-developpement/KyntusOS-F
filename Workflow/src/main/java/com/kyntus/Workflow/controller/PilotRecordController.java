@@ -20,7 +20,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pilot-records")
-@CrossOrigin(originPatterns = "*")
 public class PilotRecordController {
 
     private final PilotImportService pilotImportService;

@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/facture")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class FactureController {
 
     private final TvcProcessorService tvcService;

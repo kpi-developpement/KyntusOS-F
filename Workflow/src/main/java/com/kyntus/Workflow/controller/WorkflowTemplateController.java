@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/templates")
-@CrossOrigin(origins = "http://localhost:3000")
 public class WorkflowTemplateController {
 
     private final WorkflowTemplateService service;

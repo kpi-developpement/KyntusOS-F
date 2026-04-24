@@ -11,7 +11,6 @@ import java.io.ByteArrayInputStream;
 
 @RestController
 @RequestMapping("/api/export")
-@CrossOrigin(origins = "http://localhost:3000")
 public class ExportController {
 
     private final ExcelExportService exportService;

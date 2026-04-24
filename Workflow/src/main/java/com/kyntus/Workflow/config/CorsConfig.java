@@ -6,11 +6,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // Tbe9 3la kolchi
-                .allowedOriginPatterns("*") // 🔓 HELL L-BIBAN: Accept all origins (localhost + domain)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+        registry.addMapping("/**")
+                .allowedOrigins(
+                        "http://localhost:3000",       // L'environnement d'Dev
+                        "http://kyntusos.kyntus.fr",   // L'environnement Prod (HTTP)
+                        "https://kyntusos.kyntus.fr"   // L'environnement Prod (HTTPS - Anticipation)
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }

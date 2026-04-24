@@ -8,7 +8,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/equipe-export")
-@CrossOrigin(originPatterns = "*")
 public class PilotEquipeController {
 
     private final PilotEquipeService pilotEquipeService;
