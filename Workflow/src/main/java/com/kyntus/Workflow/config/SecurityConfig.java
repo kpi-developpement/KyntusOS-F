@@ -6,8 +6,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // 🔥 ZEDNA HADI
-import org.springframework.security.crypto.password.PasswordEncoder; // 🔥 ZEDNA HADI
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -22,31 +22,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 🔥 L-FIX 1: Kan-forciw Spring Security y-kheddem CORS 9bel ma y-bloki
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 🔥 L-FIX 2: Le Pass VIP l'ga3 les requêtes OPTIONS (Preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // L'accès l'login w l'inscription sans token
                         .requestMatchers("/api/auth/**").permitAll()
-                        // N-khelliw l'Websocket y-douz ila knti khddam bih
                         .requestMatchers("/ws/**").permitAll()
-                        // Ay 7aja okhra khassha token
-                        .anyRequest().authenticated()
+                        // 🔥 THE FIX: Bdellna .authenticated() b' .permitAll()
+                        // 7it l-auth dyalek m-gérya f' l-frontend b' localStorage (sans JWT token)
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
     }
 
-    // 🔥 L-FIX THE PASSWORD ENCODER: Spring daba ghadi y3ref chno y3ti l'RescueController
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 🔥 L-FIX 3: L'Configuration Centrale dyal CORS west Security
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
