@@ -6,6 +6,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // 🔥 ZEDNA HADI
+import org.springframework.security.crypto.password.PasswordEncoder; // 🔥 ZEDNA HADI
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -38,6 +40,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // 🔥 L-FIX THE PASSWORD ENCODER: Spring daba ghadi y3ref chno y3ti l'RescueController
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     // 🔥 L-FIX 3: L'Configuration Centrale dyal CORS west Security
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -46,7 +54,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://kyntusos.kyntus.fr",
                 "https://kyntusos.kyntus.fr",
-                "http://kyntusos.kyntus.fr:3000" // 🔥 L-FIX HOWA HADA 🔥
+                "http://kyntusos.kyntus.fr:3000"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
