@@ -13,7 +13,8 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:3000",       // L'environnement d'Dev
                         "http://kyntusos.kyntus.fr",   // L'environnement Prod (HTTP)
-                        "https://kyntusos.kyntus.fr"   // L'environnement Prod (HTTPS - Anticipation)
+                        "https://kyntusos.kyntus.fr",  // L'environnement Prod (HTTPS - Anticipation)
+                        "http://kyntusos.kyntus.fr:3000" // 🔥 HNA 3AWTANI 🔥
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")

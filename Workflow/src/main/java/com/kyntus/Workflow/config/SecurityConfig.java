@@ -45,7 +45,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
                 "http://kyntusos.kyntus.fr",
-                "https://kyntusos.kyntus.fr"
+                "https://kyntusos.kyntus.fr",
+                "http://kyntusos.kyntus.fr:3000" // 🔥 L-FIX HOWA HADA 🔥
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
