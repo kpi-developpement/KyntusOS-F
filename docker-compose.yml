@@ -22,8 +22,8 @@ services:
     container_name: kyntus-backend
     restart: always
     ports:
-      # L-Backend dima ghadi n-pointiw 3lih b 8082 f Server
-      - "8082:8080"
+      # 🔥 L-FIX HOWA HADA: L'bab 8082 berra kay-ddi l' 8082 l'dakhel 🔥
+      - "8082:8082"
     depends_on:
       - db
     environment:
@@ -37,7 +37,6 @@ services:
   frontend:
     build:
       context: ./frontend
-      # 🔥 HNA FIN KAY-T-7EL L-MOCHKIL:
       # Kan-siftou l-URL l-Dockerfile wa9t l-Build bach ma-yb9ach "localhost"
       args:
         NEXT_PUBLIC_API_URL: http://kyntusos.kyntus.fr:8082
