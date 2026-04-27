@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Entity
 @Table(name = "ventilation_data")
-@Data // Ila knti khddam b' Lombok, sinon dir les Getters w Setters b' yeddik
+@Data
 public class VentilationData {
 
     @Id
@@ -18,8 +18,8 @@ public class VentilationData {
     @Column(name = "mois")
     private int month;
 
-    // 🔥 LONGTEXT bash y-hzz l-JSON kbir dyal Excel kamel bla may-t-planta 🔥
+    // 🔥 THE FIX: Bdellna LONGTEXT b' TEXT 7it PostgreSQL kay-fhem ghir TEXT l'les chaines kbar 🔥
     @Lob
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String jsonData;
 }
