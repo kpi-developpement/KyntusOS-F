@@ -1,262 +1,200 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, CheckSquare, Square, Zap, Lock, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import styles from './SmartTaskGrid.module.css';
+import React, { useState, useMemo, useEffect } from "react";
+import { ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, CircleDashed, Clock, Check } from "lucide-react";
+import styles from "./SmartTaskGrid.module.css";
 
-// 🎛️ CUSTOM CYBER DROPDOWN (M-bni mn Jdeeer!)
-const CyberDropdown = ({ options, value, onChange, placeholder }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+// ============================================================================
+// 🔥 THE PREDICTIVE INPUT COMPONENT (Kay7fed chno katkteb) 🔥
+// ============================================================================
+const PredictiveInput = ({ defaultValue, columnKey, taskId, onUpdate }: any) => {
+  const [val, setVal] = useState(defaultValue || "");
+  const [history, setHistory] = useState<Record<string, Record<string, number>>>({});
 
+  // Kay-jib d-Dictionnaire mn LocalStorage
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setIsOpen(false);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    const stored = localStorage.getItem("kyntus_dict");
+    if (stored) setHistory(JSON.parse(stored));
   }, []);
 
+  // Kay-qelleb 3la l-klima li t-ktbat 3+ مرات
+  const suggestion = useMemo(() => {
+    if (!val) return "";
+    const colDict = history[columnKey] || {};
+    const frequentWords = Object.keys(colDict).filter(k => colDict[k] >= 3);
+    const match = frequentWords.find(w => w.toLowerCase().startsWith(val.toLowerCase()) && w !== val);
+    return match ? val + match.slice(val.length) : "";
+  }, [val, history, columnKey]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab' && suggestion) {
+      e.preventDefault(); // 7bess Tab bash maymchich l' input akhor
+      setVal(suggestion); // Ktb l-klima bo7dha!
+    } else if (e.key === 'Enter') {
+      e.currentTarget.blur();
+    }
+  };
+
+  const handleBlur = () => {
+    if (val !== defaultValue) {
+      onUpdate(taskId, columnKey, val); // Sifet l-API
+      
+      // Sauvegarder f' d-Dictionnaire
+      if (val.trim() !== "") {
+        const stored = JSON.parse(localStorage.getItem("kyntus_dict") || "{}");
+        const colDict = stored[columnKey] || {};
+        colDict[val] = (colDict[val] || 0) + 1; // Zid +1
+        stored[columnKey] = colDict;
+        localStorage.setItem("kyntus_dict", JSON.stringify(stored));
+        setHistory(stored);
+      }
+    }
+  };
+
   return (
-    <div className={styles.customDropdown} ref={dropdownRef}>
-      <div className={styles.dropdownHeader} onClick={() => setIsOpen(!isOpen)}>
-        <span style={{ color: value ? '#00f2ea' : '#94a3b8' }}>{value || placeholder}</span>
-        <ChevronDown size={14} style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: '0.3s' }} />
-      </div>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.ul 
-            initial={{ opacity: 0, y: -10, scaleY: 0.8 }} 
-            animate={{ opacity: 1, y: 0, scaleY: 1 }} 
-            exit={{ opacity: 0, y: -10, scaleY: 0.8 }}
-            transition={{ duration: 0.2, originY: 0 }}
-            className={styles.dropdownList}
-          >
-            <li className={styles.dropdownItem} onClick={() => { onChange(""); setIsOpen(false); }}>[ TOUS ]</li>
-            {options.map((opt: string) => (
-              <li key={opt} className={styles.dropdownItem} onClick={() => { onChange(opt); setIsOpen(false); }}>
-                {opt}
-              </li>
-            ))}
-          </motion.ul>
-        )}
-      </AnimatePresence>
+    <div className={styles.predictiveWrapper}>
+      {suggestion && <span className={styles.ghostText}>{suggestion}</span>}
+      <input 
+        type="text" 
+        className={styles.realInput}
+        value={val} 
+        onChange={(e) => setVal(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+      />
     </div>
   );
 };
 
+// ============================================================================
+// MAIN GRID COMPONENT
+// ============================================================================
 interface SmartTaskGridProps {
   tasks: any[];
-  allColumns: string[];       
-  editableColumns: string[];  
-  onUpdateData: (id: number, key: string, val: any) => void;
-  onToggleStatus: (id: number, status: string) => void;
+  allColumns: string[];
+  editableColumns: string[];
+  onUpdateData: (taskId: number, key: string, value: string) => void;
+  onToggleStatus: (taskId: number, currentStatus: string) => void;
   selectedTasks: number[];
-  setSelectedTasks: (val: number[] | ((prev: number[]) => number[])) => void;
+  setSelectedTasks: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
 export default function SmartTaskGrid({ tasks, allColumns, editableColumns, onUpdateData, onToggleStatus, selectedTasks, setSelectedTasks }: SmartTaskGridProps) {
-  const [globalSearch, setGlobalSearch] = useState("");
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   
-  // 📄 PAGINATION STATES
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
-  const getUniqueValues = (col: string) => {
-    const vals = new Set<string>();
-    tasks.forEach(t => {
-      if (col === 'STATUS') vals.add(t.status);
-      else if (t.dynamicData && t.dynamicData[col]) {
-        const val = String(t.dynamicData[col]).trim();
-        if (val) vals.add(val);
-      }
-    });
-    return Array.from(vals).sort();
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
   };
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(t => {
-      if (globalSearch.trim()) {
-        const searchLower = globalSearch.toLowerCase();
-        let matchGlobal = false;
-        if (t.epsReference?.toLowerCase().includes(searchLower)) matchGlobal = true;
-        if (t.status?.toLowerCase().includes(searchLower)) matchGlobal = true;
-        if (t.dynamicData) {
-          for (const key of allColumns) {
-            if (String(t.dynamicData[key] || "").toLowerCase().includes(searchLower)) matchGlobal = true;
-          }
-        }
-        if (!matchGlobal) return false;
-      }
-      for (const [col, filterVal] of Object.entries(columnFilters)) {
-        if (!filterVal) continue;
-        if (col === 'STATUS' && t.status !== filterVal) return false;
-        if (col !== 'STATUS' && String(t.dynamicData?.[col] || "").trim() !== filterVal) return false;
-      }
-      return true;
-    });
-  }, [tasks, globalSearch, columnFilters, allColumns]);
+  const sortedTasks = useMemo(() => {
+    let sortableTasks = [...tasks];
+    if (sortConfig !== null) {
+      sortableTasks.sort((a, b) => {
+        const aValue = a[sortConfig.key] !== undefined ? a[sortConfig.key] : (a.dynamicData?.[sortConfig.key] || "");
+        const bValue = b[sortConfig.key] !== undefined ? b[sortConfig.key] : (b.dynamicData?.[sortConfig.key] || "");
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableTasks;
+  }, [tasks, sortConfig]);
 
-  // 📄 PAGINATION LOGIC
-  const totalPages = Math.ceil(filteredTasks.length / pageSize) || 1;
-  
-  // Reset page to 1 if we filter and current page is now empty
-  useEffect(() => {
-    if (currentPage > totalPages) setCurrentPage(1);
-  }, [filteredTasks.length, totalPages, currentPage]);
-
-  const paginatedTasks = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredTasks.slice(start, start + pageSize);
-  }, [filteredTasks, currentPage, pageSize]);
-
-  const handleFilterChange = (col: string, val: string) => {
-    setColumnFilters(prev => ({ ...prev, [col]: val }));
-    setCurrentPage(1); // Back to first page when filtering
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) setSelectedTasks(tasks.map(t => t.id));
+    else setSelectedTasks([]);
   };
 
-  const handleSelectAll = () => {
-    if (selectedTasks.length === paginatedTasks.length) setSelectedTasks([]); 
-    else setSelectedTasks(paginatedTasks.map(t => t.id));
+  const handleSelectOne = (taskId: number) => {
+    setSelectedTasks(prev => prev.includes(taskId) ? prev.filter(id => id !== taskId) : [...prev, taskId]);
   };
 
-  const toggleSelection = (id: number) => {
-    setSelectedTasks(prev => prev.includes(id) ? prev.filter(tid => tid !== id) : [...prev, id]);
+  const renderStatus = (status: string) => {
+    switch (status) {
+      case "DONE": return <span className={`${styles.statusBadge} ${styles.status_DONE}`}><CheckCircle2 size={14}/> DONE</span>;
+      case "EN_COURS": return <span className={`${styles.statusBadge} ${styles.status_EN_COURS}`}><Clock size={14}/> EN COURS</span>;
+      default: return <span className={`${styles.statusBadge} ${styles.status_A_FAIRE}`}><CircleDashed size={14}/> A FAIRE</span>;
+    }
   };
 
-  if (!tasks || tasks.length === 0) return null;
+  const getSortIcon = (columnName: string) => {
+    if (!sortConfig || sortConfig.key !== columnName) return <ArrowUpDown size={14} style={{opacity: 0.3, marginLeft: 8}} />;
+    return sortConfig.direction === 'asc' 
+        ? <ArrowUp size={14} style={{color: '#00FF88', marginLeft: 8}} />
+        : <ArrowDown size={14} style={{color: '#00FF88', marginLeft: 8}} />;
+  };
 
   return (
     <div className={styles.gridContainer}>
-      
-      {/* 🔍 FILTER BAR */}
-      <div className={styles.filterBar}>
-        <div className={styles.searchBox}>
-          <Search size={18} color="#00f2ea" />
-          <input type="text" placeholder="Scan Matrix Data..." value={globalSearch} onChange={(e) => {setGlobalSearch(e.target.value); setCurrentPage(1);}} className={styles.searchInput} />
-        </div>
-        <div className={styles.filterStats}>
-          <Zap size={16} color="#39ff14" /> 
-          <motion.span key={filteredTasks.length} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>
-            {filteredTasks.length} ENTITIES FOUND
-          </motion.span>
-        </div>
-      </div>
-
-      {/* 📊 THE CYBER TABLE */}
-      <div className={styles.tableWrapper}>
-        <table className={styles.cyberTable}>
-          <thead>
-            <tr>
-              <th className={styles.stickyCheck}>
-                <div onClick={handleSelectAll} style={{ cursor: 'pointer', marginTop: '10px' }}>
-                  {selectedTasks.length > 0 && selectedTasks.length === paginatedTasks.length 
-                    ? <CheckSquare size={18} color="#00f2ea" /> : <Square size={18} color="#64748b" />}
-                </div>
+      <table className={styles.cyberTable}>
+        <thead>
+          <tr>
+            <th style={{ width: '50px', textAlign: 'center' }}>
+              <label className={styles.checkboxWrapper}>
+                <input type="checkbox" className={styles.hiddenCheckbox}
+                  checked={selectedTasks.length === tasks.length && tasks.length > 0} 
+                  onChange={handleSelectAll} 
+                />
+                <div className={styles.customBox}><Check size={16} strokeWidth={3} /></div>
+              </label>
+            </th>
+            <th onClick={() => requestSort('epsReference')}>EPS_REF {getSortIcon('epsReference')}</th>
+            <th onClick={() => requestSort('status')}>SYS_STATUS {getSortIcon('status')}</th>
+            {allColumns.map(col => (
+              <th key={col} onClick={() => requestSort(col)}>
+                {col.toUpperCase()} {getSortIcon(col)}
               </th>
-              
-              <th className={styles.stickyEps}>
-                <div className={styles.thContent}>EPS_REF</div>
-              </th>
-              
-              <th>
-                <div className={styles.thContent}>
-                  SYS_STATUS
-                  <CyberDropdown 
-                    options={getUniqueValues('STATUS')} 
-                    value={columnFilters['STATUS'] || ""} 
-                    onChange={(val: string) => handleFilterChange('STATUS', val)} 
-                    placeholder="ALL" 
-                  />
-                </div>
-              </th>
-              
-              {allColumns.map(f => (
-                <th key={f}>
-                  <div className={styles.thContent}>
-                    <span>{f.toUpperCase()} {!editableColumns.includes(f) && <Lock size={10} color="#64748b" style={{ marginLeft: '5px' }} />}</span>
-                    <CyberDropdown 
-                      options={getUniqueValues(f)} 
-                      value={columnFilters[f] || ""} 
-                      onChange={(val: string) => handleFilterChange(f, val)} 
-                      placeholder="ALL" 
-                    />
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          
-          <motion.tbody layout>
-            <AnimatePresence mode="popLayout">
-              {paginatedTasks.map((t) => {
-                const isSelected = selectedTasks.includes(t.id);
-                return (
-                  <motion.tr 
-                    key={t.id} layout
-                    initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                    className={`${styles.tr} ${isSelected ? styles.trSelected : ''}`}
-                  >
-                    <td className={styles.stickyCheck} onClick={() => toggleSelection(t.id)}>
-                      {isSelected ? <CheckSquare size={18} color="#00f2ea" /> : <Square size={18} color="#475569" className={styles.uncheckIcon} />}
-                    </td>
-
-                    <td className={styles.stickyEps}><span className={styles.epsText}>{t.epsReference}</span></td>
-
-                    <td className={styles.tdStatus}>
-                      <button onClick={() => onToggleStatus(t.id, t.status)} className={`${styles.statusBtn} ${t.status === 'EN_COURS' ? styles.statusActive : styles.statusIdle}`}>
-                        {t.status === 'EN_COURS' ? 'IN_PROG' : t.status}
-                      </button>
-                    </td>
-
-                    {allColumns.map(f => {
-                      const isEditable = editableColumns.includes(f);
-                      const cellValue = t.dynamicData?.[f] || "";
-                      return (
-                        <td key={f} className={isEditable ? styles.tdInput : styles.tdReadOnly}>
-                          {isEditable ? (
-                            <div className={styles.inputCyberWrapper}>
-                              <input type="text" value={cellValue} onChange={(e) => onUpdateData(t.id, f, e.target.value)} className={styles.dynamicInput} placeholder="..." />
-                            </div>
-                          ) : (
-                            <span className={styles.readOnlyText}>{cellValue || "-"}</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </motion.tr>
-                );
-              })}
-            </AnimatePresence>
-          </motion.tbody>
-        </table>
-      </div>
-
-      {/* 📄 PAGINATION CONTROLS */}
-      <div className={styles.paginationBar}>
-        <div className={styles.pageSizeSelector}>
-          LIGNES PAR PAGE : 
-          <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}>
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
+            ))}
+          </tr>
+        </thead>
         
-        <div className={styles.pageControls}>
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className={styles.pageBtn}>
-            <ChevronLeft size={16} /> PREV
-          </button>
-          <span className={styles.pageInfo}>PAGE <span style={{color: '#00f2ea'}}>{currentPage}</span> / {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className={styles.pageBtn}>
-            NEXT <ChevronRight size={16} />
-          </button>
-        </div>
-      </div>
+        <tbody>
+          {sortedTasks.map(task => {
+            const isSelected = selectedTasks.includes(task.id);
+            return (
+              <tr key={task.id} className={`${styles.cyberRow} ${isSelected ? styles.selectedRow : ''}`}>
+                <td style={{ textAlign: 'center' }}>
+                  <label className={styles.checkboxWrapper}>
+                    <input type="checkbox" className={styles.hiddenCheckbox}
+                      checked={isSelected} onChange={() => handleSelectOne(task.id)} 
+                    />
+                    <div className={styles.customBox}><Check size={16} strokeWidth={3} /></div>
+                  </label>
+                </td>
+                
+                <td style={{ fontWeight: 'bold', color: isSelected ? '#b026ff' : '#ffffff' }}>
+                  {task.epsReference || "// UNDEFINED"}
+                </td>
+                <td onClick={() => onToggleStatus(task.id, task.status)}>{renderStatus(task.status)}</td>
+
+                {allColumns.map(col => {
+                  const val = task.dynamicData?.[col] || "";
+                  const isEditable = editableColumns.includes(col);
+
+                  return (
+                    <td key={col}>
+                      {isEditable ? (
+                        // 🔥 HNA KAN-KHEDMOU COMPOSANT JDID 🔥
+                        <PredictiveInput 
+                          defaultValue={val} 
+                          columnKey={col} 
+                          taskId={task.id} 
+                          onUpdate={onUpdateData} 
+                        />
+                      ) : (
+                        <span style={{ opacity: 0.8 }}>{val || "-"}</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

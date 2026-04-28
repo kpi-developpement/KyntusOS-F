@@ -1,0 +1,51 @@
+/* 70% ROYAL BLUE: L-Fonds Principal */
+.container {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 20%, #1a365d 0%, #050b14 100%);
+  perspective: 1000px; /* L-3D Engine */
+  z-index: -1;
+  overflow: hidden;
+}
+
+/* 20% WHITE: L-Glow li kay-dowwi l-page mn l-foq */
+.whiteGlow {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  height: 80vh;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* 10% GREEN: L-Grid 3D f' l-ard */
+.grid3d {
+  position: absolute;
+  bottom: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  /* Rssim dyal l-Morba3at b' l-Feu Vert */
+  background-image:
+    linear-gradient(rgba(0, 255, 136, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 136, 0.3) 1px, transparent 1px);
+  background-size: 60px 60px;
+  
+  /* L-Meyla l-3D */
+  transform: rotateX(75deg);
+  transform-origin: center top;
+  
+  /* Dbaba f' l-Lour */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 40%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 40%);
+  
+  /* Animation dyal z-zlaq */
+  animation: moveGrid 4s linear infinite;
+}
+
+@keyframes moveGrid {
+  0% { transform: rotateX(75deg) translateY(0); }
+  100% { transform: rotateX(75deg) translateY(60px); }
+}

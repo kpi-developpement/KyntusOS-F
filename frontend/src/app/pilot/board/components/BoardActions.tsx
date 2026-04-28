@@ -1,23 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Terminal, Copy, Trash2, UserCheck, Edit3 } from "lucide-react";
 import ActionButton from "../ui/ActionButton";
 import styles from "../PilotBoard.module.css";
 
+// 🔥 THE FIX: Zedt '?' l' ga3 les props bach ykouno optionnels, w ma-ycrashiwch l-app
 interface BoardActionsProps {
-  tasksCount: number;
-  selectedCount: number;
-  allowedFields: string[];
-  onCopyEPS: () => void;
-  onPurgeDoublons: () => void;
-  onCoachSync: () => void;
-  onBulkEdit: (col: string, val: string) => void;
+  tasksCount?: number;
+  selectedCount?: number;
+  allowedFields?: string[];
+  onCopyEPS?: () => void;
+  onPurgeDoublons?: () => void;
+  onCoachSync?: () => void;
+  onBulkEdit?: (col: string, val: string) => void;
 }
 
-export default function BoardActions({ tasksCount, selectedCount, allowedFields, onCopyEPS, onPurgeDoublons, onCoachSync, onBulkEdit }: BoardActionsProps) {
-  const [bulkCol, setBulkCol] = useState(allowedFields[0] || "");
+export default function BoardActions({ 
+  tasksCount = 0, 
+  selectedCount = 0, 
+  allowedFields = [], // Dima tableau khawi par defaut
+  onCopyEPS = () => {}, 
+  onPurgeDoublons = () => {}, 
+  onCoachSync = () => {}, 
+  onBulkEdit = () => {} 
+}: BoardActionsProps) {
+  
+  // 🔥 THE FIX: Optional chaining '?.[0]' bach y9ra l-lowel bla ma y-crashi
+  const [bulkCol, setBulkCol] = useState(allowedFields?.[0] || "");
   const [bulkVal, setBulkVal] = useState("");
+
+  // Update default value if allowedFields changes after API load
+  useEffect(() => {
+    if (allowedFields.length > 0 && !bulkCol) {
+      setBulkCol(allowedFields[0]);
+    }
+  }, [allowedFields, bulkCol]);
 
   return (
     <div className={styles.dataHeader}>
@@ -36,6 +54,7 @@ export default function BoardActions({ tasksCount, selectedCount, allowedFields,
               value={bulkCol} onChange={(e) => setBulkCol(e.target.value)}
               style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid #b026ff', borderRadius: '4px', padding: '4px', fontSize: '0.8rem', outline: 'none' }}
             >
+              {/* 🔥 THE FIX: allowedFields dima safe hna hit drnaha = [] lfoq */}
               {allowedFields.map(f => <option key={f} value={f}>{f}</option>)}
             </select>
             

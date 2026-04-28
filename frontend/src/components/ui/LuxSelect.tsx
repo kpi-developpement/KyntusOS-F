@@ -10,7 +10,7 @@ interface Option {
 }
 
 interface LuxSelectProps {
-  label: string;
+  label?: string;
   options: Option[];
   value: string;
   onChange: (val: string) => void;
@@ -24,18 +24,22 @@ export default function LuxSelect({ label, options, value, onChange, disabled, p
 
   // Close on click outside
   useEffect(() => {
-    const handleClick = (e: any) => {
-      if (ref.current && !ref.current.contains(e.target)) setIsOpen(false);
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const selectedLabel = options.find((o) => o.value === value)?.label;
+  // L-Shield 🛡️
+  const safeOptions = options || [];
+  const selectedLabel = safeOptions.find((o) => o.value === value)?.label;
 
   return (
     <div className={`${styles.wrapper} ${disabled ? styles.disabled : ''}`} ref={ref}>
-      <span className={styles.label}>{label}</span>
+      {label && <span className={styles.label}>{label}</span>}
       
       <div 
         className={`${styles.trigger} ${isOpen ? styles.active : ''}`} 
@@ -45,7 +49,6 @@ export default function LuxSelect({ label, options, value, onChange, disabled, p
           {selectedLabel || placeholder || "SÉLECTIONNER..."}
         </span>
         
-        {/* Icone qui change selon l'état */}
         {isOpen ? (
             <ChevronDown size={16} className={styles.rotated} />
         ) : (
@@ -55,19 +58,19 @@ export default function LuxSelect({ label, options, value, onChange, disabled, p
 
       {isOpen && (
         <div className={styles.dropdown}>
-          {options.length > 0 ? (
-            options.map((opt) => (
+          {safeOptions.length > 0 ? (
+            safeOptions.map((opt) => (
               <div 
                 key={opt.value} 
                 className={`${styles.option} ${opt.value === value ? styles.selected : ''}`}
                 onClick={() => { onChange(opt.value); setIsOpen(false); }}
               >
                 {opt.label}
-                {opt.value === value && <Check size={14} />}
+                {opt.value === value && <Check size={16} />}
               </div>
             ))
           ) : (
-            <div className={styles.empty}>// NO DATA FOUND</div>
+            <div className={styles.empty}>// NO_DATA_AVAILABLE</div>
           )}
         </div>
       )}

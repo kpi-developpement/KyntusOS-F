@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import AuthGuard from "@/components/layout/AuthGuard";
-import InteractiveBackground from "@/components/ui/InteractiveBackground";
+import InteractiveBackground from "@/components/ui/InteractiveBackground"; // Hada howa CyberMatrixBackground dyalna
 import PilotNavbar from "@/components/layout/PilotNavbar"; 
 import Toaster from "@/components/ui/Toaster";
 import CyberLoader from "@/components/ui/CyberLoader"; 
@@ -14,7 +14,6 @@ import styles from "./PilotLayout.module.css";
 export default function PilotLayout({ children }: { children: React.ReactNode }) {
   const [contentReady, setContentReady] = useState(false);
   const pathname = usePathname(); 
-
   const isHome = pathname === "/pilot/home";
 
   useEffect(() => {
@@ -28,18 +27,19 @@ export default function PilotLayout({ children }: { children: React.ReactNode })
     <AuthGuard>
       <div className={styles.pilotShell}>
         
-        {/* Layer 1: LOADER */}
+        {/* Layer 1: LOADER (Dima Top waqt l-chargement) */}
         <CyberLoader />
 
-        {/* Layer 2: Background (Particles) */}
+        {/* Layer 2: BACKGROUND + MODIFIER PANEL */}
+        {/* ⚠️ Hada dkhl westu l-Modifier Panel li fih z-index 999,999,999 ⚠️ */}
         <InteractiveBackground />
         
-        {/* Layer 3: Contenu */}
+        {/* Layer 3: CONTENU PRINCIPAL */}
         <div style={{ 
             opacity: contentReady ? 1 : 0, 
             transition: "opacity 0.3s ease",
             position: "relative",
-            zIndex: 10,
+            /* ❌ 7IYDNA Z-INDEX: 10 HNA BACH MAY-7BECH L-BACKGROUND ❌ */
             display: "flex",
             flexDirection: "column",
             minHeight: "100vh"
@@ -53,19 +53,19 @@ export default function PilotLayout({ children }: { children: React.ReactNode })
                 flex: 1, 
                 display: "flex", 
                 flexDirection: "column",
-                paddingTop: isHome ? "0px" : "120px"
+                paddingTop: isHome ? "0px" : "120px",
+                /* Z-index hna machi mochkil hit l-panel dyal background rah "Fixed" */
               }}
             >
-               {/* 💎 L-ANIMATION PREMIUM (Minimalist & Smooth) 💎 */}
                <AnimatePresence mode="wait">
                  <motion.div
                    key={pathname}
-                   initial={{ opacity: 0, y: 15 }} // Kat-bda habta ghir b' 15px
-                   animate={{ opacity: 1, y: 0 }}  // Kat-tle3 l-blast-ha
-                   exit={{ opacity: 0, y: -10 }}   // Kat-khrej l-foq chwiya
+                   initial={{ opacity: 0, y: 15 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -10 }}
                    transition={{ 
                      duration: 0.35, 
-                     ease: [0.22, 1, 0.36, 1] // 👈 Hada howa s-serr! Easing Curve dyal Apple/Vercel (Custom Cubic Bezier)
+                     ease: [0.22, 1, 0.36, 1] 
                    }}
                    style={{ flex: 1, display: "flex", flexDirection: "column" }}
                  >
@@ -75,7 +75,7 @@ export default function PilotLayout({ children }: { children: React.ReactNode })
             </div>
         </div>
 
-        {/* Layer 4: Notifications */}
+        {/* Layer 4: NOTIFICATIONS (Dima Top) */}
         <Toaster />
         
       </div>

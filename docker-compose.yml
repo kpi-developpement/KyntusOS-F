@@ -39,14 +39,14 @@ services:
       context: ./frontend
       # Kan-siftou l-URL l-Dockerfile wa9t l-Build bach ma-yb9ach "localhost"
       args:
-        NEXT_PUBLIC_API_URL: http://kyntusos.kyntus.fr:8082
+        NEXT_PUBLIC_API_URL: http://localhost:8082/api
     container_name: kyntus-frontend
     restart: always
     ports:
       - "3000:3000"
     environment:
       # Variable d l'environnement f l-runtime (Safety net)
-      - NEXT_PUBLIC_API_URL=http://kyntusos.kyntus.fr:8082
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
 
 volumes:
   # L-volume l-jdid dyalna

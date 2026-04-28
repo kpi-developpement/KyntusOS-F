@@ -26,3 +26,13 @@
   max-width: 1600px;
   margin: 0 auto;
 }
+.contentWrapper {
+  position: relative;
+  /* ⚠️ Z-index sghir bach l-Modifier Panel (li fih fixed & 999,999,999) y-ban foqo ⚠️ */
+  z-index: 1; 
+  padding-top: 120px; 
+  min-height: 100vh;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}

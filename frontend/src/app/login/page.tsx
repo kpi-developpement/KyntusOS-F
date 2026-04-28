@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth(); // Kan-sta3mloha ghir bach n-activiw Sidebar
+  const { login } = useAuth(); 
   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +26,10 @@ export default function LoginPage() {
     try {
       await new Promise(r => setTimeout(r, 800)); 
 
-      const res = await fetch("http://kyntusos.kyntus.fr:8082/api/auth/login", {
+      // 🔥 L-FIX HOWA HADA: Kan-jibou l-URL mn .env awla kan-forciw 8082 f' local
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
+      
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -36,13 +39,12 @@ export default function LoginPage() {
         const user = await res.json();
         setStatus("SUCCESS");
         
-        // 1. UPDATE STATE (Bla redirection)
+        // 1. UPDATE STATE
         login(user); 
 
-        // 2. REDIRECTION CUSTOM (Kif ma bgheti nti)
+        // 2. REDIRECTION CUSTOM
         setTimeout(() => {
             if (user.role === "ADMIN") {
-                // Hna rje3na l /portal
                 router.push("/portal"); 
             } else if (user.role === "PILOT") {
                 router.push("/pilot/home");

@@ -24,6 +24,11 @@ public class WorkflowTemplateService {
         return repository.findAll();
     }
 
+    // 🔥 THE FIX: N-khedmou b' Methode li kat-jib Global + Private
+    public List<WorkflowTemplate> getTemplatesByUserId(Long userId) {
+        return repository.findByUserIdOrGlobal(userId);
+    }
+
     @Transactional
     public WorkflowTemplate createTemplate(WorkflowTemplateDto dto) {
         WorkflowTemplate template = new WorkflowTemplate();
@@ -32,19 +37,18 @@ public class WorkflowTemplateService {
         template.setComplexity(dto.getComplexity() > 0 ? dto.getComplexity() : 1);
         template.setFields(new ArrayList<>());
 
-        // Hna fin kan-tiro 3la l fields bach ytsajlo
+        // Ila bghiti tsawb mission l-chi pilote b-dbt (Optionnel)
+        // template.setUserId(dto.getUserId());
+
         if (dto.getFields() != null) {
             for (FieldDefinitionDto fieldDto : dto.getFields()) {
                 FieldDefinition field = new FieldDefinition();
                 field.setName(fieldDto.getName());
                 field.setType(fieldDto.getType());
                 field.setRequired(fieldDto.isRequired());
-
-                // Utilisation de la méthode helper (voir Model en bas)
                 template.addField(field);
             }
         }
-
         return repository.save(template);
     }
 }

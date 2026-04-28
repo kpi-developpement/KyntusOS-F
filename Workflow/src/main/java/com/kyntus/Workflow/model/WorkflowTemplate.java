@@ -22,6 +22,10 @@ public class WorkflowTemplate {
     @Column(columnDefinition = "int default 1")
     private int complexity = 1;
 
+    // 🔥 THE UPGRADE: Zidna l-UserId hna bach l-Mission t-rbet m3a l-Pilote 🔥
+    @Column(name = "user_id")
+    private Long userId;
+
     // Fetch EAGER = Jib loulad m3ak dima
     @OneToMany(mappedBy = "workflowTemplate", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference

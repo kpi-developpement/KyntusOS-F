@@ -1,0 +1,122 @@
+.container {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 20%, #1a365d 0%, #050b14 100%);
+  /* Dima l-lour (Background) */
+  z-index: -1; 
+  overflow: hidden;
+}
+
+.cyberMatrixCanvas {
+  width: 100%;
+  height: 100%;
+  filter: blur(1px);
+}
+
+/* 🔥 THE WRAPPER (Z-INDEX HBILA 🚀) 🔥 */
+.controlsWrapper {
+  position: fixed; /* Khasso y-koun fixed bach may-tbech l-scroll dyal l-page */
+  top: 25px;
+  right: 25px;
+  /* Hna fin kayna l-9owa: Z-index f' l-melyar */
+  z-index: 9999999999999999999 !important; 
+}
+
+/* 🟢 TRIGGER BUTTON */
+.triggerBtn {
+  width: 50px;
+  height: 50px;
+  background: rgba(10, 15, 30, 0.9);
+  border: 2px solid #00FF88;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00FF88;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.triggerBtn:hover {
+  transform: scale(1.15) rotate(15deg);
+  background: #00FF88;
+  color: #050b14;
+}
+
+/* 🧬 EXPANDED PANEL (THE CORE) */
+.controlsPanel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 320px;
+  background: rgba(5, 11, 20, 0.98); /* M-ziyer l-loun bach y-ban pro */
+  backdrop-filter: blur(25px);
+  padding: 1.8rem;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 255, 136, 0.6);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 255, 136, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transform-origin: top right;
+  /* High priority inside its wrapper */
+  z-index: 1000000000 !important; 
+  animation: expandPanel 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 77, 77, 0.1);
+  border: none;
+  color: #ff4d4d;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover { background: #ff4d4d; color: white; }
+
+.controlsPanel h4 {
+  margin: 0;
+  color: #00FF88;
+  font-size: 0.9rem;
+  letter-spacing: 2.5px;
+  font-family: 'JetBrains Mono', monospace;
+  border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+  padding-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* L-Items dyal l-panel */
+.controlItem { display: flex; flex-direction: column; gap: 10px; }
+.controlItem label {
+  color: #00f2ea;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  justify-content: space-between;
+}
+
+.controlItem input[type=range] { accent-color: #00FF88; cursor: pointer; height: 6px; }
+
+.controlItem select {
+  background: #0a0f1a;
+  border: 1px solid #1a365d;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@keyframes expandPanel {
+  from { opacity: 0; transform: scale(0.4) translate(30px, -30px); filter: blur(10px); }
+  to { opacity: 1; transform: scale(1) translate(0, 0); filter: blur(0); }
+}
