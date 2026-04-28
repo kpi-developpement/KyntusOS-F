@@ -34,7 +34,7 @@ export default function NotificationCenter() {
   useEffect(() => {
     if (!user) return;
 
-    const socket = new SockJS("http://localhost:3000/ws");
+    const socket = new SockJS("http://kyntusos.kyntus.fr:8082/ws");
     const client = new Client({
       webSocketFactory: () => socket,
       onConnect: () => {
