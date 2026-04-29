@@ -27,7 +27,8 @@ export default function LoginPage() {
       await new Promise(r => setTimeout(r, 800)); 
 
       // 🔥 L-FIX HOWA HADA: Kan-jibou l-URL mn .env awla kan-forciw 8082 f' local
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082";
+      // ✅ S7I7: L'Frontend kay-sifet l'requête l'rasso, w Next.js kay-dowzha l'Spring Boot
+const API_URL = "/api";
       
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",

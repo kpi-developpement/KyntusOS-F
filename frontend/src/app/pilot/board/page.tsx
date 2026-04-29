@@ -15,8 +15,7 @@ import styles from "./PilotBoard.module.css";
 const CyberMatrixBackground = dynamic(() => import("./ux/CyberMatrixBackground"), { ssr: false });
 
 // 🔗 API CONFIGURATION (Spring Boot @ 8082)
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8082/api";
-
+const API_URL = "/api";
 export default function PilotBoard() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [templates, setTemplates] = useState<any[]>([]);

@@ -41,14 +41,77 @@ export default function PilotHomePage() {
   }, []);
 
   const modules = [
-    { id: "board", title: "RAW DATA GRID", path: "/pilot/board", icon: Terminal, color: "#f59e0b", desc: "Configuration des templates et édition matricielle.", status: "ONLINE", model: "MATRIX_V1" },
-    { id: "kanban", title: "MISSION CONTROL", path: "/pilot/kanban", icon: LayoutDashboard, color: "#39ff14", desc: "Supervision tactique pour le pilotage en temps réel.", status: "ONLINE", model: "TACTICAL_HUD" },
-    { id: "facture", title: "NEXUS ENGINE", path: "/pilot/facture", icon: Cpu, color: "#b026ff", desc: "Moteur de facturation quantique avec overrides.", status: "ONLINE", model: "ENGINE_X" },
-    { id: "recorde", title: "CORE MATRIX", path: "/pilot/recorde", icon: Database, color: "#00f0ff", desc: "Base de données, gestion des versions et anomalies.", status: "SECURE", model: "DB_CORE" },
-    { id: "ventilation", title: "TIME MACHINE", path: "/pilot/ventilation", icon: Layers, color: "#ef4444", desc: "Visualisation spatio-temporelle des finances.", status: "ONLINE", model: "CHRONOS_9" },
-    { id: "parametrage", title: "RULES ENGINE", path: "/pilot/parametrage", icon: Settings, color: "#38bdf8", desc: "Console d'administration des règles globales.", status: "ONLINE", model: "SYS_CONFIG" },
-    { id: "history", title: "NEURAL LOGS", path: "/pilot/history", icon: History, color: "#d8b4fe", desc: "Archives cryptées des missions, KPIs et intégrité.", status: "ARCHIVED", model: "ARCHIVE_X" }
-  ];
+    { 
+      id: "board", 
+      title: "Analyse", 
+      path: "/pilot/board", 
+      icon: Terminal, 
+      color: "#f59e0b", 
+      desc: "Analyse et édition des données brutes.", 
+      status: "ONLINE", 
+      model: "MATRIX_V1" 
+    },
+    { 
+      id: "kanban", 
+      title: "Tableau de tâches", 
+      path: "/pilot/kanban", 
+      icon: LayoutDashboard, 
+      color: "#39ff14", 
+      desc: "Pilotage et suivi des tâches en temps réel.", 
+      status: "ONLINE", 
+      model: "TACTICAL_HUD" 
+    },
+    { 
+      id: "facture", 
+      title: "Facture", 
+      path: "/pilot/facture", 
+      icon: Cpu, 
+      color: "#b026ff", 
+      desc: "Moteur de calcul et génération des factures.", 
+      status: "ONLINE", 
+      model: "ENGINE_X" 
+    },
+    { 
+      id: "recorde", 
+      title: "Base de données", 
+      path: "/pilot/recorde", 
+      icon: Database, 
+      color: "#00f0ff", 
+      desc: "Gestion centrale des données et versions.", 
+      status: "SECURE", 
+      model: "DB_CORE" 
+    },
+    { 
+      id: "ventilation", 
+      title: "Ventilation", 
+      path: "/pilot/ventilation", 
+      icon: Layers, 
+      color: "#ef4444", 
+      desc: "Suivi et répartition des flux financiers.", 
+      status: "ONLINE", 
+      model: "CHRONOS_9" 
+    },
+    { 
+      id: "parametrage", 
+      title: "Paramétrage", 
+      path: "/pilot/parametrage", 
+      icon: Settings, 
+      color: "#38bdf8", 
+      desc: "Configuration des règles du système.", 
+      status: "ONLINE", 
+      model: "SYS_CONFIG" 
+    },
+    { 
+      id: "history", 
+      title: "Archive", 
+      path: "/pilot/history", 
+      icon: History, 
+      color: "#d8b4fe", 
+      desc: "Historique, logs et KPIs des missions.", 
+      status: "ARCHIVED", 
+      model: "ARCHIVE_X" 
+    }
+];
 
   const handleLaunchSequence = (path: string) => {
     setIsNavigating(true); 

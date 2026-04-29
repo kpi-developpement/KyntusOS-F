@@ -9,7 +9,7 @@ import VentilationDataBoard from './components/VentilationDataBoard';
 
 // 🚀 DYNAMIC IMPORT DYAL L-BACKGROUND L-JDID (Chronos Red/Blue Vibe) 🚀
 const ChronosBackground = dynamic(() => import('./ux/ChronosBackground'), { ssr: false });
-const API_BASE = "http://kyntusos.kyntus.fr:8082"; 
+const API_BASE = ""; 
 export default function VentilationPage() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);

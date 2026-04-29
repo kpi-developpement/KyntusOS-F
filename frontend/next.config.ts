@@ -1,28 +1,26 @@
 import type { NextConfig } from "next";
 
+// 🔥 Kan-qraw l-adresse mn l-environnement, wla kan-diro localhost par défaut (Local Dev)
+const backendUrl = process.env.BACKEND_URL || 'http://localhost:8082';
+
 const nextConfig: NextConfig = {
   transpilePackages: ['animejs'],
-  /* config options here */
   reactCompiler: true,
-  // Zidna hadi bach Docker image tkon khfifa (Standalone mode)
   output: "standalone",
-  // Kan zido hadi gher bach ila kan chi erreur sgher f Typescript may7bslikch l build
   typescript: {
     ignoreBuildErrors: true,
   },
   
-  // 🔥 THE MASTER FIX: Le Proxy Ultime 🔥
+  // 🔥 THE MASTER FIX: Proxy Dynamique 🔥
   async rewrites() {
     return [
       {
-        // Ay requête l' API
         source: '/api/:path*',
-        destination: 'http://localhost:8082/api/:path*',
+        destination: `${backendUrl}/api/:path*`, // Daba kay-tbdel 3la 7sab l-environnement
       },
       {
-        // Ay requête l' WebSockets (SockJS/STOMP)
         source: '/ws/:path*',
-        destination: 'http://localhost:8082/ws/:path*',
+        destination: `${backendUrl}/ws/:path*`,
       }
     ];
   },

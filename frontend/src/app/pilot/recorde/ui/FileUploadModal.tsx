@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, UploadCloud, Database, CheckCircle, Terminal, MoveDown, ShieldAlert, Layers, Trash2, Activity, GripVertical, Save, AlertTriangle } from 'lucide-react';
 
-const API_BASE = "http://kyntusos.kyntus.fr:8082";
+const API_BASE = "";
 
 export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSecurityAlert, defaultCategory, defaultYear, defaultMonth, onFileDeleted }: any) {
   const [files, setFiles] = useState<File[]>([]);

@@ -5,7 +5,7 @@ import SmartTable from "./components/SmartTable";
 import FileUploadModal from "./ui/FileUploadModal"; 
 import { Terminal, UploadCloud, CheckCircle, Search, X, DownloadCloud, History, Calendar, Folder, ShieldAlert, Crosshair, Activity, LayoutDashboard, Database, Cpu, AlertTriangle, ShieldCheck, MessageSquare, Layers, Users } from "lucide-react";
 
-const API_BASE = "http://kyntusos.kyntus.fr:8082"; 
+const API_BASE = ""; 
 
 const CyberSelect = React.memo(({ value, options, onChange, disabled, width = "130px", variant = "default" }: any) => {
   const [isOpen, setIsOpen] = useState(false);

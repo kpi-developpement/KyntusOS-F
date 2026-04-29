@@ -24,7 +24,8 @@ export default function PilotKanban() {
     const stored = localStorage.getItem("kyntus_user");
     if (stored) setUser(JSON.parse(stored));
 
-    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
+    // ✅ L-FIX 1: Chemin relatif (L'Proxy gha y-tkellef b l-baqi)
+    fetch("/api/templates")
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTemplates(data); })
         .catch(err => console.error(err));
@@ -33,7 +34,8 @@ export default function PilotKanban() {
   const refreshTasks = () => {
     if (!user || !selectedTemplate) return;
     setLoading(true);
-    fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
+    // ✅ L-FIX 2: Chemin relatif
+    fetch(`/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setTasks(data); else setTasks([]); })
         .catch(e => console.error(e))
@@ -48,7 +50,8 @@ export default function PilotKanban() {
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
     
     try {
-      const res = await fetch(`http://kyntusos.kyntus.fr:8082/api/tasks/${taskId}/status`, {
+      // ✅ L-FIX 3: Chemin relatif
+      const res = await fetch(`/api/tasks/${taskId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus })
       });

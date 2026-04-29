@@ -39,14 +39,16 @@ export default function PilotHistory() {
     }
     
     // 2. Load Templates
-    fetch("http://kyntusos.kyntus.fr:8082/api/templates")
+    // ✅ L-FIX 1: Proxy Routing (Chemin relatif)
+    fetch("/api/templates")
         .then(res => res.json())
         .then(data => { if(Array.isArray(data)) setTemplates(data); });
   }, []);
 
   const fetchTasks = (userId: number) => {
       setLoading(true);
-      fetch(`http://kyntusos.kyntus.fr:8082/api/tasks?assigneeId=${userId}`)
+      // ✅ L-FIX 2: Proxy Routing (Chemin relatif)
+      fetch(`/api/tasks?assigneeId=${userId}`)
         .then(res => res.json())
         .then(data => {
             if(Array.isArray(data)) {

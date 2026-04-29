@@ -46,6 +46,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
                 "http://kyntusos.kyntus.fr:8082",
                 "http://kyntusos.kyntus.fr",
                 "https://kyntusos.kyntus.fr",

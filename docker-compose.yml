@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. DATABASE (PostgreSQL)
   db:
@@ -22,7 +20,7 @@ services:
     container_name: kyntus-backend
     restart: always
     ports:
-      # 🔥 L-FIX HOWA HADA: L'bab 8082 berra kay-ddi l' 8082 l'dakhel 🔥
+      # L'bab 8082 berra kay-ddi l' 8082 l'dakhel
       - "8082:8082"
     depends_on:
       - db
@@ -37,16 +35,21 @@ services:
   frontend:
     build:
       context: ./frontend
-      # Kan-siftou l-URL l-Dockerfile wa9t l-Build bach ma-yb9ach "localhost"
+      # 🔥 THE PROXY FIX (BUILD) 🔥
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8082/api
+        NEXT_PUBLIC_API_URL: /api
     container_name: kyntus-frontend
     restart: always
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
     environment:
-      # Variable d l'environnement f l-runtime (Safety net)
-      - NEXT_PUBLIC_API_URL=http://kyntusos.kyntus.fr:8082
+      # 🔥 THE PROXY FIX (RUNTIME) 🔥
+      # 1. L-Browser (Navigateur) kay-hder ghir m3a Next.js (Zero CORS)
+      - NEXT_PUBLIC_API_URL=/api
+      # 2. Next.js (Proxy) kay-hder m3a Spring Boot f' l-reseau interne dyal Docker
+      - BACKEND_URL=http://backend:8082
 
 volumes:
   # L-volume l-jdid dyalna
