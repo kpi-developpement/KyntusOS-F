@@ -1,8 +1,5 @@
 import type { NextConfig } from "next";
 
-
-const backendUrl = process.env.BACKEND_URL || 'http://localhost:8082';
-
 const nextConfig: NextConfig = {
   transpilePackages: ['animejs'],
   reactCompiler: true,
@@ -11,12 +8,14 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   
-  // THE MASTER FIX: Proxy Dynamique 
   async rewrites() {
+    // 🔥 THE MASTER FIX: L'Evaluation Dynamique hna l-dakhel
+    const backendUrl = process.env.BACKEND_URL || 'http://backend:8082';
+    
     return [
       {
         source: '/api/:path*',
-        destination: `${backendUrl}/api/:path*`, // Daba kay-tbdel 3la 7sab l-environnement
+        destination: `${backendUrl}/api/:path*`, 
       },
       {
         source: '/ws/:path*',

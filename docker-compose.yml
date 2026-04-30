@@ -40,6 +40,7 @@ services:
       # 🔥 THE PROXY FIX (BUILD) 🔥
       args:
         NEXT_PUBLIC_API_URL: /api
+        BACKEND_URL: http://backend:8082
     container_name: kyntus-frontend
     restart: always
     ports:
