@@ -13,7 +13,7 @@ export default function Workflow3DChart() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://kyntusos.kyntus.fr:8082/api/stats/terrain')
+    fetch('/api/stats/terrain')
       .then(res => {
           if(!res.ok) throw new Error("API Error");
           return res.json();

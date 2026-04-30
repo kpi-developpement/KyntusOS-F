@@ -11,11 +11,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 🔥 FIX MOHIM: Bach Next.js y-injecti l-URL f l-code JavaScript (Browser)
+# 🔥 FIX: Injection dyal les variables l-Next.js f l-code JavaScript (Browser)
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# 🔥 THE MASTER FIX: Injection dyal BACKEND_URL waqt l'Build
+# 🔥 FIX: Injection dyal l'URL interne dyal Docker bach l-Proxy y-qraha f l-Build
 ARG BACKEND_URL
 ENV BACKEND_URL=$BACKEND_URL
 
