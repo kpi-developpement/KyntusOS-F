@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Kan-qraw l-adresse mn l-environnement, wla kan-diro localhost par défaut (Local Dev)
+
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:8082';
 
 const nextConfig: NextConfig = {
