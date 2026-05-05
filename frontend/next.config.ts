@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const target = process.env.NODE_ENV === 'production' 
+    ? 'http://backend:8082' 
+    : 'http://localhost:8082';
+
 const nextConfig: NextConfig = {
   transpilePackages: ['animejs'],
   reactCompiler: true,
@@ -9,12 +13,6 @@ const nextConfig: NextConfig = {
   },
   
   async rewrites() {
-    // 🔥 THE MASTER FIX: F' Docker dima 'production', f' l-PC dima 'development'
-    // Hakka kan-t-faddaw ga3 machakil dyal Docker Env Variables!
-    const target = process.env.NODE_ENV === 'production' 
-        ? 'http://backend:8082' 
-        : 'http://localhost:8082';
-
     return [
       {
         source: '/api/:path*',

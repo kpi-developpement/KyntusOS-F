@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, UploadCloud, Database, CheckCircle, Terminal, MoveDown, ShieldAlert, Layers, Trash2, Activity, GripVertical, Save, AlertTriangle } from 'lucide-react';
 
 const API_BASE = "";
+// 🔥 LE CERVEAU: Bypassing l-Proxy ghir f l-Upload bach n-herbou mn limite 10MB 🔥
+const IS_DEV = process.env.NODE_ENV === 'development';
+const UPLOAD_API_URL = IS_DEV ? 'http://localhost:8082' : 'http://kyntusos.kyntus.fr:8082';
 
 export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSecurityAlert, defaultCategory, defaultYear, defaultMonth, onFileDeleted }: any) {
   const [files, setFiles] = useState<File[]>([]);
@@ -98,8 +101,8 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
         const formData = new FormData(); 
         formData.append("file", file); 
         
-        // On hit le nouveau controller sécurisé
-        const res = await fetch(`${API_BASE}/api/secure-upload/import/1?year=${year}&month=${month}&category=${category}&fileRank=${importedFiles.length + i + 1}`, { 
+        // 🔥 L'URL DYNAMIQUE BLA PROXY BACH T-DOWEZ DEFC7A KBIRA 🔥
+        const res = await fetch(`${UPLOAD_API_URL}/api/secure-upload/import/1?year=${year}&month=${month}&category=${category}&fileRank=${importedFiles.length + i + 1}`, { 
             method: "POST", body: formData 
         });
 

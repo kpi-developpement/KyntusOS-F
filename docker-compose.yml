@@ -30,7 +30,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=kyntus_user
       - SPRING_DATASOURCE_PASSWORD=kyntus_password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-
+      - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=500MB
+      - SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=500MB
   # 3. FRONTEND (Next.js)
   frontend:
     build:
@@ -53,3 +54,4 @@ services:
 volumes:
   # L-volume l-jdid dyalna
   postgres_data_v2:
+  
