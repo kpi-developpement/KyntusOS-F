@@ -1,0 +1,83 @@
+/* users/RoyalMatrixBG.module.css */
+
+.bgContainer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 0;
+  pointer-events: none; /* Bach l-user y-qder y-cliqui 3la les boutons */
+  overflow: hidden;
+  /* L-Mizaj bin Deep Blue w Royal Blue */
+  background: radial-gradient(circle at 50% 50%, #001f4d 0%, #000a1a 100%);
+}
+
+.gridLayer {
+  position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background-image: 
+    linear-gradient(rgba(65, 105, 225, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(65, 105, 225, 0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(1000px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+  animation: gridMove 20s linear infinite;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%);
+}
+
+@keyframes gridMove {
+  0% { transform: perspective(1000px) rotateX(60deg) translateY(0) translateZ(-200px); }
+  100% { transform: perspective(1000px) rotateX(60deg) translateY(60px) translateZ(-200px); }
+}
+
+/* L-Orbes Fixes (Ambient Light) */
+.ambientOrb1 {
+  position: absolute;
+  top: -10%; left: 10%;
+  width: 45vw; height: 45vw;
+  background: radial-gradient(circle, rgba(0, 242, 234, 0.15) 0%, transparent 65%);
+  border-radius: 50%;
+  filter: blur(90px);
+  animation: floatOrb 15s ease-in-out infinite alternate;
+}
+
+.ambientOrb2 {
+  position: absolute;
+  bottom: -15%; right: -10%;
+  width: 50vw; height: 50vw;
+  background: radial-gradient(circle, rgba(65, 105, 225, 0.25) 0%, transparent 65%);
+  border-radius: 50%;
+  filter: blur(100px);
+  animation: floatOrb 20s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(60px, -40px) scale(1.1); }
+}
+
+/* L-GLOW L-INTERACTIF (Hada li kay-tbe3 l-souris) */
+.mouseGlow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  /* Glow Cyan w Royal Blue mkhaltin */
+  background: radial-gradient(circle, rgba(0, 242, 234, 0.12) 0%, rgba(65, 105, 225, 0.05) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+  z-index: 1;
+}
+
+/* Particules sghar kay-tfa3lo */
+.floatingDust {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+  background-size: 150px 150px;
+  opacity: 0.3;
+  animation: dustMove 60s linear infinite;
+}
+
+@keyframes dustMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-150px); }
+}

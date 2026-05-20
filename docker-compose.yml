@@ -1,5 +1,7 @@
+version: '3.8'
+
 services:
-  # 1. DATABASE (PostgreSQL)
+  # 1. DATABASE (PostgreSQL) - L-Guelb dyal l'App
   db:
     image: postgres:15-alpine
     container_name: kyntus-db
@@ -11,12 +13,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # Volume v2 bach nt-fadaou machakil permissions l-9dam
+      # 🛡️ THE SHIELD: Hada howa l-Volume li kay-sauvgardi d-data. Ma-3mro ghay-tmsse7!
       - postgres_data_v2:/var/lib/postgresql/data
 
-  # 2. BACKEND (Spring Boot)
+  # 2. BACKEND (Spring Boot) - L'Moteur
   backend:
-    build: ./Workflow
+    build: 
+      context: ./Workflow
+      dockerfile: Dockerfile
     container_name: kyntus-backend
     restart: always
     ports:
@@ -25,17 +29,18 @@ services:
     depends_on:
       - db
     environment:
-      # Config DB Dynamique bach tkhdem m3a l-container 'db'
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/kyntus_db
       - SPRING_DATASOURCE_USERNAME=kyntus_user
       - SPRING_DATASOURCE_PASSWORD=kyntus_password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=500MB
       - SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=500MB
-  # 3. FRONTEND (Next.js)
+
+  # 3. FRONTEND (Next.js) - L'Interface
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
       # 🔥 Injection dyal l'URL dyal Docker f' waqt l'Build
       args:
         NEXT_PUBLIC_API_URL: /api
@@ -52,6 +57,5 @@ services:
       - BACKEND_URL=http://backend:8082
 
 volumes:
-  # L-volume l-jdid dyalna
+  # L-Declaration dyal l-volume bach Docker y-3ref y-khbbih f l-Host
   postgres_data_v2:
-  

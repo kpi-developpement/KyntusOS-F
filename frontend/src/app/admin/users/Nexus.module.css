@@ -1,0 +1,507 @@
+/* users/Nexus.module.css */
+
+/* ================== GLOBAL & LAYOUT ================== */
+.nexusWrapper {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #010308;
+  color: #e0f7ff;
+  overflow: hidden;
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ================== BACKGROUND FX (HYPER MATRIX) ================== */
+.bgContainer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #030a16 0%, #010308 100%);
+}
+
+.quantumGrid {
+  position: absolute;
+  top: -100%; left: -100%; width: 300%; height: 300%;
+  background-image: 
+    linear-gradient(rgba(0, 242, 234, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 234, 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(800px) rotateX(75deg) translateY(-100px) translateZ(-400px);
+  animation: warpDrive 30s linear infinite;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%);
+}
+
+.quantumGridSecondary {
+  position: absolute;
+  top: -100%; left: -100%; width: 300%; height: 300%;
+  background-image: 
+    linear-gradient(rgba(189, 0, 242, 0.03) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(189, 0, 242, 0.03) 2px, transparent 2px);
+  background-size: 120px 120px;
+  transform: perspective(800px) rotateX(75deg) translateY(0px) translateZ(-600px);
+  animation: warpDriveSecondary 45s linear infinite;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 70%);
+}
+
+@keyframes warpDrive {
+  0% { transform: perspective(800px) rotateX(75deg) translateY(0) translateZ(-400px); }
+  100% { transform: perspective(800px) rotateX(75deg) translateY(60px) translateZ(-400px); }
+}
+
+@keyframes warpDriveSecondary {
+  0% { transform: perspective(800px) rotateX(75deg) translateY(0) translateZ(-600px); }
+  100% { transform: perspective(800px) rotateX(75deg) translateY(120px) translateZ(-600px); }
+}
+
+/* Orbs Lumineuses */
+.orb1 {
+  position: absolute; top: -15%; left: -10%; width: 50vw; height: 50vw;
+  border-radius: 50%; filter: blur(140px);
+  background: radial-gradient(circle, rgba(0,242,234,0.12) 0%, rgba(0,0,0,0) 70%);
+}
+.orb2 {
+  position: absolute; bottom: -20%; right: -15%; width: 45vw; height: 45vw;
+  border-radius: 50%; filter: blur(150px);
+  background: radial-gradient(circle, rgba(189,0,242,0.1) 0%, rgba(0,0,0,0) 70%);
+}
+.orb3 {
+  position: absolute; top: 30%; left: 50%; width: 30vw; height: 30vw;
+  border-radius: 50%; filter: blur(120px);
+  background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, rgba(0,0,0,0) 70%);
+}
+
+/* Data Particles */
+.particlesLayer {
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+}
+
+.particle {
+  position: absolute;
+  background: #00f2ea;
+  box-shadow: 0 0 12px #00f2ea, 0 0 20px #00f2ea;
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(110vh) scale(0); opacity: 0; }
+  10% { opacity: 0.8; scale: 1; }
+  80% { opacity: 0.5; }
+  100% { transform: translateY(-10vh) scale(0.2); opacity: 0; }
+}
+
+/* ================== GLASSMORPHISM CARD ================== */
+.glassCard {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1300px;
+  background: rgba(4, 10, 18, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 242, 234, 0.15);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0, 242, 234, 0.05);
+  border-radius: 16px;
+  padding: 3rem;
+  min-height: 750px;
+}
+
+.scannerLine {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 2px;
+  background: linear-gradient(90deg, transparent, #00f2ea, transparent);
+  box-shadow: 0 0 20px #00f2ea;
+  opacity: 0.3;
+  animation: scan 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { top: -10px; opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ================== TYPOGRAPHY & HEADER ================== */
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid rgba(0, 242, 234, 0.2);
+  padding-bottom: 1.5rem;
+  position: relative;
+  z-index: 10;
+}
+
+.glitchTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(90deg, #00f2ea, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(0, 242, 234, 0.2);
+}
+
+.glitchSubtitle {
+  color: rgba(0, 242, 234, 0.7);
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.cyberLabel {
+  display: block;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+/* ================== TABS ================== */
+.tabsContainer {
+  display: flex;
+  background: #030812;
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  gap: 0.5rem;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: transparent;
+  color: #6b7280;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.tabBtn:hover { color: #d1d5db; }
+.tabBtnActive {
+  background: rgba(0, 242, 234, 0.15);
+  color: #00f2ea;
+  box-shadow: inset 0 0 10px rgba(0, 242, 234, 0.1);
+}
+
+/* ================== UNIT CREATION (FORMS) ================== */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin-top: 2rem;
+}
+
+.inputWrapper { position: relative; }
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0891b2;
+  transition: color 0.3s ease;
+}
+
+.cyberInput {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1rem 1rem 3rem;
+  color: #cffafe;
+  font-family: inherit;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.cyberInput:focus {
+  border-color: #00f2ea;
+  background: rgba(0, 242, 234, 0.05);
+  box-shadow: inset 0 0 10px rgba(0, 242, 234, 0.1), 0 0 15px rgba(0, 242, 234, 0.2);
+}
+.cyberInput:focus + .inputIcon { color: #00f2ea; }
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.roleCard {
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.roleCard:hover { border-color: rgba(255, 255, 255, 0.1); }
+.roleCardActivePilot {
+  background: rgba(0, 242, 234, 0.1);
+  border-color: #00f2ea;
+  color: #00f2ea;
+  box-shadow: 0 0 30px rgba(0, 242, 234, 0.15);
+}
+.roleCardActiveAdmin {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: #a855f7;
+  color: #a855f7;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+}
+
+.deployBtn {
+  width: 100%;
+  padding: 1.25rem;
+  background: linear-gradient(90deg, #0891b2, #2563eb);
+  border: 1px solid rgba(0, 242, 234, 0.5);
+  border-radius: 12px;
+  color: #fff;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.deployBtn:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
+  transform: scale(1.01);
+}
+.deployBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.statusBox {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+}
+.statusSuccess { background: rgba(34, 197, 94, 0.1); border: 1px solid #22c55e; color: #4ade80; }
+.statusError { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #f87171; }
+
+/* ================== NETWORK CONTROL ================== */
+.controlGrid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  min-height: 600px;
+}
+
+/* Sidebar */
+.rosterPanel {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 242, 234, 0.3);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rosterHeader {
+  padding: 1.25rem;
+  background: linear-gradient(90deg, rgba(0, 242, 234, 0.2), transparent);
+  border-bottom: 1px solid rgba(0, 242, 234, 0.5);
+  color: #00f2ea;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pilotList {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pilotItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.pilotItem:hover { border-color: rgba(255, 255, 255, 0.1); }
+.pilotItemActive {
+  background: rgba(0, 242, 234, 0.15);
+  border-left: 4px solid #00f2ea;
+}
+
+.pilotInfo { display: flex; align-items: center; gap: 1rem; }
+.pilotIcon {
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #6b7280;
+}
+.pilotItemActive .pilotIcon { background: rgba(0, 242, 234, 0.2); color: #67e8f9; }
+.pilotName { color: #9ca3af; font-weight: bold; letter-spacing: 0.1em; }
+.pilotItemActive .pilotName { color: #fff; }
+
+.statusDot { width: 8px; height: 8px; border-radius: 50%; }
+.dotOn { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.dotOff { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+/* Main Deck */
+.deckPanel {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.deckEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 2px dashed rgba(0, 242, 234, 0.3);
+  border-radius: 16px;
+  color: rgba(0, 242, 234, 0.5);
+  letter-spacing: 0.4em;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.deckHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(0,0,0,0.6), transparent);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.targetName { font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: 0.1em; margin: 0; }
+.targetRole { color: #00f2ea; font-size: 0.75rem; letter-spacing: 0.2em; margin: 0; }
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.btnKill { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; }
+.btnKill:hover { background: #ef4444; color: #fff; }
+.btnRevive { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid #22c55e; }
+.btnRevive:hover { background: #22c55e; color: #fff; }
+.btnForce { background: rgba(0, 242, 234, 0.1); color: #00f2ea; border: 1px solid #00f2ea; }
+.btnForce:hover { background: #00f2ea; color: #000; }
+
+.overrideFlex { display: flex; gap: 1rem; }
+
+.matrixGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.moduleCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+.moduleCardOn { background: rgba(0, 242, 234, 0.1); border-color: rgba(0, 242, 234, 0.5); }
+
+.moduleInfo { display: flex; align-items: center; gap: 1rem; }
+.moduleIcon { color: #4b5563; }
+.moduleCardOn .moduleIcon { color: #00f2ea; }
+.moduleLabel { color: #9ca3af; letter-spacing: 0.1em; }
+.moduleCardOn .moduleLabel { color: #fff; }
+
+/* Sci-Fi Toggle Pure CSS */
+.cyberToggle {
+  position: relative;
+  width: 56px;
+  height: 28px;
+  border-radius: 30px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+.cyberToggleOn { background: rgba(0, 242, 234, 0.2); border-color: #00f2ea; }
+.toggleKnob {
+  width: 20px;
+  height: 20px;
+  background: #6b7280;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cyberToggleOn .toggleKnob {
+  background: #00f2ea;
+  box-shadow: 0 0 10px #00f2ea;
+  transform: translateX(26px);
+}
+
+/* Custom Scroll */
+.customScroll::-webkit-scrollbar { width: 6px; }
+.customScroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+.customScroll::-webkit-scrollbar-thumb { background: rgba(0, 242, 234, 0.3); border-radius: 10px; }
+.customScroll::-webkit-scrollbar-thumb:hover { background: rgba(0, 242, 234, 0.6); }
