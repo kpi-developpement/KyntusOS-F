@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,7 +37,6 @@ public class PilotRecordController {
         this.pilotRecordRepository = pilotRecordRepository;
     }
 
-    // 🚀 L-ENDPOINT DYAL L-IMPORT (MODIFIÉ BASH Y-KHEDDEM L-MOUTEUR V21) 🚀
     @PostMapping("/import/{pilotId}")
     public ResponseEntity<?> importPilotData(
             @RequestParam("file") MultipartFile file,
@@ -118,8 +117,8 @@ public class PilotRecordController {
             @RequestParam("month") int month) {
         try {
             byte[] excelData = pilotImportService.exportToExcel(pilotId, year, month, category);
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             headers.setContentDispositionFormData("attachment", "Kyntus_Export.xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
@@ -196,8 +195,8 @@ public class PilotRecordController {
             @RequestParam(value = "etat", required = false) String etat) {
         try {
             byte[] excelData = pilotTrackService.exportGlobalTrackHistory(epsList, category, year, month, etat);
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             headers.setContentDispositionFormData("attachment", "Global_Timeline_" + category + ".xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) {
@@ -205,21 +204,24 @@ public class PilotRecordController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    // 🔥 L'OMNI SEARCH (ZERO RAM - STREAMING HTTP DIRECT) 🔥
     @PostMapping("/export-global-search")
-    public ResponseEntity<byte[]> exportGlobalSearch(@RequestBody List<String> epsList) {
+    public void exportGlobalSearch(@RequestBody List<String> epsList, HttpServletResponse response) {
+        System.out.println("🌐 [CONTROLLER] OMNI SEARCH TRIGGERED ! EPS Count: " + (epsList != null ? epsList.size() : "NULL"));
         try {
-            byte[] data = pilotImportService.exportGlobalOmniSearchToExcel(epsList);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Global_Omni_Search.xlsx")
-                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                    .body(data);
-        } catch (Exception e) {
-            // 🔥 HNA FIN KAN DOYI! Biyen l'erreur f logs dyal serveur
-            System.err.println("❌ [CRITICAL] ERROR IN OMNI SEARCH:");
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=\"Global_Omni_Search.xlsx\"");
+
+            pilotImportService.exportGlobalOmniSearchToExcel(epsList, response.getOutputStream());
+
+        } catch (Throwable t) {
+            System.err.println("❌ [CRITICAL BUG] OMNI SEARCH COMPLETELY CRASHED:");
+            t.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping("/imported-files")
     public ResponseEntity<List<String>> getImportedFiles(
             @RequestParam("category") String category,
@@ -260,8 +262,8 @@ public class PilotRecordController {
             @RequestParam("month") int month) {
         try {
             byte[] excelData = pilotImportService.exportAnomaliesToExcel(category, year, month);
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             headers.setContentDispositionFormData("attachment", "Anomalies_Statut.xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
@@ -274,8 +276,8 @@ public class PilotRecordController {
             @RequestParam("month") int month) {
         try {
             byte[] excelData = pilotImportService.exportDuplicateCommentsToExcel(category, year, month);
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
             headers.setContentDispositionFormData("attachment", "Anomalies_Commentaires.xlsx");
             return new ResponseEntity<>(excelData, headers, org.springframework.http.HttpStatus.OK);
         } catch (Exception e) { return ResponseEntity.internalServerError().build(); }
@@ -292,7 +294,6 @@ public class PilotRecordController {
         }
     }
 
-    // 🚀 THE PURGE VACCINE 🚀
     @DeleteMapping("/fix-69-files")
     public ResponseEntity<?> fixRetroactiveDuplicates() {
         try {

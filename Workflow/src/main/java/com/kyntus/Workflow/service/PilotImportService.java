@@ -25,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -727,30 +728,31 @@ public class PilotImportService {
         return jdbcTemplate.update(sql);
     }
 
-    // 🔥 LA NOUVELLE METHODE OMNI SEARCH (GLOBAL EXPORT BY EPS LIST ACROSS ALL DB) 🔥
+    // 🔥 LA METHODE OMNI SEARCH B L'ARCHITECTURE ZERO-RAM (STREAMING HTTP DIRECT) 🔥
     @Transactional(readOnly = true)
-    public byte[] exportGlobalOmniSearchToExcel(List<String> epsList) throws Exception {
+    public void exportGlobalOmniSearchToExcel(List<String> epsList, OutputStream outputStream) throws Exception {
+        System.out.println("🚀 [OMNI SEARCH] Démarrage du processus...");
         List<String> cleanEpsList = epsList.stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .distinct()
                 .collect(Collectors.toList());
 
+        System.out.println("🚀 [OMNI SEARCH] Nombre d'EPS nettoyés : " + cleanEpsList.size());
         if (cleanEpsList.isEmpty()) {
             throw new RuntimeException("La liste des EPS est vide.");
         }
 
-        // On gère les batchs pour ne pas casser PostgreSQL avec trop de paramètres IN
         int batchSize = 1000;
         Set<String> allDynamicHeaders = new LinkedHashSet<>();
 
-        // 1ère passe : Récupérer toutes les clés dynamiques possibles pour ces EPS
+        System.out.println("🚀 [OMNI SEARCH] --- PHASE 1 : Récupération des colonnes dynamiques ---");
         try (Connection conn = dataSource.getConnection()) {
             for (int i = 0; i < cleanEpsList.size(); i += batchSize) {
                 List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
                 String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
 
-                // 🔥 HNA FIN KAYNA L'MODIFICATION LI MADERTIHAAACH 🔥
+                // 🔥 AND dynamic_data IS NOT NULL RAHA HNA 🔥
                 String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ") AND dynamic_data IS NOT NULL";
 
                 try (PreparedStatement psKeys = conn.prepareStatement(keysSql)) {
@@ -762,21 +764,27 @@ public class PilotImportService {
                         }
                     }
                 }
+                System.out.println("⏳ [OMNI SEARCH] Phase 1 - Batch " + (i / batchSize + 1) + " OK...");
             }
         }
+        System.out.println("🚀 [OMNI SEARCH] --- PHASE 1 TERMINÉE. Colonnes trouvées : " + allDynamicHeaders.size() + " ---");
 
         allDynamicHeaders.removeIf(h -> h.equalsIgnoreCase("idIntervention") || h.equalsIgnoreCase("EPS")
                 || h.equalsIgnoreCase("etat") || h.equalsIgnoreCase("commentaire") || h.equalsIgnoreCase("statut"));
 
         List<String> finalDynamicHeaders = new ArrayList<>(allDynamicHeaders);
         Map<String, Integer> headerIndexMap = new HashMap<>();
-        // Les colonnes fixes prennent les index 0 à 7, donc les dynamiques commencent à 8
         for (int i = 0; i < finalDynamicHeaders.size(); i++) {
             headerIndexMap.put(finalDynamicHeaders.get(i), i + 8);
         }
 
+        System.out.println("🚀 [OMNI SEARCH] --- PHASE 2 : Génération du fichier Excel ---");
+
+        // 🔥 L'OPTIMISATION L'KBIRA: nakhaliw ghir 100 rows f RAM, w compressiw temp files f SSD 🔥
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
              Connection conn = dataSource.getConnection()) {
+
+            workbook.setCompressTempFiles(true); // ✅ ZERO-RAM MAGIC
 
             conn.setAutoCommit(false);
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Omni Search Export");
@@ -798,7 +806,6 @@ public class PilotImportService {
 
             int rowNum = 1;
 
-            // 2ème passe : Récupérer et écrire les données
             for (int i = 0; i < cleanEpsList.size(); i += batchSize) {
                 List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
                 String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
@@ -851,12 +858,15 @@ public class PilotImportService {
                         }
                     }
                 }
+                System.out.println("⏳ [OMNI SEARCH] Phase 2 - Batch " + (i / batchSize + 1) + " écrit dans Excel...");
             }
             conn.commit();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            workbook.write(out);
+
+            // 🔥 KAN KETBOU FL FLUX RESEAU DIRECTEMENT (OUTPUT STREAM) 🔥
+            workbook.write(outputStream);
             workbook.dispose();
-            return out.toByteArray();
+            outputStream.flush();
+            System.out.println("✅ [OMNI SEARCH] --- SUCCÈS TOTAL ! Fichier prêt à l'envoi. ---");
         }
     }
 }
