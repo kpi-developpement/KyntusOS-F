@@ -749,7 +749,9 @@ public class PilotImportService {
             for (int i = 0; i < cleanEpsList.size(); i += batchSize) {
                 List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
                 String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
-                String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ")";
+
+                // 🔥 HNA FIN KAYNA L'MODIFICATION LI MADERTIHAAACH 🔥
+                String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ") AND dynamic_data IS NOT NULL";
 
                 try (PreparedStatement psKeys = conn.prepareStatement(keysSql)) {
                     int pIdx = 1;
