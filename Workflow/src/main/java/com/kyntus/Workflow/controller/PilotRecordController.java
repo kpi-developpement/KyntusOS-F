@@ -214,6 +214,9 @@ public class PilotRecordController {
                     .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                     .body(data);
         } catch (Exception e) {
+            // 🔥 HNA FIN KAN DOYI! Biyen l'erreur f logs dyal serveur
+            System.err.println("❌ [CRITICAL] ERROR IN OMNI SEARCH:");
+            e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
     }
