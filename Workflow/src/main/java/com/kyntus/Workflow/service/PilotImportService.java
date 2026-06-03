@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import jakarta.annotation.PostConstruct; // 🔥 IMPORT JDID BASH YKHDEM L'INDEX AUTO
+import jakarta.annotation.PostConstruct;
 
 import javax.sql.DataSource;
 import java.io.BufferedReader;
@@ -56,7 +56,6 @@ public class PilotImportService {
         this.mapWriter = objectMapper.writerFor(Map.class);
     }
 
-    // 🚀 L'INTELLIGENCE D'LES ARCHITECTES: CREATION AUTO DES INDEX POUR LA RAPIDITE 🚀
     @PostConstruct
     public void initIndexes() {
         try {
@@ -716,10 +715,9 @@ public class PilotImportService {
             return out.toByteArray();
         }
     }
-    // 🚀 LE NETTOYEUR QUANTIQUE : Supprime les versions dupliquées et garde la plus récente 🚀
+
     @Transactional
     public int removeDuplicates() {
-        // Cette requête magique groupe par EPS et Version, et supprime tout sauf le dernier inséré (MAX id)
         String sql = "DELETE FROM pilot_records " +
                 "WHERE id NOT IN (" +
                 "  SELECT MAX(id) " +
@@ -727,5 +725,136 @@ public class PilotImportService {
                 "  GROUP BY eps_reference, version, category, import_year, import_month" +
                 ")";
         return jdbcTemplate.update(sql);
+    }
+
+    // 🔥 LA NOUVELLE METHODE OMNI SEARCH (GLOBAL EXPORT BY EPS LIST ACROSS ALL DB) 🔥
+    @Transactional(readOnly = true)
+    public byte[] exportGlobalOmniSearchToExcel(List<String> epsList) throws Exception {
+        List<String> cleanEpsList = epsList.stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (cleanEpsList.isEmpty()) {
+            throw new RuntimeException("La liste des EPS est vide.");
+        }
+
+        // On gère les batchs pour ne pas casser PostgreSQL avec trop de paramètres IN
+        int batchSize = 1000;
+        Set<String> allDynamicHeaders = new LinkedHashSet<>();
+
+        // 1ère passe : Récupérer toutes les clés dynamiques possibles pour ces EPS
+        try (Connection conn = dataSource.getConnection()) {
+            for (int i = 0; i < cleanEpsList.size(); i += batchSize) {
+                List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
+                String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
+                String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ")";
+
+                try (PreparedStatement psKeys = conn.prepareStatement(keysSql)) {
+                    int pIdx = 1;
+                    for (String eps : subList) psKeys.setString(pIdx++, eps);
+                    try (ResultSet rs = psKeys.executeQuery()) {
+                        while (rs.next()) {
+                            allDynamicHeaders.add(rs.getString(1));
+                        }
+                    }
+                }
+            }
+        }
+
+        allDynamicHeaders.removeIf(h -> h.equalsIgnoreCase("idIntervention") || h.equalsIgnoreCase("EPS")
+                || h.equalsIgnoreCase("etat") || h.equalsIgnoreCase("commentaire") || h.equalsIgnoreCase("statut"));
+
+        List<String> finalDynamicHeaders = new ArrayList<>(allDynamicHeaders);
+        Map<String, Integer> headerIndexMap = new HashMap<>();
+        // Les colonnes fixes prennent les index 0 à 7, donc les dynamiques commencent à 8
+        for (int i = 0; i < finalDynamicHeaders.size(); i++) {
+            headerIndexMap.put(finalDynamicHeaders.get(i), i + 8);
+        }
+
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
+             Connection conn = dataSource.getConnection()) {
+
+            conn.setAutoCommit(false);
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Omni Search Export");
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+
+            int hIdx = 0;
+            headerRow.createCell(hIdx++).setCellValue("EPS");
+            headerRow.createCell(hIdx++).setCellValue("CATEGORY");
+            headerRow.createCell(hIdx++).setCellValue("YEAR");
+            headerRow.createCell(hIdx++).setCellValue("MONTH");
+            headerRow.createCell(hIdx++).setCellValue("VERSION");
+            headerRow.createCell(hIdx++).setCellValue("ETAT");
+            headerRow.createCell(hIdx++).setCellValue("COMMENTAIRE");
+            headerRow.createCell(hIdx++).setCellValue("IMPORT_DATE");
+
+            for (String h : finalDynamicHeaders) {
+                headerRow.createCell(hIdx++).setCellValue(h);
+            }
+
+            int rowNum = 1;
+
+            // 2ème passe : Récupérer et écrire les données
+            for (int i = 0; i < cleanEpsList.size(); i += batchSize) {
+                List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
+                String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
+
+                String dataSql = "SELECT eps_reference, category, import_year, import_month, version, dynamic_data, imported_at " +
+                        "FROM pilot_records WHERE eps_reference IN (" + inSql + ") " +
+                        "ORDER BY eps_reference, import_year DESC, import_month DESC, id DESC";
+
+                try (PreparedStatement psData = conn.prepareStatement(dataSql)) {
+                    psData.setFetchSize(5000);
+                    int pIdx = 1;
+                    for (String eps : subList) psData.setString(pIdx++, eps);
+
+                    try (ResultSet rs = psData.executeQuery()) {
+                        while (rs.next()) {
+                            org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowNum++);
+                            row.createCell(0).setCellValue(rs.getString("eps_reference"));
+                            row.createCell(1).setCellValue(rs.getString("category"));
+                            row.createCell(2).setCellValue(rs.getInt("import_year"));
+                            row.createCell(3).setCellValue(rs.getInt("import_month"));
+                            row.createCell(4).setCellValue(rs.getString("version"));
+
+                            java.sql.Timestamp importedAt = rs.getTimestamp("imported_at");
+                            String dataJson = rs.getString("dynamic_data");
+
+                            try (JsonParser parser = jsonFactory.createParser(dataJson)) {
+                                while (!parser.isClosed()) {
+                                    JsonToken token = parser.nextToken();
+                                    if (token == null) break;
+                                    if (token == JsonToken.FIELD_NAME) {
+                                        String key = parser.getCurrentName();
+                                        parser.nextToken();
+                                        String value = parser.getText();
+
+                                        if (key.equalsIgnoreCase("etat") || key.equalsIgnoreCase("statut")) {
+                                            row.createCell(5).setCellValue(value);
+                                        } else if (key.equalsIgnoreCase("commentaire") || key.equalsIgnoreCase("comment")) {
+                                            row.createCell(6).setCellValue(value);
+                                        } else {
+                                            Integer colIdx = headerIndexMap.get(key);
+                                            if (colIdx != null) {
+                                                row.createCell(colIdx).setCellValue(value != null ? value : "");
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+
+                            row.createCell(7).setCellValue(importedAt != null ? importedAt.toString() : "");
+                        }
+                    }
+                }
+            }
+            conn.commit();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            workbook.dispose();
+            return out.toByteArray();
+        }
     }
 }

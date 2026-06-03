@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import SmartTable from "./components/SmartTable";
 import FileUploadModal from "./ui/FileUploadModal"; 
-import { Terminal, UploadCloud, CheckCircle, Search, X, DownloadCloud, History, Calendar, Folder, ShieldAlert, Crosshair, Activity, LayoutDashboard, Database, Cpu, AlertTriangle, ShieldCheck, MessageSquare, Layers, Users } from "lucide-react";
+import { Terminal, UploadCloud, CheckCircle, Search, X, DownloadCloud, History, Calendar, Folder, ShieldAlert, Crosshair, Activity, LayoutDashboard, Database, Cpu, AlertTriangle, ShieldCheck, MessageSquare, Layers, Users, Globe } from "lucide-react";
 
 const API_BASE = ""; 
 
@@ -98,7 +98,6 @@ export default function PilotRecordsPage() {
   const [epsHistoryData, setEpsHistoryData] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // GLOBAL TRACK MODAL STATE (General)
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [trackEpsList, setTrackEpsList] = useState("");
   const [trackYear, setTrackYear] = useState<string | number>("ALL");
@@ -107,12 +106,16 @@ export default function PilotRecordsPage() {
   const [availableEtats, setAvailableEtats] = useState<string[]>([]); 
   const [isTrackingGlobal, setIsTrackingGlobal] = useState(false);
 
-  // 🔥 TEAM EXPORT MODAL STATE (Équipe) 🔥
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [teamEpsList, setTeamEpsList] = useState("");
   const [teamYear, setTeamYear] = useState<string | number>("ALL");
   const [teamMonth, setTeamMonth] = useState<string | number>("ALL");
   const [isExportingTeam, setIsExportingTeam] = useState(false);
+
+  // 🔥 NOUVEAU: OMNI SEARCH MODAL STATE 🔥
+  const [isOmniSearchModalOpen, setIsOmniSearchModalOpen] = useState(false);
+  const [omniSearchEpsList, setOmniSearchEpsList] = useState("");
+  const [isExportingOmniSearch, setIsExportingOmniSearch] = useState(false);
 
   const [validationAlerts, setValidationAlerts] = useState<string[]>([]);
   const [commentAlerts, setCommentAlerts] = useState<string[]>([]);
@@ -286,7 +289,6 @@ export default function PilotRecordsPage() {
     } catch (error) {} finally { setIsTrackingGlobal(false); }
   };
 
-  // 🔥 L'EXECUTION DU TEAM EXPORT INTELLIGENT 🔥
   const executeTeamExport = async () => {
     const epsArray = teamEpsList.split(/[\n,]+/).map(e => e.trim()).filter(e => e !== "");
     if (epsArray.length === 0) { alert("⚠️ ERROR: NO EPS IDENTIFIED IN THE PAYLOAD."); return; }
@@ -307,6 +309,27 @@ export default function PilotRecordsPage() {
         setSuccessMsg(`🟢 TEAM EXPORT EXTRACTED SUCCESSFULLY!`); setIsTeamModalOpen(false); setTeamEpsList(""); setTimeout(() => setSuccessMsg(""), 5000);
       } else { alert("❌ CRITICAL ERROR IN TEAM EXTRACTION."); }
     } catch (error) {} finally { setIsExportingTeam(false); }
+  };
+
+  // 🔥 LA FONCTION D'EXECUTION DE L'OMNI SEARCH 🔥
+  const executeOmniSearchExport = async () => {
+    const epsArray = omniSearchEpsList.split(/[\n,]+/).map(e => e.trim()).filter(e => e !== "");
+    if (epsArray.length === 0) { alert("⚠️ ERROR: NO EPS IDENTIFIED IN THE PAYLOAD."); return; }
+    
+    setIsExportingOmniSearch(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/pilot-records/export-global-search`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify(epsArray) 
+      });
+      
+      if (res.ok) {
+        const blob = await res.blob(); const url = window.URL.createObjectURL(blob); const a = document.createElement("a");
+        a.href = url; a.download = `Global_Omni_Search_Extract.xlsx`; document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url);
+        setSuccessMsg(`🌐 OMNI SEARCH EXTRACTED SUCCESSFULLY!`); setIsOmniSearchModalOpen(false); setOmniSearchEpsList(""); setTimeout(() => setSuccessMsg(""), 5000);
+      } else { alert("❌ CRITICAL ERROR IN OMNI EXTRACTION."); }
+    } catch (error) {} finally { setIsExportingOmniSearch(false); }
   };
 
   const clearFilters = () => { setServerVersion(""); setEpsInputValue(""); setPage(0); };
@@ -369,6 +392,9 @@ export default function PilotRecordsPage() {
         .btn-matrix { border-color: rgba(57, 255, 20, 0.5); color: #39ff14; }
         .btn-matrix:hover { background-color: rgba(57, 255, 20, 0.15); border-color: #39ff14; color: #fff; box-shadow: 0 0 15px rgba(57, 255, 20, 0.4); text-shadow: 0 0 5px #39ff14; }
 
+        .btn-omni { border-color: rgba(56, 189, 248, 0.5); color: #38bdf8; }
+        .btn-omni:hover { background-color: rgba(56, 189, 248, 0.15); border-color: #0ea5e9; color: #fff; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); text-shadow: 0 0 5px #38bdf8; }
+
         .cyber-input { background-color: rgba(6, 11, 25, 0.8); border: 1px solid rgba(148, 163, 184, 0.3); color: #fff; padding: 0.6rem 0.8rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; outline: none; transition: all 0.2s ease; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
         .cyber-input:focus { border-color: #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.4), inset 0 0 8px rgba(0,240,255,0.2); }
         
@@ -378,6 +404,9 @@ export default function PilotRecordsPage() {
         .cyber-textarea-matrix { background-color: rgba(6, 11, 25, 0.9); border: 1px solid rgba(57, 255, 20, 0.4); color: #00f0ff; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; outline: none; resize: none; width: 100%; transition: all 0.3s ease; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
         .cyber-textarea-matrix:focus { border-color: #39ff14; box-shadow: 0 0 20px rgba(57,255,20,0.3), inset 0 0 10px rgba(57,255,20,0.1); }
 
+        .cyber-textarea-omni { background-color: rgba(6, 11, 25, 0.9); border: 1px solid rgba(56, 189, 248, 0.4); color: #e0f2fe; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.9rem; outline: none; resize: none; width: 100%; transition: all 0.3s ease; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .cyber-textarea-omni:focus { border-color: #38bdf8; box-shadow: 0 0 20px rgba(56,189,248,0.3), inset 0 0 10px rgba(56,189,248,0.1); }
+
         .cyber-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .cyber-scroll::-webkit-scrollbar-track { background-color: rgba(6, 11, 25, 0.9); border-radius: 4px; }
         .cyber-scroll::-webkit-scrollbar-thumb { background-color: rgba(0, 240, 255, 0.4); border-radius: 4px; }
@@ -386,7 +415,6 @@ export default function PilotRecordsPage() {
 
       <div className="tilt-panel" style={{ position: "relative", zIndex: 50, marginBottom: "1.5rem", maxWidth: "1400px", margin: "0 auto 1.5rem" }}>
         
-        {/* 🚨 LE PANNEAU DES ERREURS DE SECURITE (STOCKÉES SUR LA PAGE PRINCIPALE) 🚨 */}
         {securityLogs.length > 0 && showSecurityLogs && (
           <div className="target-bracket hardware-accelerated" style={{ backgroundColor: "rgba(6, 11, 25, 0.95)", border: "2px solid #ff003c", borderRadius: "8px", padding: "1.5rem", marginBottom: "1.5rem", boxShadow: "0 10px 30px rgba(255, 0, 60, 0.3), inset 0 0 20px rgba(255,0,60,0.1)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
@@ -429,8 +457,9 @@ export default function PilotRecordsPage() {
             <button className="mecha-btn btn-success" onClick={handleExport} disabled={isExporting} onMouseEnter={() => changeBgTheme("rgba(0, 255, 65, 0.1)")} onMouseLeave={() => changeBgTheme("transparent")}><DownloadCloud size={16} /> {isExporting ? "ENCRYPTING..." : `EXTRACT`}</button>
             <button className="mecha-btn btn-info" onClick={() => setIsModalOpen(true)} onMouseEnter={() => changeBgTheme("rgba(0, 240, 255, 0.1)")} onMouseLeave={() => changeBgTheme("transparent")}><UploadCloud size={16} /> INJECT BATCH</button>
             <button className="mecha-btn btn-warning" onClick={() => setIsTrackModalOpen(true)} onMouseEnter={() => changeBgTheme("rgba(255, 215, 0, 0.1)")} onMouseLeave={() => changeBgTheme("transparent")}><Crosshair size={16} /> GLOBAL TRACK</button>
-            {/* 🔥 LE NOUVEAU BOUTON TEAM EXPORT 🔥 */}
             <button className="mecha-btn btn-matrix" onClick={() => setIsTeamModalOpen(true)} onMouseEnter={() => changeBgTheme("rgba(57, 255, 20, 0.1)")} onMouseLeave={() => changeBgTheme("transparent")}><Users size={16} /> TEAM EXPORT</button>
+            {/* 🔥 LE NOUVEAU BOUTON OMNI SEARCH 🔥 */}
+            <button className="mecha-btn btn-omni" onClick={() => setIsOmniSearchModalOpen(true)} onMouseEnter={() => changeBgTheme("rgba(56, 189, 248, 0.1)")} onMouseLeave={() => changeBgTheme("transparent")}><Globe size={16} /> OMNI SEARCH</button>
           </div>
         </div>
 
@@ -648,7 +677,7 @@ export default function PilotRecordsPage() {
         </div>
       )}
 
-      {/* 🚀 MODAL 3: TEAM EXPORT PROTOCOL (LE NOUVEAU) 🚀 */}
+      {/* MODAL 3: TEAM EXPORT PROTOCOL */}
       {isTeamModalOpen && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(15, 23, 42, 0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(15px)" }}>
           <div className="hardware-accelerated target-bracket" style={{ backgroundColor: "rgba(6, 11, 25, 0.95)", border: "1px solid #39ff14", borderRadius: "16px", width: "750px", maxWidth: "95%", padding: "2.5rem", boxShadow: "0 0 50px rgba(57, 255, 20, 0.2), inset 0 0 20px rgba(57, 255, 20, 0.1)", position: "relative", overflow: "hidden" }}>
@@ -673,6 +702,36 @@ export default function PilotRecordsPage() {
 
             <button onClick={executeTeamExport} disabled={isExportingTeam || teamEpsList.trim() === ""} className={`mecha-element`} style={{ width: "100%", backgroundColor: (isExportingTeam || teamEpsList.trim() === "") ? "rgba(15, 23, 42, 0.6)" : "rgba(57, 255, 20, 0.2)", color: (isExportingTeam || teamEpsList.trim() === "") ? "#64748b" : "#39ff14", border: (isExportingTeam || teamEpsList.trim() === "") ? "1px solid #334155" : "1px solid #39ff14", padding: "1.2rem", borderRadius: "8px", cursor: (isExportingTeam || teamEpsList.trim() === "") ? "not-allowed" : "pointer", fontFamily: "monospace", fontWeight: "900", letterSpacing: "3px", fontSize: "1.2rem", transition: "all 0.2s ease", boxShadow: (isExportingTeam || teamEpsList.trim() === "") ? "none" : "0 0 30px rgba(57, 255, 20, 0.4)", textTransform: "uppercase" }}>
               {isExportingTeam ? "EXTRACTING TEAM TIMELINES..." : "⚡ GENERATE TEAM EXPORT ⚡"}
+            </button>
+            
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 NOUVEAU: MODAL 4: OMNI SEARCH PROTOCOL 🔥 */}
+      {isOmniSearchModalOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(15, 23, 42, 0.8)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(20px)" }}>
+          <div className="hardware-accelerated target-bracket" style={{ backgroundColor: "rgba(6, 11, 25, 0.95)", border: "1px solid #38bdf8", borderRadius: "16px", width: "750px", maxWidth: "95%", padding: "2.5rem", boxShadow: "0 0 60px rgba(56, 189, 248, 0.25), inset 0 0 30px rgba(56, 189, 248, 0.15)", position: "relative", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", borderBottom: "1px solid rgba(56, 189, 248, 0.3)", paddingBottom: "15px" }}>
+              <h2 style={{ color: "#fff", margin: 0, fontSize: "1.5rem", display: "flex", alignItems: "center", gap: "12px", fontWeight: "900", letterSpacing: "3px", fontFamily: "monospace", textShadow: "0 0 10px #38bdf8" }}>
+                <Globe color="#38bdf8" size={32} style={{ filter: "drop-shadow(0 0 8px #38bdf8)", animation: "pulse-neon 2s infinite" }} /> OMNI SEARCH PROTOCOL
+              </h2>
+              <button onClick={() => setIsOmniSearchModalOpen(false)} disabled={isExportingOmniSearch} className="mecha-element" style={{ background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.5)", color: "#ff4d4d", padding: "6px", borderRadius: "8px", cursor: isExportingOmniSearch ? "not-allowed" : "pointer" }}><X size={26} /></button>
+            </div>
+
+            <div style={{ marginBottom: "1.5rem", background: "rgba(10, 15, 30, 0.6)", padding: "1rem", borderRadius: "8px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+              <p style={{ color: "#bae6fd", fontFamily: "monospace", margin: 0, fontSize: "0.9rem", lineHeight: "1.5" }}>
+                <strong style={{ color: "#38bdf8" }}>WARNING:</strong> This protocol ignores Category, Year, and Month filters. It searches the <span style={{ textDecoration: "underline", color: "#fff" }}>entire database</span> for the exact EPS references provided and extracts every single version available.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: "1.5rem" }}>
+              <p style={{ color: "#38bdf8", fontFamily: "monospace", marginBottom: "10px", fontSize: "0.95rem", fontWeight: "bold", letterSpacing: "1px" }}>[ INPUT GLOBAL PAYLOAD ]</p>
+              <textarea className="cyber-textarea-omni cyber-scroll" rows={8} placeholder="EPS-100200...\nEPS-100201...\nEPS-100202..." value={omniSearchEpsList} onChange={(e) => setOmniSearchEpsList(e.target.value)} disabled={isExportingOmniSearch}></textarea>
+            </div>
+
+            <button onClick={executeOmniSearchExport} disabled={isExportingOmniSearch || omniSearchEpsList.trim() === ""} className={`mecha-element`} style={{ width: "100%", backgroundColor: (isExportingOmniSearch || omniSearchEpsList.trim() === "") ? "rgba(15, 23, 42, 0.6)" : "rgba(56, 189, 248, 0.2)", color: (isExportingOmniSearch || omniSearchEpsList.trim() === "") ? "#64748b" : "#38bdf8", border: (isExportingOmniSearch || omniSearchEpsList.trim() === "") ? "1px solid #334155" : "1px solid #38bdf8", padding: "1.2rem", borderRadius: "8px", cursor: (isExportingOmniSearch || omniSearchEpsList.trim() === "") ? "not-allowed" : "pointer", fontFamily: "monospace", fontWeight: "900", letterSpacing: "3px", fontSize: "1.2rem", transition: "all 0.2s ease", boxShadow: (isExportingOmniSearch || omniSearchEpsList.trim() === "") ? "none" : "0 0 30px rgba(56, 189, 248, 0.4)", textTransform: "uppercase" }}>
+              {isExportingOmniSearch ? "SCANNING GLOBAL MATRIX..." : "⚡ EXECUTE OMNI SEARCH ⚡"}
             </button>
             
           </div>

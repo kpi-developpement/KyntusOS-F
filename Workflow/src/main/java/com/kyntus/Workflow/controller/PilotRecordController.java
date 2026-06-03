@@ -202,7 +202,18 @@ public class PilotRecordController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
+    @PostMapping("/export-global-search")
+    public ResponseEntity<byte[]> exportGlobalSearch(@RequestBody List<String> epsList) {
+        try {
+            byte[] data = pilotImportService.exportGlobalOmniSearchToExcel(epsList);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Global_Omni_Search.xlsx")
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(data);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
     @GetMapping("/imported-files")
     public ResponseEntity<List<String>> getImportedFiles(
             @RequestParam("category") String category,
