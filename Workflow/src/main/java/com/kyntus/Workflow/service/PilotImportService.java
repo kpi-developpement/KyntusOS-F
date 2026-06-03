@@ -728,10 +728,16 @@ public class PilotImportService {
         return jdbcTemplate.update(sql);
     }
 
-    // 🔥 LA METHODE OMNI SEARCH B L'ARCHITECTURE ZERO-RAM (STREAMING HTTP DIRECT) 🔥
-    @Transactional(readOnly = true)
+    // 🔥 LA NOUVELLE METHODE OMNI SEARCH (ZERO-RAM STREAMING + POSTGRESQL FIX) 🔥
+    // 7yedna @Transactional bach manssthelkouch l'pool dyal les connexions (hit kadiir dataSource.getConnection)
     public void exportGlobalOmniSearchToExcel(List<String> epsList, OutputStream outputStream) throws Exception {
         System.out.println("🚀 [OMNI SEARCH] Démarrage du processus...");
+
+        // 🚨 L'Mina 2 (NullPointerException Guard) 🚨
+        if (epsList == null || epsList.isEmpty()) {
+            throw new RuntimeException("La liste des EPS est vide ou invalide.");
+        }
+
         List<String> cleanEpsList = epsList.stream()
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -740,7 +746,7 @@ public class PilotImportService {
 
         System.out.println("🚀 [OMNI SEARCH] Nombre d'EPS nettoyés : " + cleanEpsList.size());
         if (cleanEpsList.isEmpty()) {
-            throw new RuntimeException("La liste des EPS est vide.");
+            throw new RuntimeException("La liste des EPS est vide après nettoyage.");
         }
 
         int batchSize = 1000;
@@ -752,8 +758,8 @@ public class PilotImportService {
                 List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
                 String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
 
-                // 🔥 AND dynamic_data IS NOT NULL RAHA HNA 🔥
-                String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ") AND dynamic_data IS NOT NULL";
+                // 🚨 L'Mina 1 (PostgreSQL JSONB Type Crash Fix) 🚨
+                String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ") AND dynamic_data IS NOT NULL AND jsonb_typeof(dynamic_data) = 'object'";
 
                 try (PreparedStatement psKeys = conn.prepareStatement(keysSql)) {
                     int pIdx = 1;
@@ -784,9 +790,11 @@ public class PilotImportService {
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
              Connection conn = dataSource.getConnection()) {
 
-            workbook.setCompressTempFiles(true); // ✅ ZERO-RAM MAGIC
+            workbook.setCompressTempFiles(true);
 
+            // 🚨 L'Mina 3: setAutoCommit(false) hia drouriya l'PostgreSQL bash ykhdem l'fetchSize (Makhassh thiyed, wlkin 7yedna @Transactional lfoq)
             conn.setAutoCommit(false);
+
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Omni Search Export");
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
 
