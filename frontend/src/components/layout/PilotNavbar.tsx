@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutList, KanbanSquare, History, LogOut, Terminal, Database, Cpu, BarChart2, Receipt } from "lucide-react";
+import { LayoutList, KanbanSquare, History, LogOut, Terminal, Database, Cpu, BarChart2, Receipt, Cloud } from "lucide-react";
 import styles from "./PilotNavbar.module.css";
 import { useEffect, useState } from "react";
 
@@ -65,6 +65,13 @@ export default function PilotNavbar() {
             className={`${styles.navLink} ${pathname === '/pilot/recorde' ? styles.activeLink : ''}`}
           >
             <Database size={16} /> Terrain Records
+          </Link>
+
+          <Link 
+            href="/pilot/api" 
+            className={`${styles.navLink} ${pathname === '/pilot/api' ? styles.activeLink : ''}`}
+          >
+            <Cloud size={16} /> API Bytel
           </Link>
 
           <Link 

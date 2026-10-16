@@ -20,9 +20,10 @@ import { toast } from "@/components/ui/Toaster";
 
 import BoardHeader from "./components/BoardHeader";
 import BoardActions from "./components/BoardActions";
+import { LuxeOption } from "./ui/LuxeDropdown";
 import styles from "./PilotBoard.module.css";
 
-// 🌟 THE NEW LUXE 70% WHITE / 30% ROYAL BLUE BACKGROUND
+// 🌟 THE LUXE 70% WHITE / 30% ROYAL BLUE INTERACTIVE BACKGROUND
 const RoyalBackground = dynamic(() => import("./ux/RoyalBackground"), {
   ssr: false,
 });
@@ -35,7 +36,6 @@ const API_URL = "/api";
 export function extractTaskEPS(task: any): string {
   if (!task) return "";
 
-  // 1. Direct property if populated by backend
   if (
     task.epsReference &&
     typeof task.epsReference === "string" &&
@@ -46,7 +46,6 @@ export function extractTaskEPS(task: any): string {
 
   const dyn = task.dynamicData || {};
 
-  // 2. Check known column names (case-insensitive)
   const priorityKeys = [
     "eps",
     "idintervention",
@@ -66,7 +65,6 @@ export function extractTaskEPS(task: any): string {
     }
   }
 
-  // 3. Regex scan across all cell values for pattern starting with "EPS-" followed by digits
   const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
   for (const val of Object.values(dyn)) {
     if (val !== null && val !== undefined) {
@@ -87,9 +85,10 @@ export default function PilotBoard() {
   const [user, setUser] = useState<any>(null);
   const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
 
-  // Search & Filter states
+  // Search & Cascading Filter states
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterColumn, setFilterColumn] = useState<string>("ALL");
+  const [columnExactValue, setColumnExactValue] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   // Local draft values for smooth typing in editable Pilot columns
@@ -165,7 +164,6 @@ export default function PilotBoard() {
     );
     if (!currentTmpl) return [];
 
-    // Support both template.fields = [{name: 'Commentaire'}] or ['Commentaire']
     if (Array.isArray(currentTmpl.fields)) {
       return currentTmpl.fields
         .map((f: any) => (typeof f === "string" ? f : f?.name))
@@ -176,7 +174,6 @@ export default function PilotBoard() {
 
   const allDynamicCols = useMemo(() => {
     const cols = new Set<string>();
-    // Always include Admin-added editable fields even if empty in current rows
     allowedFields.forEach((f: string) => cols.add(f));
     tasks.forEach((t) => {
       if (t.dynamicData) {
@@ -186,31 +183,101 @@ export default function PilotBoard() {
     return Array.from(cols);
   }, [tasks, allowedFields]);
 
-  // Separate columns: Pilot Editable first, then Locked Excel columns
   const lockedExcelCols = useMemo(() => {
-    const editableSet = new Set(allowedFields.map((f: string) => f.toLowerCase()));
+    const editableSet = new Set(
+      allowedFields.map((f: string) => f.toLowerCase())
+    );
     return allDynamicCols.filter((c) => !editableSet.has(c.toLowerCase()));
   }, [allDynamicCols, allowedFields]);
 
   // ========================================================================
-  // 4. MULTI-COLUMN FILTER ENGINE
+  // 4. 🔥 CASCADING DISTINCT VALUES ENGINE FOR SELECTED COLUMN
+  // ========================================================================
+  const columnDistinctOptions = useMemo<LuxeOption[]>(() => {
+    if (filterColumn === "ALL") return [];
+
+    const countsMap = new Map<string, number>();
+    let emptyCount = 0;
+
+    tasks.forEach((task) => {
+      let rawVal = "";
+      if (filterColumn === "EPS_ONLY") {
+        rawVal = extractTaskEPS(task);
+      } else {
+        rawVal = String(task.dynamicData?.[filterColumn] ?? "").trim();
+      }
+
+      if (!rawVal) {
+        emptyCount++;
+      } else {
+        countsMap.set(rawVal, (countsMap.get(rawVal) || 0) + 1);
+      }
+    });
+
+    const sortedEntries = Array.from(countsMap.entries()).sort((a, b) =>
+      a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: "base" })
+    );
+
+    const options: LuxeOption[] = [
+      {
+        value: "ALL",
+        label: `Toutes les valeurs (${tasks.length})`,
+        badge: tasks.length,
+      },
+    ];
+
+    if (emptyCount > 0) {
+      options.push({
+        value: "__EMPTY__",
+        label: "⚪ [Vide / Non renseigné]",
+        badge: emptyCount,
+      });
+    }
+
+    sortedEntries.forEach(([val, count]) => {
+      options.push({
+        value: val,
+        label: val,
+        badge: count,
+      });
+    });
+
+    return options;
+  }, [tasks, filterColumn]);
+
+  // ========================================================================
+  // 5. MULTI-COLUMN + EXACT VALUE FILTER ENGINE
   // ========================================================================
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      // Status Filter
+      // 1. Status Filter
       if (statusFilter !== "ALL" && task.status !== statusFilter) {
         return false;
       }
 
-      // Search Query Filter
+      const eps = extractTaskEPS(task);
+      const dyn = task.dynamicData || {};
+
+      // 2. Cascading Exact Value Filter (when a column + specific value is chosen)
+      if (filterColumn !== "ALL" && columnExactValue !== "ALL") {
+        const targetCell =
+          filterColumn === "EPS_ONLY"
+            ? eps
+            : String(dyn[filterColumn] ?? "").trim();
+
+        if (columnExactValue === "__EMPTY__") {
+          if (targetCell !== "") return false;
+        } else if (targetCell !== columnExactValue) {
+          return false;
+        }
+      }
+
+      // 3. Free-text Search Query Filter
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
 
-      const eps = extractTaskEPS(task).toLowerCase();
-      const dyn = task.dynamicData || {};
-
       if (filterColumn === "EPS_ONLY") {
-        return eps.includes(q);
+        return eps.toLowerCase().includes(q);
       }
 
       if (filterColumn !== "ALL") {
@@ -218,18 +285,25 @@ export default function PilotBoard() {
         return cellVal.includes(q);
       }
 
-      // ALL COLUMNS search
-      if (eps.includes(q)) return true;
+      // ALL COLUMNS global search
+      if (eps.toLowerCase().includes(q)) return true;
       return Object.values(dyn).some((val) =>
         String(val ?? "")
           .toLowerCase()
           .includes(q)
       );
     });
-  }, [tasks, searchQuery, filterColumn, statusFilter]);
+  }, [tasks, searchQuery, filterColumn, columnExactValue, statusFilter]);
+
+  const handleResetFilters = () => {
+    setFilterColumn("ALL");
+    setColumnExactValue("ALL");
+    setStatusFilter("ALL");
+    setSearchQuery("");
+  };
 
   // ========================================================================
-  // 5. MISSION HANDLERS (SINGLE & BULK PATCH OPERATIONS)
+  // 6. MISSION HANDLERS (SINGLE & BULK PATCH OPERATIONS)
   // ========================================================================
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
     const cellKey = `${taskId}_${key}`;
@@ -369,7 +443,7 @@ export default function PilotBoard() {
     }
   };
 
-  // 📋 SMART MULTI-EPS COPY (Selected rows or all currently filtered rows)
+  // 📋 SMART MULTI-EPS COPY
   const handleCopyEPSList = () => {
     const sourceList =
       selectedTasks.length > 0
@@ -393,7 +467,7 @@ export default function PilotBoard() {
 
     navigator.clipboard.writeText(epsValues.join("\n"));
     toast({
-      message: `${epsValues.length} RÉFÉRENCES EPS COPIÉES DANS LE PRESSE-PAPIERS 📋`,
+      message: `${epsValues.length} RÉFÉRENCES EPS COPIÉES 📋`,
       type: "success",
     });
   };
@@ -429,9 +503,10 @@ export default function PilotBoard() {
     );
   };
 
-  const missionOptions = templates.map((tpl: any) => ({
+  const missionOptions: LuxeOption[] = templates.map((tpl: any) => ({
     value: tpl.id?.toString() || "",
-    label: `MISSION : ${(tpl.name || "SANS NOM").toUpperCase()}`,
+    label: (tpl.name || "SANS NOM").toUpperCase(),
+    badge: tpl.fields?.length ? `${tpl.fields.length} col.` : undefined,
   }));
 
   return (
@@ -469,7 +544,9 @@ export default function PilotBoard() {
             <div className={styles.kpiBadgesGroup}>
               <div className={styles.editableBadge}>
                 <Edit3 size={14} />
-                <span>{allowedFields.length} COLONNE(S) D&apos;ANALYSE ACTIVE(S)</span>
+                <span>
+                  {allowedFields.length} COLONNE(S) D&apos;ANALYSE ACTIVE(S)
+                </span>
               </div>
               <div className={styles.countBadge}>
                 <ListChecks size={15} />
@@ -480,7 +557,7 @@ export default function PilotBoard() {
             </div>
           </div>
 
-          {/* 3. FILTER & BULK COMMENT TOOLBAR */}
+          {/* 3. LUXE CASCADING FILTER & BULK COMMENT TOOLBAR */}
           <div className={`${styles.bentoCard} ${styles.actionsWrapper}`}>
             <BoardActions
               tasksCount={tasks.length}
@@ -488,10 +565,13 @@ export default function PilotBoard() {
               selectedCount={selectedTasks.length}
               allowedFields={allowedFields}
               allColumns={allDynamicCols}
+              columnDistinctOptions={columnDistinctOptions}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               filterColumn={filterColumn}
               setFilterColumn={setFilterColumn}
+              columnExactValue={columnExactValue}
+              setColumnExactValue={setColumnExactValue}
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
               onCopyEPS={handleCopyEPSList}
@@ -499,6 +579,7 @@ export default function PilotBoard() {
               onCoachSync={handleCoachSync}
               onBulkEdit={handleBulkEdit}
               onClearSelection={() => setSelectedTasks([])}
+              onResetFilters={handleResetFilters}
             />
           </div>
 
@@ -507,7 +588,7 @@ export default function PilotBoard() {
             {!selectedTemplate ? (
               <div className={styles.emptyStateBox}>
                 <div className={styles.emptyIconCircle}>
-                  <FileSpreadsheet size={30} />
+                  <FileSpreadsheet size={32} />
                 </div>
                 <h3>Aucune mission sélectionnée</h3>
                 <p>
@@ -518,7 +599,7 @@ export default function PilotBoard() {
             ) : loading ? (
               <div className={styles.emptyStateBox}>
                 <div className={styles.emptyIconCircle}>
-                  <Activity size={30} />
+                  <Activity size={32} />
                 </div>
                 <h3>Synchronisation des données en cours...</h3>
                 <p>Chargement des interventions EPS et colonnes d&apos;analyse.</p>
@@ -529,7 +610,6 @@ export default function PilotBoard() {
                   <table className={styles.luxeTable}>
                     <thead>
                       <tr>
-                        {/* Multi-select Checkbox */}
                         <th className={styles.thLocked} style={{ width: 48 }}>
                           <input
                             type="checkbox"
@@ -540,21 +620,19 @@ export default function PilotBoard() {
                           />
                         </th>
 
-                        {/* Smart Extracted EPS Column */}
                         <th className={styles.thLocked}>
                           <div className={styles.thContent}>
                             <span>RÉFÉRENCE EPS</span>
                           </div>
                         </th>
 
-                        {/* Task Status Column */}
                         <th className={styles.thLocked}>
                           <div className={styles.thContent}>
                             <span>STATUT</span>
                           </div>
                         </th>
 
-                        {/* ✍️ ADMIN-ADDED PILOT EDITABLE COLUMNS (30% Royal Blue Header) */}
+                        {/* ✍️ ADMIN-ADDED PILOT EDITABLE COLUMNS */}
                         {allowedFields.map((col: string) => (
                           <th key={col} className={styles.thEditable}>
                             <div className={styles.thContent}>
@@ -577,7 +655,7 @@ export default function PilotBoard() {
                     </thead>
 
                     <tbody>
-                      {filteredTasks.map((task) => {
+                      {filteredTasks.map((task, idx) => {
                         const isSelected = selectedTasks.includes(task.id);
                         const epsCode = extractTaskEPS(task);
                         const dyn = task.dynamicData || {};
@@ -585,11 +663,13 @@ export default function PilotBoard() {
                         return (
                           <tr
                             key={task.id}
+                            style={{
+                              animationDelay: `${Math.min(idx * 18, 300)}ms`,
+                            }}
                             className={`${styles.trRow} ${
                               isSelected ? styles.trSelected : ""
                             }`}
                           >
-                            {/* Row Checkbox */}
                             <td className={styles.tdCell}>
                               <input
                                 type="checkbox"
@@ -599,7 +679,6 @@ export default function PilotBoard() {
                               />
                             </td>
 
-                            {/* EPS Reference + Instant Copy Button */}
                             <td className={styles.tdCell}>
                               <div className={styles.epsPillGroup}>
                                 <span className={styles.epsBadge}>{epsCode}</span>
@@ -620,7 +699,6 @@ export default function PilotBoard() {
                               </div>
                             </td>
 
-                            {/* Status Toggle */}
                             <td className={styles.tdCell}>
                               <button
                                 type="button"
@@ -654,7 +732,7 @@ export default function PilotBoard() {
                               </button>
                             </td>
 
-                            {/* ✍️ EDITABLE PILOT COLUMNS (ENABLED INPUTS) */}
+                            {/* ✍️ EDITABLE PILOT COLUMNS */}
                             {allowedFields.map((col: string) => {
                               const cellKey = `${task.id}_${col}`;
                               const currentVal =
@@ -706,7 +784,7 @@ export default function PilotBoard() {
                               );
                             })}
 
-                            {/* 🔒 DISABLED EXCEL COLUMNS (READ-ONLY) */}
+                            {/* 🔒 DISABLED EXCEL COLUMNS */}
                             {lockedExcelCols.map((col: string) => (
                               <td
                                 key={col}
@@ -727,7 +805,6 @@ export default function PilotBoard() {
                   </table>
                 </div>
 
-                {/* Table Footer */}
                 <div className={styles.tableFooter}>
                   <span>
                     🔒 Les colonnes issues du fichier Excel sont verrouillées en
@@ -737,19 +814,19 @@ export default function PilotBoard() {
                   <span>
                     {selectedTasks.length > 0
                       ? `${selectedTasks.length} ligne(s) sélectionnée(s)`
-                      : `${filteredTasks.length} ligne(s) au total`}
+                      : `${filteredTasks.length} ligne(s) affichée(s)`}
                   </span>
                 </div>
               </>
             ) : (
               <div className={styles.emptyStateBox}>
                 <div className={styles.emptyIconCircle}>
-                  <ListChecks size={30} />
+                  <ListChecks size={32} />
                 </div>
                 <h3>Aucune ligne trouvée</h3>
                 <p>
-                  Aucune tâche ne correspond à vos critères de recherche ou
-                  cette mission est vide.
+                  Aucune tâche ne correspond à vos filtres actuels. Cliquez sur
+                  RESET pour réafficher toutes les lignes.
                 </p>
               </div>
             )}

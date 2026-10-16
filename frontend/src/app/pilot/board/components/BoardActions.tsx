@@ -5,15 +5,16 @@ import {
   Copy,
   Trash2,
   CheckCircle2,
-  Layers,
   Search,
   Filter,
   Sparkles,
   X,
-  Lock,
   Edit3,
+  ListFilter,
+  RotateCcw,
 } from "lucide-react";
 import ActionButton from "../ui/ActionButton";
+import LuxeDropdown, { LuxeOption } from "../ui/LuxeDropdown";
 import styles from "../PilotBoard.module.css";
 
 interface BoardActionsProps {
@@ -22,10 +23,13 @@ interface BoardActionsProps {
   selectedCount?: number;
   allowedFields?: string[];
   allColumns?: string[];
+  columnDistinctOptions?: LuxeOption[];
   searchQuery?: string;
   setSearchQuery?: (val: string) => void;
   filterColumn?: string;
   setFilterColumn?: (val: string) => void;
+  columnExactValue?: string;
+  setColumnExactValue?: (val: string) => void;
   statusFilter?: string;
   setStatusFilter?: (val: string) => void;
   onCopyEPS?: () => void;
@@ -33,6 +37,7 @@ interface BoardActionsProps {
   onCoachSync?: () => void;
   onBulkEdit?: (col: string, val: string) => void;
   onClearSelection?: () => void;
+  onResetFilters?: () => void;
 }
 
 export default function BoardActions({
@@ -41,10 +46,13 @@ export default function BoardActions({
   selectedCount = 0,
   allowedFields = [],
   allColumns = [],
+  columnDistinctOptions = [],
   searchQuery = "",
   setSearchQuery = () => {},
   filterColumn = "ALL",
   setFilterColumn = () => {},
+  columnExactValue = "ALL",
+  setColumnExactValue = () => {},
   statusFilter = "ALL",
   setStatusFilter = () => {},
   onCopyEPS = () => {},
@@ -52,6 +60,7 @@ export default function BoardActions({
   onCoachSync = () => {},
   onBulkEdit = () => {},
   onClearSelection = () => {},
+  onResetFilters = () => {},
 }: BoardActionsProps) {
   const [bulkCol, setBulkCol] = useState<string>(allowedFields?.[0] || "");
   const [bulkVal, setBulkVal] = useState<string>("");
@@ -62,37 +71,85 @@ export default function BoardActions({
     }
   }, [allowedFields, bulkCol]);
 
-  const TriggerBulkApply = (e: React.FormEvent) => {
+  const handleBulkSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!bulkCol) return;
     onBulkEdit(bulkCol, bulkVal);
     setBulkVal("");
   };
 
+  // Build LuxeOptions for Columns
+  const columnDropdownOptions: LuxeOption[] = [
+    { value: "ALL", label: "🌐 Toutes les colonnes" },
+    { value: "EPS_ONLY", label: "⚡ Référence EPS (EPS-...)" },
+    ...allColumns.map((col) => ({
+      value: col,
+      label: allowedFields.includes(col) ? `✍️ ${col}` : `📄 ${col}`,
+      badge: allowedFields.includes(col) ? "ANALYSE" : undefined,
+    })),
+  ];
+
+  // Build LuxeOptions for Status
+  const statusDropdownOptions: LuxeOption[] = [
+    { value: "ALL", label: "Tous les statuts", badge: tasksCount },
+    { value: "A_FAIRE", label: "⚪ À Faire" },
+    { value: "EN_COURS", label: "🔵 En Cours" },
+    { value: "DONE", label: "🟢 Terminé (Validé)" },
+  ];
+
+  // Build LuxeOptions for Bulk Editable Columns
+  const editableDropdownOptions: LuxeOption[] = allowedFields.map((f) => ({
+    value: f,
+    label: `✍️ ${f}`,
+  }));
+
+  const hasActiveFilters =
+    filterColumn !== "ALL" ||
+    columnExactValue !== "ALL" ||
+    statusFilter !== "ALL" ||
+    searchQuery.trim() !== "";
+
   return (
     <div className={styles.actionsContainer}>
-      {/* TOP ROW: FILTER ENGINE & PRIMARY ACTIONS */}
+      {/* TOP ROW: LUXE FILTER ENGINE & PRIMARY ACTIONS */}
       <div className={styles.toolbarRow}>
-        {/* Left: Dynamic Column Filter Bar */}
         <div className={styles.filterGroup}>
-          <div className={styles.filterPill}>
-            <Filter size={15} className={styles.filterIcon} />
-            <span className={styles.filterLabel}>COLONNE :</span>
-            <select
-              className={styles.filterSelect}
-              value={filterColumn}
-              onChange={(e) => setFilterColumn(e.target.value)}
-            >
-              <option value="ALL">Toutes les colonnes</option>
-              <option value="EPS_ONLY">Référence EPS (EPS-...)</option>
-              {allColumns.map((col) => (
-                <option key={col} value={col}>
-                  {allowedFields.includes(col) ? `✍️ ${col} (Analyse)` : `${col}`}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* 1. COLUMN SELECTOR DROPDOWN */}
+          <LuxeDropdown
+            minWidth={230}
+            icon={<Filter size={15} />}
+            prefixLabel="COLONNE"
+            options={columnDropdownOptions}
+            value={filterColumn}
+            onChange={(newCol) => {
+              setFilterColumn(newCol);
+              setColumnExactValue("ALL"); // Reset specific value when switching column
+            }}
+            searchable={allColumns.length > 5}
+            searchPlaceholder="Chercher une colonne..."
+            clearable
+          />
 
+          {/* 2. 🔥 CASCADING DISTINCT VALUES DROPDOWN (Appears when a specific column is selected) */}
+          {filterColumn !== "ALL" && (
+            <div className={styles.cascadingDropReveal}>
+              <LuxeDropdown
+                variant="royal"
+                minWidth={260}
+                icon={<ListFilter size={15} />}
+                prefixLabel="VALEUR"
+                placeholder={`Choisir dans ${filterColumn}...`}
+                options={columnDistinctOptions}
+                value={columnExactValue}
+                onChange={setColumnExactValue}
+                searchable
+                searchPlaceholder={`Chercher une valeur de ${filterColumn}...`}
+                clearable
+              />
+            </div>
+          )}
+
+          {/* 3. INSTANT TEXT SEARCH */}
           <div className={styles.searchBox}>
             <Search size={16} className={styles.searchIcon} />
             <input
@@ -100,8 +157,8 @@ export default function BoardActions({
               className={styles.searchInput}
               placeholder={
                 filterColumn === "ALL"
-                  ? "Rechercher un EPS, une valeur, un commentaire..."
-                  : `Filtrer dans [${filterColumn}]...`
+                  ? "Recherche globale (EPS, texte, commentaire)..."
+                  : `Affiner par texte dans [${filterColumn}]...`
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -112,24 +169,33 @@ export default function BoardActions({
                 className={styles.clearSearchBtn}
                 onClick={() => setSearchQuery("")}
               >
-                <X size={14} />
+                <X size={13} />
               </button>
             )}
           </div>
 
-          <div className={styles.filterPill}>
-            <span className={styles.filterLabel}>STATUT :</span>
-            <select
-              className={styles.filterSelect}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+          {/* 4. STATUS DROPDOWN */}
+          <LuxeDropdown
+            minWidth={195}
+            prefixLabel="STATUT"
+            options={statusDropdownOptions}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            clearable
+          />
+
+          {/* Reset Filters Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              className={styles.resetFiltersBtn}
+              onClick={onResetFilters}
+              title="Réinitialiser tous les filtres"
             >
-              <option value="ALL">Tous ({tasksCount})</option>
-              <option value="A_FAIRE">À Faire</option>
-              <option value="EN_COURS">En Cours</option>
-              <option value="DONE">Terminé (Validé)</option>
-            </select>
-          </div>
+              <RotateCcw size={14} />
+              <span>RESET</span>
+            </button>
+          )}
         </div>
 
         {/* Right: Quick Action Buttons */}
@@ -165,30 +231,26 @@ export default function BoardActions({
         </div>
       </div>
 
-      {/* BOTTOM ROW: MASS EDIT BAR (Shows when rows are selected) */}
+      {/* BOTTOM ROW: MASS EDIT BAR (Shows with smooth animation when rows are selected) */}
       {selectedCount > 0 && (
-        <form onSubmit={TriggerBulkApply} className={styles.massActionBanner}>
+        <form onSubmit={handleBulkSubmit} className={styles.massActionBanner}>
           <div className={styles.massBadge}>
-            <Sparkles size={16} />
+            <Sparkles size={16} className={styles.spinSlow} />
             <span>{selectedCount} LIGNES SÉLECTIONNÉES</span>
           </div>
 
           <div className={styles.massControls}>
             <div className={styles.massFieldGroup}>
-              <Edit3 size={14} className={styles.massIcon} />
-              <span className={styles.massLabel}>Colonne d&apos;analyse :</span>
+              <Edit3 size={15} className={styles.massIcon} />
+              <span className={styles.massLabel}>Cible :</span>
               {allowedFields.length > 0 ? (
-                <select
-                  className={styles.massSelect}
+                <LuxeDropdown
+                  variant="royal"
+                  minWidth={210}
+                  options={editableDropdownOptions}
                   value={bulkCol}
-                  onChange={(e) => setBulkCol(e.target.value)}
-                >
-                  {allowedFields.map((field) => (
-                    <option key={field} value={field}>
-                      {field}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setBulkCol}
+                />
               ) : (
                 <span className={styles.noEditableWarn}>
                   Aucune colonne d&apos;analyse ajoutée par l&apos;Admin
@@ -201,12 +263,12 @@ export default function BoardActions({
                 <input
                   type="text"
                   className={styles.massInput}
-                  placeholder={`Saisir le commentaire / analyse pour les ${selectedCount} lignes...`}
+                  placeholder={`Saisir le commentaire / analyse à appliquer aux ${selectedCount} lignes...`}
                   value={bulkVal}
                   onChange={(e) => setBulkVal(e.target.value)}
                 />
                 <button type="submit" className={styles.massApplyBtn}>
-                  APPLIQUER AUX {selectedCount} LIGNES
+                  APPLIQUER AUX {selectedCount} LIGNES ⚡
                 </button>
               </>
             )}

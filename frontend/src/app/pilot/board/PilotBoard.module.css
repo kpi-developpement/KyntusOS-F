@@ -1,5 +1,6 @@
 /* ========================================================================== */
 /* KYNTUS EXECUTIVE PILOT BOARD — 70% PURE WHITE / 30% ROYAL SAPPHIRE BLUE    */
+/* LUXE ANIMATED EDITION                                                      */
 /* ========================================================================== */
 
 .boardContainer {
@@ -18,29 +19,36 @@
   flex-direction: column;
   min-height: 100vh;
   padding: 1.75rem 2.25rem;
-  max-width: 1720px;
+  max-width: 1740px;
   margin: 0 auto;
-  gap: 1.25rem;
+  gap: 1.35rem;
 }
 
 /* ========================================================================== */
-/* 1. EXECUTIVE HEADER CARD                                                   */
+/* 1. EXECUTIVE HEADER CARD (WITH AMBIENT SHIMMER)                            */
 /* ========================================================================== */
 
 .headerBento {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(2, 132, 199, 0.18);
-  border-radius: 18px;
+  position: relative;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(2, 132, 199, 0.22);
+  border-radius: 20px;
   padding: 1.25rem 2rem;
-  box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.08), 0 4px 12px rgba(15, 23, 42, 0.03);
-  transition: all 0.3s ease;
+  box-shadow:
+    0 12px 35px -6px rgba(2, 132, 199, 0.09),
+    0 4px 12px rgba(15, 23, 42, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: heroEntrance 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .headerBento:hover {
-  border-color: rgba(2, 132, 199, 0.35);
-  box-shadow: 0 14px 36px -5px rgba(2, 132, 199, 0.13);
+  border-color: rgba(2, 132, 199, 0.4);
+  box-shadow: 0 18px 42px -6px rgba(2, 132, 199, 0.14);
+  transform: translateY(-2px);
 }
 
 .headerHud {
@@ -54,53 +62,74 @@
 .pilotInfo {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 .avatarBadge {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.35);
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.headerBento:hover .avatarBadge {
+  transform: scale(1.06) rotate(-3deg);
+}
+
+.avatarGlow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent 65%, rgba(255, 255, 255, 0.4) 100%);
+  animation: rotateSlow 4s linear infinite;
 }
 
 .pilotName {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   font-weight: 800;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   color: #0f172a;
   letter-spacing: 0.3px;
 }
 
 .statusDot {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   background-color: #10b981;
   border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  animation: livePulse 2s infinite ease-in-out;
 }
 
 .pilotSub {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin-top: 4px;
 }
 
 .roleBadge {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #0284c7;
-  background: #e0f2fe;
-  padding: 2px 8px;
-  border-radius: 6px;
+  background: linear-gradient(90deg, #e0f2fe 0%, #f0f9ff 100%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #bae6fd;
   letter-spacing: 0.5px;
 }
 
@@ -110,60 +139,10 @@
   font-weight: 600;
 }
 
-/* Mission Selector */
 .selectorZone {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-}
-
-.selectorLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #0369a1;
-  background: #f0f9ff;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #bae6fd;
-  letter-spacing: 0.5px;
-}
-
-.selectWrapper {
-  position: relative;
-  min-width: 300px;
-}
-
-.luxeSelect {
-  width: 100%;
-  appearance: none;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 0.88rem;
-  font-weight: 700;
-  padding: 11px 40px 11px 16px;
-  border-radius: 12px;
-  border: 1.5px solid #cbd5e1;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.luxeSelect:hover, .luxeSelect:focus {
-  border-color: #0284c7;
-  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
-}
-
-.selectArrow {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #0284c7;
-  pointer-events: none;
 }
 
 /* ========================================================================== */
@@ -184,12 +163,13 @@
   flex-wrap: wrap;
   gap: 1rem;
   padding: 0 0.25rem;
+  animation: heroEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .matrixTitle {
-  font-size: 1rem;
+  font-size: 1.02rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -200,11 +180,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #e0f2fe;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   color: #0284c7;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
 }
 
 .kpiBadgesGroup {
@@ -220,12 +201,17 @@
   gap: 6px;
   background: #ffffff;
   color: #0284c7;
-  padding: 6px 14px;
+  padding: 7px 15px;
   border-radius: 999px;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 800;
   border: 1px solid #bae6fd;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.08);
+  transition: transform 0.25s ease;
+}
+
+.countBadge:hover {
+  transform: translateY(-2px);
 }
 
 .editableBadge {
@@ -234,28 +220,31 @@
   gap: 6px;
   background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: #ffffff;
-  padding: 6px 14px;
+  padding: 7px 15px;
   border-radius: 999px;
   font-size: 0.78rem;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
 }
 
 /* ========================================================================== */
-/* 3. BENTO CARDS & FILTER / MASS ACTION BAR                                  */
+/* 3. BENTO CARDS & CASCADING FILTER / MASS ACTION BAR                        */
 /* ========================================================================== */
 
 .bentoCard {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(2, 132, 199, 0.15);
-  border-radius: 18px;
-  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.06);
-  transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(2, 132, 199, 0.16);
+  border-radius: 20px;
+  box-shadow: 0 14px 36px -8px rgba(15, 23, 42, 0.06);
+  transition: all 0.3s ease;
 }
 
 .actionsWrapper {
-  padding: 1.15rem 1.5rem;
+  position: relative;
+  z-index: 40; /* Keeps custom dropdown menus floating above the data grid */
+  padding: 1.2rem 1.5rem;
+  animation: heroEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .actionsContainer {
@@ -280,35 +269,9 @@
   flex: 1;
 }
 
-.filterPill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 6px 12px;
-  border-radius: 10px;
-}
-
-.filterIcon {
-  color: #0284c7;
-}
-
-.filterLabel {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #64748b;
-  white-space: nowrap;
-}
-
-.filterSelect {
-  background: transparent;
-  border: none;
-  color: #0f172a;
-  font-size: 0.82rem;
-  font-weight: 700;
-  outline: none;
-  cursor: pointer;
+/* Smooth reveal when cascading value dropdown appears */
+.cascadingDropReveal {
+  animation: popReveal 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .searchBox {
@@ -316,33 +279,38 @@
   display: flex;
   align-items: center;
   flex: 1;
-  min-width: 240px;
-  max-width: 420px;
+  min-width: 220px;
+  max-width: 380px;
 }
 
 .searchIcon {
   position: absolute;
-  left: 12px;
+  left: 13px;
   color: #0284c7;
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  padding: 9px 34px 9px 36px;
+  padding: 10px 34px 10px 38px;
   background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-size: 0.84rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 0.83rem;
+  font-weight: 600;
   color: #0f172a;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.searchInput:hover {
+  border-color: #93c5fd;
 }
 
 .searchInput:focus {
   background: #ffffff;
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.14);
 }
 
 .clearSearchBtn {
@@ -358,6 +326,32 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearSearchBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.resetFiltersBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border-radius: 11px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.resetFiltersBtn:hover {
+  background: #ffe4e6;
+  transform: translateY(-1px);
 }
 
 .actionButtonsGroup {
@@ -374,25 +368,26 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
-  background: linear-gradient(90deg, #eff6ff 0%, #e0f2fe 100%);
+  background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%);
   border: 1.5px solid #38bdf8;
-  border-radius: 12px;
-  padding: 0.75rem 1.25rem;
-  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.12);
-  animation: slideDown 0.25s ease-out;
+  border-radius: 14px;
+  padding: 0.85rem 1.25rem;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.14);
+  animation: popReveal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .massBadge {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #0284c7;
+  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 7px 14px;
+  border-radius: 10px;
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
 .massControls {
@@ -406,7 +401,7 @@
 .massFieldGroup {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .massIcon {
@@ -415,19 +410,8 @@
 
 .massLabel {
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #0369a1;
-}
-
-.massSelect {
-  background: #ffffff;
-  border: 1px solid #7dd3fc;
-  color: #0f172a;
-  padding: 7px 12px;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  outline: none;
 }
 
 .massInput {
@@ -436,53 +420,61 @@
   background: #ffffff;
   border: 1.5px solid #7dd3fc;
   color: #0f172a;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 9px 15px;
+  border-radius: 11px;
   font-size: 0.84rem;
-  font-weight: 500;
+  font-weight: 600;
   outline: none;
+  transition: all 0.2s ease;
 }
 
 .massInput:focus {
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.16);
 }
 
 .massApplyBtn {
   background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
   color: #ffffff;
   border: none;
-  padding: 9px 18px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 11px;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
 }
 
 .massApplyBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4);
 }
 
 .massCancelBtn {
-  background: rgba(255, 255, 255, 0.8);
+  background: #ffffff;
   border: 1px solid #bae6fd;
   color: #0369a1;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.massCancelBtn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fca5a5;
 }
 
 .noEditableWarn {
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #e11d48;
 }
 
@@ -491,17 +483,20 @@
 /* ========================================================================== */
 
 .gridWrapper {
+  position: relative;
+  z-index: 10;
   padding: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   flex: 1;
+  animation: heroEntrance 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .tableScrollContainer {
   width: 100%;
   overflow-x: auto;
-  max-height: calc(100vh - 310px);
+  max-height: calc(100vh - 315px);
   min-height: 420px;
 }
 
@@ -521,11 +516,11 @@
 .thLocked {
   background: #f1f5f9;
   color: #475569;
-  font-weight: 700;
-  font-size: 0.74rem;
+  font-weight: 800;
+  font-size: 0.73rem;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  padding: 14px 16px;
+  padding: 15px 16px;
   border-bottom: 2px solid #cbd5e1;
   border-right: 1px solid #e2e8f0;
   white-space: nowrap;
@@ -534,30 +529,31 @@
 
 /* Royal Blue Header for Admin-Added Pilot Editable Columns */
 .thEditable {
-  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: #ffffff;
   font-weight: 800;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.7px;
-  padding: 14px 16px;
-  border-bottom: 2px solid #0369a1;
-  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 15px 16px;
+  border-bottom: 2px solid #1e40af;
+  border-right: 1px solid rgba(255, 255, 255, 0.18);
   white-space: nowrap;
   text-align: left;
-  min-width: 240px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  min-width: 250px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .thContent {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .trRow {
   background: #ffffff;
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
+  animation: rowFadeIn 0.35s ease backwards;
 }
 
 .trRow:nth-child(even) {
@@ -565,11 +561,13 @@
 }
 
 .trRow:hover {
-  background: #f0f9ff;
+  background: #f0f9ff !important;
+  box-shadow: inset 4px 0 0 #0284c7;
 }
 
 .trSelected {
   background: #e0f2fe !important;
+  box-shadow: inset 4px 0 0 #1d4ed8;
 }
 
 .tdCell {
@@ -588,51 +586,59 @@
   padding: 8px 12px;
   border-bottom: 1px solid #bae6fd;
   border-right: 1px solid #e0f2fe;
-  background: rgba(240, 249, 255, 0.55);
+  background: rgba(240, 249, 255, 0.6);
   vertical-align: middle;
-  min-width: 240px;
+  min-width: 250px;
 }
 
 /* EPS Badge Styling */
 .epsPillGroup {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .epsBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #f0f9ff;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   color: #0369a1;
   border: 1px solid #7dd3fc;
-  padding: 4px 10px;
+  padding: 4px 11px;
   border-radius: 8px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.4px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+  transition: all 0.2s ease;
+}
+
+.trRow:hover .epsBadge {
+  border-color: #0284c7;
+  background: #e0f2fe;
 }
 
 .copyMiniBtn {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #0284c7;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
+  width: 25px;
+  height: 25px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .copyMiniBtn:hover {
   background: #0284c7;
   color: #ffffff;
   border-color: #0284c7;
+  transform: scale(1.12);
 }
 
 /* Disabled Excel Cell */
@@ -654,19 +660,24 @@
   width: 100%;
   background: #ffffff;
   border: 1.5px solid #93c5fd;
-  border-radius: 8px;
-  padding: 7px 28px 7px 10px;
+  border-radius: 9px;
+  padding: 8px 30px 8px 11px;
   font-size: 0.83rem;
   font-weight: 600;
   color: #0f172a;
   outline: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.pilotInput:hover {
+  border-color: #38bdf8;
 }
 
 .pilotInput:focus {
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.16);
+  transform: scale(1.01);
 }
 
 .pilotInput::placeholder {
@@ -676,9 +687,10 @@
 
 .savedIndicator {
   position: absolute;
-  right: 8px;
+  right: 9px;
   color: #0284c7;
   pointer-events: none;
+  animation: spinSlow 2s linear infinite;
 }
 
 /* Status Pill Buttons */
@@ -686,14 +698,18 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 5px 13px;
   border-radius: 999px;
   font-size: 0.73rem;
   font-weight: 800;
   letter-spacing: 0.4px;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.statusBtn:hover {
+  transform: scale(1.06);
 }
 
 .statusTodo {
@@ -720,7 +736,12 @@
   height: 17px;
   accent-color: #0284c7;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 5px;
+  transition: transform 0.15s ease;
+}
+
+.luxeCheckbox:hover {
+  transform: scale(1.12);
 }
 
 /* Empty & Loader States */
@@ -736,22 +757,23 @@
 }
 
 .emptyIconCircle {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
-  background: #e0f2fe;
+  width: 68px;
+  height: 68px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   color: #0284c7;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.18);
+  animation: floatIcon 3s ease-in-out infinite alternate;
 }
 
 .tableFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.9rem 1.5rem;
+  padding: 0.95rem 1.5rem;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
   font-size: 0.8rem;
@@ -759,7 +781,73 @@
   font-weight: 600;
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* ========================================================================== */
+/* KEYFRAME ANIMATIONS                                                        */
+/* ========================================================================== */
+
+@keyframes heroEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateX(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
+
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes livePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes rotateSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes floatIcon {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+.spinSlow {
+  animation: rotateSlow 4s linear infinite;
 }
