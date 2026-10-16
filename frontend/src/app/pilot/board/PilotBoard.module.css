@@ -1,157 +1,54 @@
-/* ========================================= */
-/* SILICON VALLEY "BENTO" GRID DESIGN        */
-/* ========================================= */
+/* ========================================================================== */
+/* KYNTUS EXECUTIVE PILOT BOARD — 70% PURE WHITE / 30% ROYAL SAPPHIRE BLUE    */
+/* ========================================================================== */
 
 .boardContainer {
   position: relative;
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-  color: #ffffff;
-  font-family: system-ui, -apple-system, sans-serif;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .glassOverlay {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 2rem;
-  max-width: 1600px;
-  margin: 0 auto; 
+  padding: 1.75rem 2.25rem;
+  max-width: 1720px;
+  margin: 0 auto;
+  gap: 1.25rem;
 }
 
-/* ========================================= */
-/* 🔥 NEW: HEADER BENTO (BLA CLIP-PATH) 🔥   */
-/* ========================================= */
+/* ========================================================================== */
+/* 1. EXECUTIVE HEADER CARD                                                   */
+/* ========================================================================== */
+
 .headerBento {
-  background: rgba(10, 15, 30, 0.6);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px; /* Forma 3adiya */
-  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  
-  padding: 1.5rem 2rem;
-  margin-bottom: 1.5rem;
-  z-index: 100 !important; /* Dima l-foq */
-  animation: slideUpSmooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.headerBento::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.0), transparent);
-  transition: all 0.5s ease;
-  border-radius: 16px 16px 0 0;
-}
-
-.headerBento:hover::before {
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.8), transparent);
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  border: 1px solid rgba(2, 132, 199, 0.18);
+  border-radius: 18px;
+  padding: 1.25rem 2rem;
+  box-shadow: 0 10px 30px -5px rgba(2, 132, 199, 0.08), 0 4px 12px rgba(15, 23, 42, 0.03);
+  transition: all 0.3s ease;
 }
 
 .headerBento:hover {
-  border-color: rgba(0, 255, 136, 0.3);
-  box-shadow: 0 8px 32px -4px rgba(0, 255, 136, 0.15);
-  transform: translateY(-2px);
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 14px 36px -5px rgba(2, 132, 199, 0.13);
 }
-
-/* ========================================= */
-/* TRANSFORMERS PRIME: ACTIONS & GRID        */
-/* ========================================= */
-
-.bentoCard {
-  background: rgba(10, 15, 30, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-}
-
-.bentoCard::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.0), transparent);
-  transition: all 0.4s ease;
-}
-
-.bentoCard::after {
-  content: "";
-  position: absolute;
-  bottom: 0; right: 0;
-  width: 15px; height: 15px;
-  border-bottom: 2px solid #00FF88;
-  border-right: 2px solid #00FF88;
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bentoCard:hover {
-  border-color: rgba(0, 255, 136, 0.4);
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 15px 40px -10px rgba(0, 255, 136, 0.2), 
-              inset 0 0 20px -5px rgba(0, 255, 136, 0.1);
-  clip-path: polygon(2% 0, 100% 0, 100% 95%, 98% 100%, 0 100%, 0 5%);
-}
-
-.bentoCard:hover::before {
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 1), transparent);
-  box-shadow: 0 0 10px #00FF88;
-}
-
-.bentoCard:hover::after {
-  opacity: 1;
-  width: 40px; 
-  height: 40px;
-}
-
-/* ========================================= */
-/* LAYOUT STRUCTURE & STAGGERED ANIMATIONS   */
-/* ========================================= */
-
-.boardContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  flex: 1;
-  position: relative;
-  z-index: 10;
-}
-
-.actionsWrapper {
-  padding: 1rem 2rem;
-  opacity: 0;
-  z-index: 10 !important; 
-  animation: slideUpSmooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
-}
-
-.gridWrapper {
-  padding: 2rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  z-index: 1 !important;
-  animation: slideUpSmooth 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
-}
-
-/* ========================================= */
-/* HEADER SPECIFICS (HUD)                    */
-/* ========================================= */
 
 .headerHud {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  flex-wrap: wrap;
+  gap: 1.25rem;
 }
 
 .pilotInfo {
@@ -160,86 +57,709 @@
   gap: 1rem;
 }
 
+.avatarBadge {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
+}
+
 .pilotName {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   font-weight: 800;
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  /* L-Text kay-wlli degradé Byed/Khder */
-  background: linear-gradient(90deg, #ffffff, #00FF88);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+  font-size: 1.15rem;
+  color: #0f172a;
+  letter-spacing: 0.3px;
 }
-.matrixTitle {
-  font-size: 1.1rem;
-  font-weight: 900;
-  letter-spacing: 3px;
+
+.statusDot {
+  width: 9px;
+  height: 9px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+}
+
+.pilotSub {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  /* Degradé Cyan/Purple */
-  background: linear-gradient(90deg, #00f2ea, #b026ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 15px rgba(0, 242, 234, 0.3);
-}
-.countBadge {
-  background: rgba(0, 242, 234, 0.05);
-  color: #00f2ea;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  border: 1px solid rgba(0, 242, 234, 0.3);
-  box-shadow: 0 0 15px rgba(0, 242, 234, 0.2), inset 0 0 10px rgba(0, 242, 234, 0.1);
-  letter-spacing: 1.5px;
-}
-.statusDot {
-  width: 10px;
-  height: 10px;
-  background-color: #00FF88;
-  border-radius: 50%;
-  box-shadow: 0 0 12px #00FF88;
-  animation: pulse 2s infinite ease-in-out;
+  gap: 0.5rem;
+  margin-top: 4px;
 }
 
 .roleBadge {
-  font-family: 'JetBrains Mono', 'Courier New', Courier, monospace;
-  font-size: 0.7rem;
-  color: rgba(0, 255, 136, 0.7);
-  background: rgba(0, 255, 136, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 255, 136, 0.2);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
 }
 
+.workspaceTag {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Mission Selector */
 .selectorZone {
   display: flex;
   align-items: center;
+  gap: 0.85rem;
+}
+
+.selectorLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #f0f9ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #bae6fd;
+  letter-spacing: 0.5px;
+}
+
+.selectWrapper {
+  position: relative;
+  min-width: 300px;
+}
+
+.luxeSelect {
+  width: 100%;
+  appearance: none;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 11px 40px 11px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.luxeSelect:hover, .luxeSelect:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+}
+
+.selectArrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #0284c7;
+  pointer-events: none;
+}
+
+/* ========================================================================== */
+/* 2. KPI & STATS RIBBON (30% BLUE ACCENTS)                                   */
+/* ========================================================================== */
+
+.boardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+.statsBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0 0.25rem;
+}
+
+.matrixTitle {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0f172a;
+}
+
+.titleIconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.kpiBadgesGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #0284c7;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid #bae6fd;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.08);
+}
+
+.editableBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+/* ========================================================================== */
+/* 3. BENTO CARDS & FILTER / MASS ACTION BAR                                  */
+/* ========================================================================== */
+
+.bentoCard {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(2, 132, 199, 0.15);
+  border-radius: 18px;
+  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.06);
+  transition: all 0.25s ease;
+}
+
+.actionsWrapper {
+  padding: 1.15rem 1.5rem;
+}
+
+.actionsContainer {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
-.arrowIcon {
-  color: rgba(255, 255, 255, 0.3);
+.toolbarRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-/* ========================================= */
-/* ANIMATIONS                                */
-/* ========================================= */
-
-@keyframes slideUpSmooth {
-  0% { opacity: 0; transform: translateY(40px) scale(0.98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+.filterGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  flex: 1;
 }
 
-@keyframes pulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
-  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+.filterPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 10px;
+}
+
+.filterIcon {
+  color: #0284c7;
+}
+
+.filterLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.filterSelect {
+  background: transparent;
+  border: none;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+}
+
+.searchBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 240px;
+  max-width: 420px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: #0284c7;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 9px 34px 9px 36px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  background: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.clearSearchBtn {
+  position: absolute;
+  right: 10px;
+  background: #e2e8f0;
+  border: none;
+  color: #475569;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.actionButtonsGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+/* MASS ACTION BANNER (30% Royal Blue Highlight) */
+.massActionBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: linear-gradient(90deg, #eff6ff 0%, #e0f2fe 100%);
+  border: 1.5px solid #38bdf8;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.12);
+  animation: slideDown 0.25s ease-out;
+}
+
+.massBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.massControls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.massFieldGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.massIcon {
+  color: #0284c7;
+}
+
+.massLabel {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.massSelect {
+  background: #ffffff;
+  border: 1px solid #7dd3fc;
+  color: #0f172a;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  outline: none;
+}
+
+.massInput {
+  flex: 1;
+  min-width: 240px;
+  background: #ffffff;
+  border: 1.5px solid #7dd3fc;
+  color: #0f172a;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.massInput:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.massApplyBtn {
+  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+  color: #ffffff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.massApplyBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+}
+
+.massCancelBtn {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.noEditableWarn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e11d48;
+}
+
+/* ========================================================================== */
+/* 4. SMART EXECUTIVE DATA TABLE (PILOT EDITABLE VS LOCKED COLUMNS)           */
+/* ========================================================================== */
+
+.gridWrapper {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tableScrollContainer {
+  width: 100%;
+  overflow-x: auto;
+  max-height: calc(100vh - 310px);
+  min-height: 420px;
+}
+
+.luxeTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.84rem;
+}
+
+.luxeTable thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.thLocked {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 14px 16px;
+  border-bottom: 2px solid #cbd5e1;
+  border-right: 1px solid #e2e8f0;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* Royal Blue Header for Admin-Added Pilot Editable Columns */
+.thEditable {
+  background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 14px 16px;
+  border-bottom: 2px solid #0369a1;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+  text-align: left;
+  min-width: 240px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.thContent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trRow {
+  background: #ffffff;
+  transition: background 0.15s ease;
+}
+
+.trRow:nth-child(even) {
+  background: #f8fafc;
+}
+
+.trRow:hover {
+  background: #f0f9ff;
+}
+
+.trSelected {
+  background: #e0f2fe !important;
+}
+
+.tdCell {
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tdEditableCell {
+  padding: 8px 12px;
+  border-bottom: 1px solid #bae6fd;
+  border-right: 1px solid #e0f2fe;
+  background: rgba(240, 249, 255, 0.55);
+  vertical-align: middle;
+  min-width: 240px;
+}
+
+/* EPS Badge Styling */
+.epsPillGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.epsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.copyMiniBtn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0284c7;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.copyMiniBtn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+/* Disabled Excel Cell */
+.lockedValue {
+  color: #475569;
+  font-size: 0.82rem;
+  user-select: text;
+}
+
+/* Pilot Editable Input Inside Table */
+.pilotInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.pilotInput {
+  width: 100%;
+  background: #ffffff;
+  border: 1.5px solid #93c5fd;
+  border-radius: 8px;
+  padding: 7px 28px 7px 10px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.pilotInput:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18);
+}
+
+.pilotInput::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.savedIndicator {
+  position: absolute;
+  right: 8px;
+  color: #0284c7;
+  pointer-events: none;
+}
+
+/* Status Pill Buttons */
+.statusBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.statusTodo {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.statusProgress {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #7dd3fc;
+}
+
+.statusDone {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+/* Checkbox */
+.luxeCheckbox {
+  width: 17px;
+  height: 17px;
+  accent-color: #0284c7;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Empty & Loader States */
+.emptyStateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  text-align: center;
+  gap: 1rem;
+  color: #475569;
+}
+
+.emptyIconCircle {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.15);
+}
+
+.tableFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

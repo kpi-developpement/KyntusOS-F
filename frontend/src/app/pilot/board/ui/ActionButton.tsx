@@ -7,24 +7,27 @@ import styles from "./ActionButton.module.css";
 interface ActionButtonProps {
   icon: LucideIcon;
   label: string;
-  variant?: "cyan" | "danger" | "warning";
+  variant?: "primary" | "secondary" | "cyan" | "danger" | "warning";
   onClick: () => void;
 }
 
-export default function ActionButton({ icon: Icon, label, variant = "cyan", onClick }: ActionButtonProps) {
+export default function ActionButton({
+  icon: Icon,
+  label,
+  variant = "primary",
+  onClick,
+}: ActionButtonProps) {
   return (
-    <button className={`${styles.cyberBtn} ${styles[variant]}`} onClick={onClick}>
-      {/* L-Khtet li kay-dowez d-dow (Scanner) */}
-      <span className={styles.scanner}></span>
-      
-      {/* L-Contenu dyal l-bouton */}
+    <button
+      type="button"
+      className={`${styles.luxeBtn} ${styles[variant] || styles.primary}`}
+      onClick={onClick}
+    >
+      <span className={styles.shimmer} />
       <span className={styles.content}>
         <Icon size={16} className={styles.icon} />
-        <span className={styles.label}>{label}</span>
+        <span>{label}</span>
       </span>
-      
-      {/* L-Glitch / Brackets f j-jnab */}
-      <span className={styles.brackets}></span>
     </button>
   );
 }

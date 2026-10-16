@@ -10,12 +10,8 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(
-                        "http://kyntusos.kyntus.fr:8082",       // L'environnement d'Dev
-                        "http://kyntusos.kyntus.fr",   // L'environnement Prod (HTTP)
-                        "https://kyntusos.kyntus.fr",  // L'environnement Prod (HTTPS - Anticipation)
-                        "http://kyntusos.kyntus.fr:3000" // 🔥 HNA 3AWTANI 🔥
-                )
+                // 🔥 THE FIX: N9blou ay IP jdid (b7al 10.10.10.25:3827) w ay port
+                .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true);
