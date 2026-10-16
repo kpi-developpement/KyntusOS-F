@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   Activity,
@@ -18,6 +18,15 @@ import {
   ShieldCheck,
   Info,
   Layers,
+  GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+  RotateCcw,
+  Eye,
+  EyeOff,
+  ArrowUpToLine,
+  X,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
@@ -66,7 +75,7 @@ export async function universalCopyToClipboard(text: string): Promise<boolean> {
 }
 
 // ============================================================================
-// SMART EPS EXTRACTOR: Finds EPS anywhere in task properties or dynamicData
+// SMART EPS EXTRACTOR: 100% Independent of Column Order or Visibility
 // ============================================================================
 export function extractTaskEPS(task: any, editableCols: string[] = []): string {
   if (!task) return "";
@@ -153,14 +162,25 @@ export default function PilotBoard() {
   const [user, setUser] = useState<any>(null);
   const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
 
+  // Search & Cascading Filter states
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterColumn, setFilterColumn] = useState<string>("ALL");
   const [columnExactValue, setColumnExactValue] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
+  // Local draft values for smooth typing in editable Pilot columns
   const [draftEdits, setDraftEdits] = useState<Record<string, string>>({});
   const [savingCell, setSavingCell] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
+
+  // ========================================================================
+  // NEW 2026: CUSTOM COLUMN ORDER & VISIBILITY ENGINE
+  // ========================================================================
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
+  const [draggedCol, setDraggedCol] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
+  const [isColStudioOpen, setIsColStudioOpen] = useState(false);
 
   // ========================================================================
   // 1. INITIAL LOAD
@@ -238,7 +258,18 @@ export default function PilotBoard() {
     return [];
   }, [selectedTemplate, templates]);
 
-  const allDynamicCols = useMemo(() => {
+  const editableLowerSet = useMemo(
+    () => new Set(allowedFields.map((f: string) => f.toLowerCase())),
+    [allowedFields]
+  );
+
+  const isEditableColumn = useCallback(
+    (colName: string) => editableLowerSet.has(colName.toLowerCase()),
+    [editableLowerSet]
+  );
+
+  // Default Order: Editable Pilot Columns first, then Locked Excel Columns
+  const defaultOrderedCols = useMemo(() => {
     const cols = new Set<string>();
     allowedFields.forEach((f: string) => cols.add(f));
     tasks.forEach((t) => {
@@ -249,12 +280,158 @@ export default function PilotBoard() {
     return Array.from(cols);
   }, [tasks, allowedFields]);
 
-  const lockedExcelCols = useMemo(() => {
-    const editableSet = new Set(
-      allowedFields.map((f: string) => f.toLowerCase())
-    );
-    return allDynamicCols.filter((c) => !editableSet.has(c.toLowerCase()));
-  }, [allDynamicCols, allowedFields]);
+  // Load & Sync Saved Column Order per Mission Template
+  useEffect(() => {
+    if (!selectedTemplate || defaultOrderedCols.length === 0) {
+      setColumnOrder(defaultOrderedCols);
+      return;
+    }
+
+    const storageOrderKey = `kyntus_col_order_${selectedTemplate}`;
+    const storageHiddenKey = `kyntus_col_hidden_${selectedTemplate}`;
+
+    try {
+      const savedOrderRaw = localStorage.getItem(storageOrderKey);
+      const savedHiddenRaw = localStorage.getItem(storageHiddenKey);
+
+      if (savedHiddenRaw) {
+        const parsedHidden = JSON.parse(savedHiddenRaw);
+        if (Array.isArray(parsedHidden)) setHiddenColumns(parsedHidden);
+      } else {
+        setHiddenColumns([]);
+      }
+
+      if (savedOrderRaw) {
+        const parsedOrder: string[] = JSON.parse(savedOrderRaw);
+        if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
+          // Keep saved columns that still exist + append any newly discovered columns
+          const existingSet = new Set(defaultOrderedCols);
+          const validSaved = parsedOrder.filter((c) => existingSet.has(c));
+          constvalidSavedSet = new Set(validSaved);
+          const missingCols = defaultOrderedCols.filter(
+            (c) => !constvalidSavedSet.has(c)
+          );
+          setColumnOrder([...validSaved, ...missingCols]);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read column layout from localStorage", e);
+    }
+
+    setColumnOrder(defaultOrderedCols);
+  }, [selectedTemplate, defaultOrderedCols]);
+
+  const saveColumnOrder = (newOrder: string[]) => {
+    setColumnOrder(newOrder);
+    if (selectedTemplate) {
+      localStorage.setItem(
+        `kyntus_col_order_${selectedTemplate}`,
+        JSON.stringify(newOrder)
+      );
+    }
+  };
+
+  const toggleColumnVisibility = (col: string) => {
+    setHiddenColumns((prev) => {
+      const next = prev.includes(col)
+        ? prev.filter((item) => item !== col)
+        : [...prev, col];
+      if (selectedTemplate) {
+        localStorage.setItem(
+          `kyntus_col_hidden_${selectedTemplate}`,
+          JSON.stringify(next)
+        );
+      }
+      return next;
+    });
+  };
+
+  const handleResetColumnLayout = () => {
+    setColumnOrder(defaultOrderedCols);
+    setHiddenColumns([]);
+    if (selectedTemplate) {
+      localStorage.removeItem(`kyntus_col_order_${selectedTemplate}`);
+      localStorage.removeItem(`kyntus_col_hidden_${selectedTemplate}`);
+    }
+    toast({
+      message: "ORDRE DES COLONNES RÉINITIALISÉ PAR DÉFAUT",
+      type: "success",
+    });
+  };
+
+  // Move Column Left/Right by 1 step
+  const moveColumnStep = (col: string, direction: "left" | "right") => {
+    const visibleList = columnOrder.filter((c) => !hiddenColumns.includes(c));
+    const currentVisIdx = visibleList.indexOf(col);
+    if (currentVisIdx === -1) return;
+
+    const targetVisIdx =
+      direction === "left" ? currentVisIdx - 1 : currentVisIdx + 1;
+    if (targetVisIdx < 0 || targetVisIdx >= visibleList.length) return;
+
+    const targetCol = visibleList[targetVisIdx];
+    const nextOrder = [...columnOrder];
+    const fromFullIdx = nextOrder.indexOf(col);
+    const toFullIdx = nextOrder.indexOf(targetCol);
+
+    nextOrder[fromFullIdx] = targetCol;
+    nextOrder[toFullIdx] = col;
+    saveColumnOrder(nextOrder);
+  };
+
+  // Pin Column to First Position
+  const pinColumnFirst = (col: string) => {
+    const nextOrder = [col, ...columnOrder.filter((c) => c !== col)];
+    saveColumnOrder(nextOrder);
+    toast({
+      message: `COLONNE [${col.toUpperCase()}] PLACÉE EN TÊTE`,
+      type: "success",
+    });
+  };
+
+  // Drag & Drop Column Reordering Handlers
+  const handleColDragStart = (e: React.DragEvent, col: string) => {
+    setDraggedCol(col);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", col);
+  };
+
+  const handleColDragOver = (e: React.DragEvent, targetCol: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (draggedCol && draggedCol !== targetCol && dragOverCol !== targetCol) {
+      setDragOverCol(targetCol);
+    }
+  };
+
+  const handleColDrop = (e: React.DragEvent, targetCol: string) => {
+    e.preventDefault();
+    const sourceCol = draggedCol || e.dataTransfer.getData("text/plain");
+    setDraggedCol(null);
+    setDragOverCol(null);
+
+    if (!sourceCol || sourceCol === targetCol) return;
+
+    const nextOrder = [...columnOrder];
+    const fromIdx = nextOrder.indexOf(sourceCol);
+    const toIdx = nextOrder.indexOf(targetCol);
+    if (fromIdx === -1 || toIdx === -1) return;
+
+    nextOrder.splice(fromIdx, 1);
+    nextOrder.splice(toIdx, 0, sourceCol);
+    saveColumnOrder(nextOrder);
+  };
+
+  const handleColDragEnd = () => {
+    setDraggedCol(null);
+    setDragOverCol(null);
+  };
+
+  const visibleOrderedCols = useMemo(
+    () => columnOrder.filter((c) => !hiddenColumns.includes(c)),
+    [columnOrder, hiddenColumns]
+  );
 
   // ========================================================================
   // 4. CASCADING DISTINCT VALUES ENGINE (PURE VECTOR ICONS)
@@ -371,7 +548,7 @@ export default function PilotBoard() {
   };
 
   // ========================================================================
-  // 6. MISSION HANDLERS (ZERO EMOJI MESSAGES)
+  // 6. MISSION HANDLERS (100% PRESERVED)
   // ========================================================================
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
     const targetTask = tasks.find((t) => t.id === taskId);
@@ -678,7 +855,7 @@ export default function PilotBoard() {
         </div>
 
         <div className={styles.boardContent}>
-          {/* 2. SUB-HEADER KPI & MISSION INFO */}
+          {/* 2. SUB-HEADER KPI, MISSION INFO & COLUMN LAYOUT STUDIO */}
           <div className={styles.statsBar}>
             <h2 className={styles.matrixTitle}>
               <span className={styles.titleIconBox}>
@@ -694,6 +871,141 @@ export default function PilotBoard() {
             </h2>
 
             <div className={styles.kpiBadgesGroup}>
+              {/* NEW: COLUMN REORDER & VISIBILITY STUDIO POPOVER */}
+              <div className={styles.colStudioWrapper}>
+                <button
+                  type="button"
+                  onClick={() => setIsColStudioOpen((prev) => !prev)}
+                  className={`${styles.colStudioTrigger} ${
+                    isColStudioOpen ? styles.colStudioTriggerActive : ""
+                  }`}
+                >
+                  <SlidersHorizontal size={14} />
+                  <span>
+                    COLONNES & ORDRE ({visibleOrderedCols.length}/{columnOrder.length})
+                  </span>
+                </button>
+
+                {isColStudioOpen && (
+                  <div className={styles.colStudioPopover}>
+                    <div className={styles.colStudioHeader}>
+                      <div className={styles.colStudioTitle}>
+                        <SlidersHorizontal size={15} />
+                        <span>ORGANISER LES COLONNES</span>
+                      </div>
+                      <div className={styles.colStudioHeaderActions}>
+                        <button
+                          type="button"
+                          onClick={handleResetColumnLayout}
+                          className={styles.colResetMiniBtn}
+                          title="Réinitialiser l'ordre par défaut"
+                        >
+                          <RotateCcw size={12} />
+                          <span>DÉFAUT</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsColStudioOpen(false)}
+                          className={styles.colCloseMiniBtn}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className={styles.colStudioHint}>
+                      Glissez-déposez les colonnes ou utilisez les flèches pour personnaliser votre vue.
+                    </div>
+
+                    <div className={styles.colStudioList}>
+                      {columnOrder.map((col, index) => {
+                        const isEditable = isEditableColumn(col);
+                        const isHidden = hiddenColumns.includes(col);
+                        return (
+                          <div
+                            key={col}
+                            draggable
+                            onDragStart={(e) => handleColDragStart(e, col)}
+                            onDragOver={(e) => handleColDragOver(e, col)}
+                            onDrop={(e) => handleColDrop(e, col)}
+                            onDragEnd={handleColDragEnd}
+                            className={`${styles.colStudioItem} ${
+                              isEditable ? styles.colStudioItemEditable : ""
+                            } ${isHidden ? styles.colStudioItemHidden : ""} ${
+                              dragOverCol === col ? styles.colStudioItemDragOver : ""
+                            }`}
+                          >
+                            <div className={styles.colStudioItemLeft}>
+                              <GripVertical
+                                size={14}
+                                className={styles.colGripIcon}
+                              />
+                              <span className={styles.colIndexBadge}>
+                                #{index + 1}
+                              </span>
+                              <span className={styles.colStudioName}>{col}</span>
+                              {isEditable && (
+                                <span className={styles.colEditableTag}>
+                                  PILOTE
+                                </span>
+                              )}
+                            </div>
+
+                            <div className={styles.colStudioItemRight}>
+                              <button
+                                type="button"
+                                onClick={() => pinColumnFirst(col)}
+                                disabled={index === 0}
+                                className={styles.colIconBtn}
+                                title="Placer en 1ère position"
+                              >
+                                <ArrowUpToLine size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveColumnStep(col, "left")}
+                                disabled={index === 0}
+                                className={styles.colIconBtn}
+                                title="Monter / Déplacer à gauche"
+                              >
+                                <ChevronLeft size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveColumnStep(col, "right")}
+                                disabled={index === columnOrder.length - 1}
+                                className={styles.colIconBtn}
+                                title="Descendre / Déplacer à droite"
+                              >
+                                <ChevronRight size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleColumnVisibility(col)}
+                                className={`${styles.colIconBtn} ${
+                                  isHidden ? styles.colIconBtnMuted : ""
+                                }`}
+                                title={
+                                  isHidden
+                                    ? "Afficher cette colonne"
+                                    : "Masquer cette colonne"
+                                }
+                              >
+                                {isHidden ? (
+                                  <EyeOff size={13} />
+                                ) : (
+                                  <Eye size={13} />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className={styles.editableBadge}>
                 <Edit3 size={14} />
                 <span>
@@ -716,7 +1028,7 @@ export default function PilotBoard() {
               filteredCount={filteredTasks.length}
               selectedCount={selectedTasks.length}
               allowedFields={allowedFields}
-              allColumns={allDynamicCols}
+              allColumns={columnOrder}
               columnDistinctOptions={columnDistinctOptions}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -735,7 +1047,7 @@ export default function PilotBoard() {
             />
           </div>
 
-          {/* 4. SMART EXECUTIVE TASK GRID */}
+          {/* 4. SMART EXECUTIVE TASK GRID WITH DRAGGABLE & REORDERABLE COLUMNS */}
           <div className={`${styles.bentoCard} ${styles.gridWrapper}`}>
             {!selectedTemplate ? (
               <div className={styles.emptyStateBox}>
@@ -762,7 +1074,10 @@ export default function PilotBoard() {
                   <table className={styles.luxeTable}>
                     <thead>
                       <tr>
-                        <th className={styles.thLocked} style={{ width: 48 }}>
+                        {/* STICKY COL 1: CHECKBOX */}
+                        <th
+                          className={`${styles.thLocked} ${styles.stickyColCheck}`}
+                        >
                           <input
                             type="checkbox"
                             className={styles.luxeCheckbox}
@@ -772,35 +1087,94 @@ export default function PilotBoard() {
                           />
                         </th>
 
-                        <th className={styles.thLocked}>
+                        {/* STICKY COL 2: RÉFÉRENCE EPS (ALWAYS PINNED FOR QUALITY & SPEED) */}
+                        <th
+                          className={`${styles.thLocked} ${styles.stickyColEps}`}
+                        >
                           <div className={styles.thContent}>
                             <span>RÉFÉRENCE EPS</span>
                           </div>
                         </th>
 
-                        <th className={styles.thLocked}>
+                        {/* STICKY COL 3: STATUT PILOTE / ADMIN */}
+                        <th
+                          className={`${styles.thLocked} ${styles.stickyColStatus}`}
+                        >
                           <div className={styles.thContent}>
                             <span>STATUT PILOTE / ADMIN</span>
                           </div>
                         </th>
 
-                        {allowedFields.map((col: string) => (
-                          <th key={col} className={styles.thEditable}>
-                            <div className={styles.thContent}>
-                              <Edit3 size={14} />
-                              <span>{col} (ANALYSE PILOTE)</span>
-                            </div>
-                          </th>
-                        ))}
+                        {/* DYNAMIC REORDERABLE COLUMNS (PILOT EDITABLE & EXCEL LOCKED) */}
+                        {visibleOrderedCols.map((col: string, colIdx: number) => {
+                          const isEditable = isEditableColumn(col);
+                          const isDraggingThis = draggedCol === col;
+                          const isDragTarget = dragOverCol === col;
 
-                        {lockedExcelCols.map((col: string) => (
-                          <th key={col} className={styles.thLocked}>
-                            <div className={styles.thContent}>
-                              <Lock size={12} style={{ opacity: 0.6 }} />
-                              <span>{col}</span>
-                            </div>
-                          </th>
-                        ))}
+                          return (
+                            <th
+                              key={col}
+                              draggable
+                              onDragStart={(e) => handleColDragStart(e, col)}
+                              onDragOver={(e) => handleColDragOver(e, col)}
+                              onDrop={(e) => handleColDrop(e, col)}
+                              onDragEnd={handleColDragEnd}
+                              className={`${
+                                isEditable ? styles.thEditable : styles.thLocked
+                              } ${styles.thDraggable} ${
+                                isDraggingThis ? styles.thDragging : ""
+                              } ${isDragTarget ? styles.thDragTarget : ""}`}
+                            >
+                              <div className={styles.thInteractiveBar}>
+                                <div className={styles.thContent}>
+                                  <GripVertical
+                                    size={14}
+                                    className={styles.thGripHandle}
+                                  />
+                                  {isEditable ? (
+                                    <Edit3 size={14} />
+                                  ) : (
+                                    <Lock size={12} style={{ opacity: 0.65 }} />
+                                  )}
+                                  <span>
+                                    {col}
+                                    {isEditable ? " (ANALYSE)" : ""}
+                                  </span>
+                                </div>
+
+                                {/* Instant 1-Click Column Reorder Controls */}
+                                <div className={styles.thReorderControls}>
+                                  <button
+                                    type="button"
+                                    disabled={colIdx === 0}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      moveColumnStep(col, "left");
+                                    }}
+                                    className={styles.thMoveBtn}
+                                    title="Déplacer cette colonne à gauche"
+                                  >
+                                    <ChevronLeft size={13} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      colIdx === visibleOrderedCols.length - 1
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      moveColumnStep(col, "right");
+                                    }}
+                                    className={styles.thMoveBtn}
+                                    title="Déplacer cette colonne à droite"
+                                  >
+                                    <ChevronRight size={13} />
+                                  </button>
+                                </div>
+                              </div>
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
 
@@ -818,7 +1192,10 @@ export default function PilotBoard() {
                               isSelected ? styles.trSelected : ""
                             } ${lockedByAdmin ? styles.trLockedAdmin : ""}`}
                           >
-                            <td className={styles.tdCell}>
+                            {/* STICKY CELL 1: CHECKBOX */}
+                            <td
+                              className={`${styles.tdCell} ${styles.stickyColCheck}`}
+                            >
                               <input
                                 type="checkbox"
                                 className={styles.luxeCheckbox}
@@ -827,7 +1204,10 @@ export default function PilotBoard() {
                               />
                             </td>
 
-                            <td className={styles.tdCell}>
+                            {/* STICKY CELL 2: EPS REFERENCE */}
+                            <td
+                              className={`${styles.tdCell} ${styles.stickyColEps}`}
+                            >
                               <div className={styles.epsPillGroup}>
                                 <span className={styles.epsBadge}>{epsCode}</span>
                                 <button
@@ -847,7 +1227,10 @@ export default function PilotBoard() {
                               </div>
                             </td>
 
-                            <td className={styles.tdCell}>
+                            {/* STICKY CELL 3: STATUS */}
+                            <td
+                              className={`${styles.tdCell} ${styles.stickyColStatus}`}
+                            >
                               <button
                                 type="button"
                                 disabled={lockedByAdmin}
@@ -896,87 +1279,105 @@ export default function PilotBoard() {
                               </button>
                             </td>
 
-                            {allowedFields.map((col: string) => {
-                              const cellKey = `${task.id}_${col}`;
-                              const currentVal =
-                                draftEdits[cellKey] !== undefined
-                                  ? draftEdits[cellKey]
-                                  : String(dyn[col] ?? "");
+                            {/* DYNAMIC CELLS MATCHING USER'S CUSTOM COLUMN ORDER */}
+                            {visibleOrderedCols.map((col: string) => {
+                              const isEditable = isEditableColumn(col);
+
+                              if (isEditable) {
+                                const cellKey = `${task.id}_${col}`;
+                                const currentVal =
+                                  draftEdits[cellKey] !== undefined
+                                    ? draftEdits[cellKey]
+                                    : String(dyn[col] ?? "");
+
+                                return (
+                                  <td
+                                    key={col}
+                                    className={`${styles.tdEditableCell} ${
+                                      dragOverCol === col
+                                        ? styles.tdDragTargetCol
+                                        : ""
+                                    }`}
+                                  >
+                                    <div className={styles.pilotInputWrapper}>
+                                      <input
+                                        type="text"
+                                        disabled={lockedByAdmin}
+                                        className={`${styles.pilotInput} ${
+                                          lockedByAdmin
+                                            ? styles.pilotInputDisabled
+                                            : ""
+                                        }`}
+                                        placeholder={
+                                          lockedByAdmin
+                                            ? "Validé par l'Admin"
+                                            : `Saisir ${col}...`
+                                        }
+                                        value={currentVal}
+                                        onChange={(e) =>
+                                          setDraftEdits((prev) => ({
+                                            ...prev,
+                                            [cellKey]: e.target.value,
+                                          }))
+                                        }
+                                        onBlur={() => {
+                                          if (
+                                            !lockedByAdmin &&
+                                            draftEdits[cellKey] !== undefined &&
+                                            draftEdits[cellKey] !==
+                                              String(dyn[col] ?? "")
+                                          ) {
+                                            handleUpdateData(
+                                              task.id,
+                                              col,
+                                              draftEdits[cellKey]
+                                            );
+                                          }
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                            (
+                                              e.target as HTMLInputElement
+                                            ).blur();
+                                          }
+                                        }}
+                                      />
+                                      {lockedByAdmin ? (
+                                        <Lock
+                                          size={13}
+                                          className={styles.lockedInputIcon}
+                                        />
+                                      ) : (
+                                        savingCell === cellKey && (
+                                          <Sparkles
+                                            size={14}
+                                            className={styles.savedIndicator}
+                                          />
+                                        )
+                                      )}
+                                    </div>
+                                  </td>
+                                );
+                              }
 
                               return (
-                                <td key={col} className={styles.tdEditableCell}>
-                                  <div className={styles.pilotInputWrapper}>
-                                    <input
-                                      type="text"
-                                      disabled={lockedByAdmin}
-                                      className={`${styles.pilotInput} ${
-                                        lockedByAdmin
-                                          ? styles.pilotInputDisabled
-                                          : ""
-                                      }`}
-                                      placeholder={
-                                        lockedByAdmin
-                                          ? "Validé par l'Admin"
-                                          : `Saisir ${col}...`
-                                      }
-                                      value={currentVal}
-                                      onChange={(e) =>
-                                        setDraftEdits((prev) => ({
-                                          ...prev,
-                                          [cellKey]: e.target.value,
-                                        }))
-                                      }
-                                      onBlur={() => {
-                                        if (
-                                          !lockedByAdmin &&
-                                          draftEdits[cellKey] !== undefined &&
-                                          draftEdits[cellKey] !==
-                                            String(dyn[col] ?? "")
-                                        ) {
-                                          handleUpdateData(
-                                            task.id,
-                                            col,
-                                            draftEdits[cellKey]
-                                          );
-                                        }
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                          (e.target as HTMLInputElement).blur();
-                                        }
-                                      }}
-                                    />
-                                    {lockedByAdmin ? (
-                                      <Lock
-                                        size={13}
-                                        className={styles.lockedInputIcon}
-                                      />
-                                    ) : (
-                                      savingCell === cellKey && (
-                                        <Sparkles
-                                          size={14}
-                                          className={styles.savedIndicator}
-                                        />
-                                      )
-                                    )}
-                                  </div>
+                                <td
+                                  key={col}
+                                  className={`${styles.tdCell} ${
+                                    dragOverCol === col
+                                      ? styles.tdDragTargetCol
+                                      : ""
+                                  }`}
+                                  title={String(dyn[col] ?? "")}
+                                >
+                                  <span className={styles.lockedValue}>
+                                    {dyn[col] !== undefined && dyn[col] !== ""
+                                      ? String(dyn[col])
+                                      : "—"}
+                                  </span>
                                 </td>
                               );
                             })}
-
-                            {lockedExcelCols.map((col: string) => (
-                              <td
-                                key={col}
-                                className={styles.tdCell}
-                                title={String(dyn[col] ?? "")}
-                              >
-                                <span className={styles.lockedValue}>
-                                  {dyn[col] !== undefined && dyn[col] !== ""
-                                    ? String(dyn[col])
-                                    : "—"}
-                                </span>
-                              </td>
-                            ))}
                           </tr>
                         );
                       })}
@@ -988,10 +1389,9 @@ export default function PilotBoard() {
                   <span className={styles.footerNote}>
                     <Info size={15} color="#0284c7" />
                     <span>
-                      2 clics sur Statut = <strong>TERMINÉ</strong> (modifiable
-                      tant que l&apos;Admin ne l&apos;a pas validé). Une fois{" "}
-                      <strong>VALIDÉ ADMIN</strong> dans le Kanban, la ligne
-                      devient définitivement non modifiable.
+                      Glissez les en-têtes de colonnes ou cliquez sur{" "}
+                      <strong>COLONNES & ORDRE</strong> pour réorganiser votre
+                      grille. Vos préférences sont sauvegardées automatiquement.
                     </span>
                   </span>
                   <span>
