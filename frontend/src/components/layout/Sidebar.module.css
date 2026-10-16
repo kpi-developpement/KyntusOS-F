@@ -1,69 +1,140 @@
-/* src/components/layout/Sidebar.module.css */
+/* ==========================================================================
+   KYNTUS OS // ARGON SPATIAL DOCK SIDEBAR (2026 EDITION)
+   Palette: 70% Argon Light Blue / Ice | 30% Pure Ceramic White
+   ========================================================================== */
 
-/* --- LE RAIL LATÉRAL --- */
 .sidebar {
+  --argon-ice: #e0f2fe;
+  --argon-sky: #bae6fd;
+  --argon-blue: #38bdf8;
+  --argon-core: #0284c7;
+  --argon-deep: #0369a1;
+  --pure-white: #ffffff;
+
   position: fixed;
-  left: 0;
-  top: 0;
-  height: 100vh;
-  width: 80px; /* Fermé par défaut */
+  left: 14px;
+  top: 14px;
+  height: calc(100vh - 28px);
+  width: 82px;
   z-index: 1000;
-  
+
   display: flex;
   flex-direction: column;
-  padding: 25px 12px;
-  
-  /* Glass Sombre & Solide */
-  background: rgba(2, 4, 10, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 10px 0 40px rgba(0,0,0,0.6);
-  
-  /* Animation d'ouverture */
-  transition: width 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  padding: 22px 13px;
+
+  /* 70% BLEU CLAIR (Cristal Liquide) + 30% BLANC (Structure & Lumière) */
+  background: linear-gradient(
+    165deg,
+    rgba(186, 230, 253, 0.82) 0%,
+    rgba(224, 242, 254, 0.88) 60%,
+    rgba(255, 255, 255, 0.94) 100%
+  );
+  backdrop-filter: blur(30px) saturate(210%);
+  -webkit-backdrop-filter: blur(30px) saturate(210%);
+
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-right: 3px solid var(--argon-blue);
+  border-radius: 26px;
+
+  box-shadow: 
+    12px 0 40px -8px rgba(2, 132, 199, 0.22),
+    inset 0 2px 5px var(--pure-white),
+    inset -2px 0 12px rgba(56, 189, 248, 0.25);
+
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.45s ease,
+              background 0.45s ease;
   overflow: hidden;
 }
 
-/* HOVER : L'EXPANSION */
-.sidebar:hover {
-  width: 260px;
-  border-right-color: rgba(0, 242, 234, 0.3); /* Bordure Cyan */
-  box-shadow: 20px 0 60px rgba(0,0,0,0.9), inset -1px 0 0 rgba(0, 242, 234, 0.1);
+/* Dynamic 2026 Cursor Glow inside Sidebar */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    320px circle at var(--mouse-x, 40px) var(--mouse-y, 200px),
+    rgba(255, 255, 255, 0.8),
+    rgba(56, 189, 248, 0.2) 45%,
+    transparent 80%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* --- LOGO AREA (HEXAGON) --- */
+/* --- HOVER : EXPANSION SPATIALE --- */
+.sidebar:hover {
+  width: 276px;
+  background: linear-gradient(
+    165deg,
+    rgba(186, 230, 253, 0.9) 0%,
+    rgba(224, 242, 254, 0.95) 55%,
+    rgba(255, 255, 255, 0.98) 100%
+  );
+  border-color: var(--pure-white);
+  border-right: 4px solid var(--argon-core);
+  box-shadow: 
+    24px 0 65px -10px rgba(2, 132, 199, 0.3),
+    0 0 35px rgba(56, 189, 248, 0.3),
+    inset 0 2px 6px var(--pure-white);
+}
+
+/* --- LOGO AREA --- */
 .logoArea {
   display: flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 40px;
-  padding-left: 4px;
-  height: 50px;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-left: 5px;
+  height: 52px;
   white-space: nowrap;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .logoHex {
-  min-width: 44px;
-  height: 44px;
-  background: linear-gradient(135deg, #00f2ea, #0070f3);
+  min-width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, var(--argon-blue) 0%, var(--argon-core) 100%);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; color: black; font-size: 1.5rem;
-  box-shadow: 0 0 20px rgba(0, 242, 234, 0.4);
-  animation: pulseLogo 3s infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: var(--pure-white);
+  font-size: 1.45rem;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.38);
+  animation: pulseArgon 3.5s infinite ease-in-out;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sidebar:hover .logoHex {
+  transform: rotate(90deg) scale(1.05);
+  background: var(--pure-white);
+  color: var(--argon-core);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.65);
 }
 
 .logoText {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-weight: 900;
-  font-size: 1.4rem;
-  color: white;
+  font-size: 1.35rem;
+  color: var(--argon-deep);
   letter-spacing: 2px;
   opacity: 0;
-  transform: translateX(-20px);
-  transition: all 0.3s ease;
+  transform: translateX(-16px);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  text-shadow: 0 1px 0 var(--pure-white);
+}
+
+.logoAccent {
+  color: var(--argon-core);
+  background: var(--pure-white);
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 3px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
 }
 
 .sidebar:hover .logoText {
@@ -71,108 +142,183 @@
   transform: translateX(0);
 }
 
-/* --- MENU ITEMS --- */
+/* --- MENU ITEMS (Scrollable sans barre visible pour supporter les 12 items) --- */
 .menu {
-  display: flex; flex-direction: column; gap: 8px; flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  padding: 4px 2px;
+  position: relative;
+  z-index: 2;
+}
+.menu::-webkit-scrollbar {
+  display: none;
 }
 
 .menuItem {
-  display: flex; align-items: center; gap: 15px;
-  padding: 12px 14px;
-  color: #8899a6;
-  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 11px 14px;
+  color: #0369a1;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   text-decoration: none;
   white-space: nowrap;
   border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.38);
 }
 
-/* Hover Item */
 .menuItem:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: white;
+  background: var(--pure-white);
+  color: #0c4a6e;
+  border-color: rgba(56, 189, 248, 0.5);
   transform: translateX(5px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.22);
 }
 
-/* Active Item (Le Neon Glow) */
+/* État Actif : Fusion 70% Bleu Clair / 30% Blanc */
 .menuItem.active {
-  background: rgba(0, 242, 234, 0.05);
-  color: #00f2ea;
-  border-color: rgba(0, 242, 234, 0.2);
-  box-shadow: 0 0 20px rgba(0, 242, 234, 0.05);
+  background: linear-gradient(135deg, var(--argon-blue) 0%, var(--argon-core) 100%);
+  color: var(--pure-white);
+  border-color: var(--pure-white);
+  box-shadow: 
+    0 8px 20px rgba(2, 132, 199, 0.35),
+    inset 0 1px 2px rgba(255, 255, 255, 0.65);
 }
 
 .menuItem svg {
   min-width: 22px;
-  filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+  transition: transform 0.25s ease;
+}
+
+.menuItem:hover svg {
+  transform: scale(1.1);
 }
 
 .itemLabel {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   opacity: 0;
-  transition: opacity 0.2s 0.1s; /* Petit délai */
+  transform: translateX(-8px);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
 }
 
 .sidebar:hover .itemLabel {
   opacity: 1;
+  transform: translateX(0);
 }
 
-/* Indicateur Actif (Barre verticale) */
+.externalBadge {
+  font-size: 0.65rem;
+  background: rgba(56, 189, 248, 0.2);
+  color: var(--argon-core);
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  font-weight: 800;
+}
+
+/* Barre Verticale Lumineuse Blanche sur l'élément actif */
 .activeBar {
   position: absolute;
   left: 0;
-  height: 60%;
-  width: 3px;
-  background: #00f2ea;
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px #00f2ea;
+  height: 55%;
+  width: 4px;
+  background: var(--pure-white);
+  border-radius: 0 6px 6px 0;
+  box-shadow: 0 0 12px var(--pure-white);
 }
 
-/* --- FOOTER (USER) --- */
+/* --- FOOTER (CARTE UTILISATEUR BLANCHE 30%) --- */
 .footer {
-  margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 20px;
-  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1.5px solid var(--pure-white);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.12);
 }
 
 .userSection {
-  display: flex; align-items: center; gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .avatar {
-  min-width: 40px; height: 40px;
-  background: #111;
-  border: 1px solid #333;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; color: white; font-size: 0.9rem;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.1);
+  min-width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--argon-blue), var(--argon-core));
+  border: 2px solid var(--pure-white);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: var(--pure-white);
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
 }
 
 .userInfo {
-  opacity: 0; transition: 0.2s; white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
-.sidebar:hover .userInfo { opacity: 1; }
 
-.userName { font-size: 0.9rem; font-weight: 700; color: white; }
-.userStatus { font-size: 0.65rem; color: #39ff14; font-family: monospace; letter-spacing: 1px; }
+.sidebar:hover .userInfo {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.userName {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--argon-deep);
+}
+
+.userStatus {
+  font-size: 0.64rem;
+  color: var(--argon-core);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
 
 .logoutBtn {
-  background: rgba(255, 0, 85, 0.1);
-  border: 1px solid #ff0055;
-  color: #ff0055;
+  background: var(--pure-white);
+  border: 1.5px solid rgba(244, 63, 94, 0.35);
+  color: #e11d48;
   cursor: pointer;
-  min-width: 36px; height: 36px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  transition: 0.2s;
+  min-width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   opacity: 0;
-  transform: translateX(20px);
+  transform: translateX(15px);
 }
 
 .sidebar:hover .logoutBtn {
@@ -181,11 +327,14 @@
 }
 
 .logoutBtn:hover {
-  background: #ff0055; color: white; box-shadow: 0 0 15px #ff0055;
+  background: linear-gradient(135deg, #fb7185, #e11d48);
+  color: var(--pure-white);
+  border-color: var(--pure-white);
+  box-shadow: 0 6px 15px rgba(225, 29, 72, 0.35);
+  transform: scale(1.08);
 }
 
-@keyframes pulseLogo {
-  0% { box-shadow: 0 0 20px rgba(0, 242, 234, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(0, 242, 234, 0.5); }
-  100% { box-shadow: 0 0 20px rgba(0, 242, 234, 0.2); }
+@keyframes pulseArgon {
+  0%, 100% { box-shadow: 0 6px 18px rgba(2, 132, 199, 0.3); }
+  50% { box-shadow: 0 8px 28px rgba(56, 189, 248, 0.65); }
 }

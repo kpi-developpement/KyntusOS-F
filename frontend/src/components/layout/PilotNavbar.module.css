@@ -1,229 +1,339 @@
-/* Container 3D Space */
+/* ==========================================================================
+   KYNTUS OS // ARGON AERO-CRYSTAL NAVBAR (2026 EDITION)
+   Palette: 70% Argon Light Blue / Sky / Ice | 30% Pure Ceramic White
+   ========================================================================== */
+
 .navbarWrapper {
   position: fixed;
-  top: 20px;
+  top: 18px;
   left: 50%;
   transform: translateX(-50%);
-  width: 95%;
-  max-width: 1600px;
-  height: 80px;
+  width: 96%;
+  max-width: 1680px;
+  height: 82px;
   z-index: 1000;
-  perspective: 1500px; /* Profondeur 3D */
-  pointer-events: none; /* Laisse passer le clic sur les côtés */
+  perspective: 1800px;
+  pointer-events: none;
 }
 
-/* Le Corps Principal (La Barre) */
 .navbarBody {
-  pointer-events: auto; /* Réactive le clic */
+  --argon-ice: #e0f2fe;
+  --argon-sky: #bae6fd;
+  --argon-blue: #38bdf8;
+  --argon-core: #0284c7;
+  --argon-deep: #0369a1;
+  --pure-white: #ffffff;
+
+  pointer-events: auto;
   width: 100%;
   height: 100%;
-  
-  /* --- ETAT REPOS (Au fond) --- */
-  background: rgba(5, 10, 20, 0.85); /* Un peu transparent */
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 2px solid var(--neon-cyan); /* Ligne fine */
-  border-radius: 20px; /* Coins ronds */
-  
+  position: relative;
+  overflow: hidden;
+
+  /* 70% BLEU CLAIR (Aero Glass Base) + 30% BLANC (Reflets & Structure) */
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.78) 0%,
+    rgba(224, 242, 254, 0.85) 55%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-bottom: 3px solid var(--argon-blue);
+  border-radius: 24px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 30px;
-  position: relative;
-  overflow: hidden;
-  
-  /* 3D Initial : Incliné en arrière */
-  transform: rotateX(10deg) translateY(0) scale(0.98);
+  padding: 0 28px;
+
+  /* 3D Spatial Tilt au repos */
+  transform: rotateX(8deg) translateY(0) scale(0.988);
   transform-origin: top center;
-  
-  /* Shadows : Subtils */
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-  
-  backdrop-filter: blur(10px);
-  
-  /* 🔥 ANIMATION 7NINA (Smooth Physics) */
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
 
-/* --- ETAT HOVER (ACTIVATION) --- */
-/* Mlli la souris 9iss l'wrapper wla body */
-.navbarWrapper:hover .navbarBody {
-  /* 1. Mouvement : Tji l9oddam w t9ad */
-  transform: rotateX(0deg) translateY(5px) scale(1);
-  
-  /* 2. Style : Twelli Solide & Tech */
-  background: rgba(5, 8, 12, 0.98); /* Presque noir total */
-  border-color: rgba(0, 242, 234, 0.5); /* Bordure dwi */
-  border-radius: 12px; /* Coins wellaw 9asse7in chwia (Tech look) */
-  border-bottom-width: 4px; /* Socle ghlid */
-  
-  /* 3. Glow Effect (Ferg3a d dow) */
   box-shadow: 
-    0 20px 50px rgba(0,0,0,0.8), /* Ombre lta7t */
-    0 0 30px rgba(0, 242, 234, 0.15), /* Glow Cyan global */
-    inset 0 0 20px rgba(0, 112, 243, 0.1); /* Glow ldakhel */
+    0 18px 40px -10px rgba(2, 132, 199, 0.22),
+    0 4px 16px rgba(56, 189, 248, 0.15),
+    inset 0 2px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -2px 12px rgba(56, 189, 248, 0.25);
+
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* --- SCANLINE (Background Effect) --- */
+/* Dynamic 2026 Cursor Spotlight */
+.navbarBody::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    450px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(255, 255, 255, 0.75),
+    rgba(56, 189, 248, 0.18) 40%,
+    transparent 75%
+  );
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* --- HOVER : VERROUILLAGE SPATIAL 3D --- */
+.navbarWrapper:hover .navbarBody {
+  transform: rotateX(0deg) translateY(4px) scale(1);
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.88) 0%,
+    rgba(224, 242, 254, 0.94) 65%,
+    rgba(255, 255, 255, 0.98) 100%
+  );
+  border-color: var(--pure-white);
+  border-bottom: 4px solid var(--argon-core);
+  border-radius: 18px;
+
+  box-shadow: 
+    0 26px 60px -12px rgba(2, 132, 199, 0.32),
+    0 0 35px rgba(56, 189, 248, 0.4),
+    inset 0 2px 6px var(--pure-white),
+    inset 0 -3px 18px rgba(56, 189, 248, 0.35);
+}
+
+/* --- FAISCEAU PHOTONIQUE (Scanline 2026) --- */
 .scanline {
   position: absolute;
-  top: 0; left: -100%;
-  width: 50%;
+  top: 0;
+  left: -120%;
+  width: 45%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-  transform: skewX(-20deg);
-  animation: scan 4s infinite linear;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    rgba(56, 189, 248, 0.25),
+    transparent
+  );
+  transform: skewX(-25deg);
+  animation: argonBeam 6s infinite cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
-  opacity: 0.5;
-  transition: opacity 0.3s;
+  z-index: 1;
 }
 
-/* Quand on hover, le scanline s'accélère visuellement (devient plus brillant) */
-.navbarWrapper:hover .scanline {
-  background: linear-gradient(90deg, transparent, rgba(0, 242, 234, 0.15), transparent);
+/* --- NŒUDS OPTIQUES (Remplacent les anciennes vis) --- */
+.screw {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: var(--pure-white);
+  border: 1.5px solid var(--argon-blue);
+  border-radius: 50%;
+  opacity: 0.35;
+  z-index: 2;
+  transition: all 0.4s ease;
+}
+.tl { top: 9px; left: 12px; }
+.tr { top: 9px; right: 12px; }
+.bl { bottom: 9px; left: 12px; }
+.br { bottom: 9px; right: 12px; }
+
+.navbarWrapper:hover .screw {
   opacity: 1;
+  background: var(--argon-blue);
+  border-color: var(--pure-white);
+  box-shadow: 0 0 10px var(--argon-blue);
+  transform: scale(1.15);
 }
 
-/* --- BRAND ZONE --- */
+/* --- ZONE MARQUE (BRAND) --- */
 .brandZone {
-  display: flex; align-items: center; gap: 15px; z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .logoHex {
-  width: 40px; height: 40px;
-  background: var(--neon-cyan);
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, var(--argon-blue) 0%, var(--argon-core) 100%);
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 15px var(--neon-cyan);
-  /* L'animation pulse s'arrête au hover pour focus */
-  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pure-white);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4);
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .navbarWrapper:hover .logoHex {
-  background: white; /* Le logo devient blanc au focus */
-  box-shadow: 0 0 20px white;
-  transform: rotate(180deg); /* Petite rotation stylée */
+  background: var(--pure-white);
+  color: var(--argon-core);
+  transform: rotate(180deg) scale(1.08);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.7);
 }
 
 .logoText {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-weight: 900;
-  font-size: 1.5rem;
-  color: white;
+  font-size: 1.4rem;
+  color: var(--argon-deep);
   text-transform: uppercase;
   letter-spacing: 2px;
-  transition: letter-spacing 0.4s;
+  transition: all 0.4s ease;
+  text-shadow: 0 1px 0 var(--pure-white);
+}
+
+.logoAccent {
+  color: var(--argon-core);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-left: 3px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
 }
 
 .navbarWrapper:hover .logoText {
-  letter-spacing: 4px; /* Le texte s'écarte un peu */
-  color: var(--neon-cyan);
+  letter-spacing: 3px;
 }
 
-/* --- NAVIGATION ZONE --- */
+/* --- ZONE NAVIGATION (Dock Blanc 30% & Bleu Clair 70%) --- */
 .navZone {
-  display: flex; gap: 10px;
-  /* Au repos : Transparent */
-  background: transparent;
-  padding: 5px;
-  border-radius: 12px;
-  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 6px 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    inset 0 2px 5px rgba(2, 132, 199, 0.08),
+    0 4px 15px rgba(56, 189, 248, 0.12);
+  overflow-x: auto;
+  scrollbar-width: none;
+  transition: all 0.3s ease;
+}
+.navZone::-webkit-scrollbar {
+  display: none;
 }
 
 .navbarWrapper:hover .navZone {
-  /* Au hover : Un petit fond pour grouper les boutons */
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.82);
+  border-color: var(--pure-white);
+  box-shadow: 
+    inset 0 2px 6px rgba(56, 189, 248, 0.15),
+    0 8px 24px rgba(2, 132, 199, 0.15);
 }
 
 .navLink {
   text-decoration: none;
-  color: #8899a6;
+  color: #0369a1;
   font-weight: 700;
-  font-size: 0.85rem;
-  padding: 10px 20px;
-  border-radius: 8px;
+  font-size: 0.78rem;
+  padding: 9px 14px;
+  border-radius: 11px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.7px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
+  gap: 7px;
+  white-space: nowrap;
+  position: relative;
+  border: 1px solid transparent;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navLink:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px); /* Petit saut */
+  color: #0c4a6e;
+  background: var(--pure-white);
+  border-color: rgba(56, 189, 248, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(56, 189, 248, 0.25);
 }
 
+/* État Actif : Capsule Argon Bleu Clair & Blanc Pur */
 .activeLink {
-  background: var(--neon-cyan);
-  color: black !important;
-  box-shadow: 0 0 15px rgba(0, 242, 234, 0.5);
-  font-weight: 900;
+  background: linear-gradient(135deg, var(--argon-blue) 0%, var(--argon-core) 100%) !important;
+  color: var(--pure-white) !important;
+  border: 1px solid var(--pure-white) !important;
+  font-weight: 800;
+  box-shadow: 
+    0 6px 18px rgba(2, 132, 199, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+  transform: translateY(-1px);
 }
 
-/* --- USER ZONE --- */
+/* --- ZONE UTILISATEUR --- */
 .userZone {
-  display: flex; align-items: center; gap: 20px; z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .pilotBadge {
-  background: rgba(0, 112, 243, 0.1);
-  border: 1px solid rgba(0, 112, 243, 0.4);
-  padding: 8px 15px;
-  border-radius: 6px;
-  color: white;
+  background: var(--pure-white);
+  border: 1.5px solid var(--argon-sky);
+  padding: 8px 14px;
+  border-radius: 12px;
+  color: var(--argon-deep);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  display: flex; align-items: center; gap: 10px;
-  transition: all 0.3s;
+  font-weight: 700;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.18);
+  transition: all 0.3s ease;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  background: #0ea5e9;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25), 0 0 8px #0ea5e9;
+  animation: pulseDot 2s infinite;
 }
 
 .navbarWrapper:hover .pilotBadge {
-  border-color: var(--neon-cyan);
-  background: rgba(0, 242, 234, 0.1);
-  box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
+  border-color: var(--argon-blue);
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.3);
 }
 
 .logoutBtn {
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 0, 85, 0.1);
-  border: 1px solid #ff0055;
-  color: #ff0055;
-  display: flex; align-items: center; justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--pure-white);
+  border: 1.5px solid rgba(244, 63, 94, 0.35);
+  color: #e11d48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.12);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .logoutBtn:hover {
-  background: #ff0055; color: white;
-  box-shadow: 0 0 15px #ff0055;
-  transform: scale(1.1) rotate(90deg); /* Rotation rouge */
+  background: linear-gradient(135deg, #fb7185, #e11d48);
+  color: var(--pure-white);
+  border-color: var(--pure-white);
+  box-shadow: 0 8px 20px rgba(225, 29, 72, 0.35);
+  transform: scale(1.08) rotate(90deg);
 }
 
-/* --- DECORATIONS (Vis) --- */
-.screw {
-  position: absolute;
-  width: 6px; height: 6px;
-  background: #444;
-  border-radius: 50%;
-  opacity: 0; /* Caché au repos */
-  transition: opacity 0.3s 0.1s; /* Petit délai */
-}
-.tl { top: 10px; left: 10px; }
-.tr { top: 10px; right: 10px; }
-.bl { bottom: 10px; left: 10px; }
-.br { bottom: 10px; right: 10px; }
-
-.navbarWrapper:hover .screw {
-  opacity: 1; /* Apparaissent quand la barre se verrouille */
-  background: var(--neon-cyan);
-  box-shadow: 0 0 5px var(--neon-cyan);
-}
-
-@keyframes scan {
-  0% { left: -100%; }
-  50% { left: 200%; }
+@keyframes argonBeam {
+  0% { left: -120%; }
+  45% { left: 200%; }
   100% { left: 200%; }
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.75; }
 }

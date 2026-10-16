@@ -8,12 +8,21 @@ import {
 } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import { useAuth } from "@/context/AuthContext";
+import { MouseEvent } from "react";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  // Liste des menus (Zidna Contrat Qualité b' isExternal: true)
+  // 2026 Spatial Cursor Glow Tracking
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+  };
+
   const menuItems = [
     { name: "Command Center", path: "/", icon: LayoutGrid },
     { name: "Strategic Map", path: "/admin/strategic", icon: Map },
@@ -30,17 +39,18 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className={styles.sidebar}>
+    <div className={styles.sidebar} onMouseMove={handleMouseMove}>
       <div className={styles.logoArea}>
-         <div className={styles.logoHex}>K</div>
-         <div className={styles.logoText}>KYNTUS<span style={{color:"#00f2ea"}}>OS</span></div>
+        <div className={styles.logoHex}>K</div>
+        <div className={styles.logoText}>
+          KYNTUS<span className={styles.logoAccent}>OS</span>
+        </div>
       </div>
       
       <div className={styles.menu}>
         {menuItems.map((item) => {
           const isActive = pathname === item.path;
           
-          // L'FIX: Ila kan lien externe (Contrat Quality), kan-khedmou b <a> 3adiya bach n-bypassiow l'router dyal Next.js
           if (item.isExternal) {
             return (
               <a
@@ -48,8 +58,11 @@ export default function Sidebar() {
                 href={item.path}
                 className={styles.menuItem}
               >
-                <item.icon size={22} />
-                <span className={styles.itemLabel}>{item.name}</span>
+                <item.icon size={21} strokeWidth={2} />
+                <span className={styles.itemLabel}>
+                  {item.name}
+                  <span className={styles.externalBadge}>EXT ↗</span>
+                </span>
               </a>
             );
           }
@@ -60,7 +73,7 @@ export default function Sidebar() {
               href={item.path}
               className={`${styles.menuItem} ${isActive ? styles.active : ""}`}
             >
-              <item.icon size={22} />
+              <item.icon size={21} strokeWidth={isActive ? 2.5 : 2} />
               <span className={styles.itemLabel}>{item.name}</span>
               {isActive && <div className={styles.activeBar}></div>}
             </Link>
@@ -69,18 +82,18 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.footer}>
-          <div className={styles.userSection}>
-              <div className={styles.avatar}>
-                {user?.username ? user.username.charAt(0).toUpperCase() : "A"}
-              </div>
-              <div className={styles.userInfo}>
-                  <div className={styles.userName}>{user?.username || "Admin"}</div>
-                  <div className={styles.userStatus}>SECURE LINK ●</div>
-              </div>
+        <div className={styles.userSection}>
+          <div className={styles.avatar}>
+            {user?.username ? user.username.charAt(0).toUpperCase() : "A"}
           </div>
-          <button onClick={logout} className={styles.logoutBtn} title="Disconnect">
-              <LogOut size={18} />
-          </button>
+          <div className={styles.userInfo}>
+            <div className={styles.userName}>{user?.username || "Admin"}</div>
+            <div className={styles.userStatus}>ARGON LINK ●</div>
+          </div>
+        </div>
+        <button onClick={logout} className={styles.logoutBtn} title="Disconnect">
+          <LogOut size={17} strokeWidth={2.2} />
+        </button>
       </div>
     </div>
   );
