@@ -1,22 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import styles from "@/components/features/TemplatesPage.module.css";
-import { useRouter } from "next/navigation";
-import { Plus, Save, Layers, Cpu, Database, Trash2, Gauge, Lock } from "lucide-react"; 
-import InteractiveBackground from "@/components/ui/InteractiveBackground";
+import React, { useState, useEffect } from "react";
+import styles from "./TemplatesPage.module.css";
+import {
+  Plus,
+  Layers,
+  Cpu,
+  Trash2,
+  Gauge,
+  Lock,
+  Sparkles,
+  FolderKanban,
+  CheckCircle2,
+} from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
 export default function TemplatesPage() {
-  const router = useRouter();
-  
   const [name, setName] = useState("");
   const [columns, setColumns] = useState<string[]>([]);
   const [currentCol, setCurrentCol] = useState("");
-  const [complexity, setComplexity] = useState(1); // Locked at 1 for now
+  const [complexity, setComplexity] = useState(1);
 
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTemplates();
@@ -24,14 +31,17 @@ export default function TemplatesPage() {
 
   const fetchTemplates = () => {
     fetch("/api/templates")
-      .then(res => res.json())
-      .then(data => setTemplates(data || []))
-      .catch(err => console.error("Erreur templates:", err));
+      .then((res) => res.json())
+      .then((data) => setTemplates(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("Erreur templates:", err));
   };
 
   const addColumn = () => {
     if (!currentCol.trim()) return;
-    setColumns([...columns, currentCol.toUpperCase()]);
+    const formatted = currentCol.trim().toUpperCase();
+    if (!columns.includes(formatted)) {
+      setColumns([...columns, formatted]);
+    }
     setCurrentCol("");
   };
 
@@ -41,27 +51,26 @@ export default function TemplatesPage() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast({message: "LE NOM DU PROTOCOLE EST REQUIS", type: "error"});
+      toast({ message: "LE NOM DU PROTOCOLE EST REQUIS", type: "error" });
       return;
     }
 
     setLoading(true);
     try {
-      // ✅ FIX ICI: On mappe 'columns' vers 'fields' pour le Backend
       const payload = {
-          name: name,
-          complexity: complexity,
-          fields: columns.map(c => ({
-              name: c, 
-              type: "TEXT",     // Par défaut TEXT
-              required: false   // Par défaut optionnel
-          }))
+        name: name.trim(),
+        complexity: complexity,
+        fields: columns.map((c) => ({
+          name: c,
+          type: "TEXT",
+          required: false,
+        })),
       };
 
       const res = await fetch("/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload), 
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -69,126 +78,254 @@ export default function TemplatesPage() {
         setName("");
         setColumns([]);
         setComplexity(1);
-        toast({message: "PROTOCOLE INITIALISÉ AVEC SUCCÈS", type: "success"});
+        toast({
+          message: "✨ PROTOCOLE INITIALISÉ AVEC SUCCÈS",
+          type: "success",
+        });
       } else {
         throw new Error("Erreur serveur");
       }
     } catch (e) {
-      toast({message: "ERREUR DE CRÉATION", type: "error"});
+      toast({ message: "ERREUR DE CRÉATION DU PROTOCOLE", type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
+  // 🗑️ SUPPRESSION D'UN TEMPLATE (AVEC CONFIRMATION)
+  const handleDeleteTemplate = async (tplId: number, tplName: string) => {
+    if (
+      !window.confirm(
+        `⚠️ Voulez-vous vraiment supprimer le protocole "${tplName}" ainsi que toutes les tâches associées ?`
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(tplId);
+    try {
+      const res = await fetch(`/api/templates/${tplId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setTemplates((prev) => prev.filter((t) => t.id !== tplId));
+        toast({
+          message: `🗑️ PROTOCOLE "${tplName}" SUPPRIMÉ AVEC SUCCÈS`,
+          type: "success",
+        });
+      } else {
+        toast({
+          message:
+            "Impossible de supprimer ce protocole (Vérifiez l'endpoint DELETE /api/templates/{id})",
+          type: "error",
+        });
+      }
+    } catch (e) {
+      toast({ message: "ERREUR LORS DE LA SUPPRESSION", type: "error" });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className={styles.container}>
-      <InteractiveBackground />
-      
-      <div className={styles.builderPanel}>
-        <div className={styles.contentRelatif}>
+      <div className={styles.ambientOrb1} />
+      <div className={styles.ambientOrb2} />
+
+      <div className={styles.workspaceGrid}>
+        {/* LEFT PANEL: BUILDER */}
+        <div className={styles.builderPanel}>
+          <div className={styles.contentRelatif}>
             <div className={styles.builderHeader}>
-              <h1 className={styles.title}>ARCHITECTE SYSTÈME</h1>
-              <span className={styles.subtitle}>// DÉFINITION DES PROTOCOLES DE FLUX</span>
+              <div className={styles.headerIconBox}>
+                <FolderKanban size={26} />
+              </div>
+              <div>
+                <h1 className={styles.title}>ARCHITECTE SYSTÈME</h1>
+                <span className={styles.subtitle}>
+                  // DÉFINITION DES PROTOCOLES & COLONNES D&apos;ANALYSE PILOTE
+                </span>
+              </div>
             </div>
 
-            {/* Nom */}
+            {/* 1. Nom du Protocole */}
             <div className={styles.inputGroup}>
-              <label className={styles.label}>1. NOM DU PROTOCOLE (PROJET)</label>
-              <input 
-                type="text" 
-                className={styles.neonInput} 
+              <label className={styles.label}>
+                1. NOM DU PROTOCOLE (PROJET / MISSION)
+              </label>
+              <input
+                type="text"
+                className={styles.neonInput}
                 placeholder="Ex: FIBRE_OUJDA_PHASE_1"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
 
-            {/* --- COMPLEXITY SLIDER (DISABLED / LOCKED) --- */}
+            {/* 2. Complexity (Locked Luxe Display) */}
             <div className={styles.inputGroup}>
-                <label className={styles.label} style={{display:'flex', alignItems:'center', gap:10, opacity: 0.5}}>
-                   <Gauge size={14}/> 2. NIVEAU DE COMPLEXITÉ (AI CORE)
-                   <span style={{fontSize:'0.6rem', color:'#ff0055', border:'1px solid #ff0055', padding:'2px 6px', borderRadius:'4px'}}>OFFLINE</span>
-                </label>
-                
-                {/* Zone Disable Grise */}
-                <div style={{
-                    display:'flex', alignItems:'center', gap:20, 
-                    background:'rgba(255,255,255,0.02)', padding:15, borderRadius:8, 
-                    border:'1px dashed rgba(255,255,255,0.1)', cursor: 'not-allowed', position: 'relative'
-                }}>
-                   {/* Lock Icon */}
-                   <div style={{position: 'absolute', top:0, left:0, width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', zIndex:10, background:'rgba(0,0,0,0.5)'}}>
-                       <span style={{color:'#666', fontWeight:'bold', display:'flex', alignItems:'center', gap:5}}>
-                           <Lock size={14}/> WAITING FOR NEURAL LINK
-                       </span>
-                   </div>
+              <label className={styles.label}>
+                <Gauge size={15} /> 2. NIVEAU DE COMPLEXITÉ (AI CORE)
+                <span className={styles.offlineTag}>STANDARD LEVEL 1</span>
+              </label>
 
-                   <input 
-                      type="range" 
-                      min="1" max="10" 
-                      value={1} 
-                      disabled={true} 
-                      style={{flex:1, opacity: 0.3}}
-                    />
-                    <span style={{
-                        fontSize:'1.5rem', fontWeight:'900', color: '#444', 
-                        minWidth: 40, textAlign:'center'
-                    }}>
-                        1
-                    </span>
+              <div className={styles.lockedAiBox}>
+                <div className={styles.lockedOverlayText}>
+                  <Lock size={15} color="#0284c7" />
+                  <span>CALIBRATION AUTOMATIQUE ACTIVÉE</span>
                 </div>
-            </div>
-
-            {/* Columns */}
-            <div className={styles.inputGroup}>
-              <label className={styles.label}>3. STRUCTURE DE DONNÉES</label>
-              {columns.length > 0 && (
-                  <div className={styles.fieldsContainer}>
-                    {columns.map((col, idx) => (
-                      <div key={idx} className={styles.fieldModule}>
-                        <span className={styles.fieldText}>{col}</span>
-                        <button onClick={() => removeColumn(idx)} className={styles.removeBtn}><Trash2 size={12}/></button>
-                      </div>
-                    ))}
-                  </div>
-              )}
-              <div className={styles.addZone}>
-                  <input 
-                    type="text" 
-                    className={styles.neonInput} 
-                    placeholder="Nom du champ (ex: PBO)..."
-                    value={currentCol}
-                    onChange={(e) => setCurrentCol(e.target.value)}
-                  />
-                  <button onClick={addColumn} className={styles.addBtn}><Plus size={24} strokeWidth={4} /></button>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={1}
+                  disabled
+                  style={{ flex: 1, opacity: 0.35 }}
+                />
+                <span
+                  style={{
+                    fontSize: "1.2rem",
+                    fontWeight: 900,
+                    color: "#0284c7",
+                  }}
+                >
+                  01
+                </span>
               </div>
             </div>
 
-            <button className={styles.saveBtn} onClick={handleSave} disabled={loading}>
-                {loading ? <span className="spin">INITIALISATION...</span> : <span><Cpu size={20} /> INITIALISER LE PROTOCOLE</span>}
-            </button>
-        </div>
-      </div>
+            {/* 3. Colonnes d'Analyse Pilote */}
+            <div className={styles.inputGroup}>
+              <label className={styles.label}>
+                3. COLONNES D&apos;ANALYSE AJOUTÉES (MODIFIABLES PAR LE PILOTE)
+              </label>
 
-      <div className={styles.rackPanel}>
-         <div className={styles.rackHeader}>PROTOCOLES ACTIFS : {templates.length}</div>
-         {templates.map((t) => (
-             <div key={t.id} className={styles.cartridge}>
-                 <div className={styles.led}></div>
-                 <div className={styles.cartridgeInfo}>
-                     <div>
-                         <div className={styles.idRef}>REF_ID: {t.id.toString().padStart(4, '0')}</div>
-                         <div className={styles.cName}>{t.name}</div>
-                         <div className={styles.cMeta}>
-                            <span style={{color:'#444', marginRight:10, fontSize:'0.7rem'}}>CX: DEFAULT</span>
-                            {/* Correction d'affichage pour éviter le crash si fields est null */}
-                            <Layers size={12} /> {t.fields ? t.fields.length : 0} MODULES
-                         </div>
-                     </div>
-                 </div>
-                 <Save size={20} className={styles.iconSave} />
-             </div>
-         ))}
+              {columns.length > 0 && (
+                <div className={styles.fieldsContainer}>
+                  {columns.map((col, idx) => (
+                    <div key={idx} className={styles.fieldModule}>
+                      <span className={styles.fieldText}>✍️ {col}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeColumn(idx)}
+                        className={styles.removeBtn}
+                        title="Retirer cette colonne"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className={styles.addZone}>
+                <input
+                  type="text"
+                  className={styles.neonInput}
+                  placeholder="Nom de la colonne (ex: COMMENTAIRE_PILOTE, ETAT_ANALYSE)..."
+                  value={currentCol}
+                  onChange={(e) => setCurrentCol(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addColumn();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={addColumn}
+                  className={styles.addBtn}
+                  title="Ajouter la colonne"
+                >
+                  <Plus size={22} strokeWidth={3} />
+                </button>
+              </div>
+            </div>
+
+            <button
+              className={styles.saveBtn}
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Sparkles size={20} /> INITIALISATION EN COURS...
+                </>
+              ) : (
+                <>
+                  <Cpu size={20} /> INITIALISER LE PROTOCOLE
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL: ACTIVE TEMPLATES RACK WITH DELETE BUTTON */}
+        <div className={styles.rackPanel}>
+          <div className={styles.rackHeaderRow}>
+            <div className={styles.rackHeader}>
+              <Layers size={22} color="#0284c7" />
+              <span>PROTOCOLES ACTIFS</span>
+            </div>
+            <span className={styles.countPill}>
+              {templates.length} PROTOCOLE(S)
+            </span>
+          </div>
+
+          <div className={styles.cartridgesGrid}>
+            {templates.length > 0 ? (
+              templates.map((t, idx) => (
+                <div
+                  key={t.id}
+                  style={{ animationDelay: `${Math.min(idx * 40, 300)}ms` }}
+                  className={styles.cartridge}
+                >
+                  <div className={styles.cartridgeLeft}>
+                    <div className={styles.idRow}>
+                      <div className={styles.led} />
+                      <span className={styles.idRef}>
+                        REF #{t.id?.toString().padStart(4, "0")}
+                      </span>
+                    </div>
+
+                    <div className={styles.cName}>{t.name}</div>
+
+                    <div className={styles.cMeta}>
+                      <span className={styles.moduleTag}>
+                        <Layers size={12} color="#0284c7" />
+                        {t.fields ? t.fields.length : 0} COLONNE(S) D&apos;ANALYSE
+                      </span>
+                      {t.fields &&
+                        t.fields.slice(0, 3).map((f: any, i: number) => (
+                          <span key={i} className={styles.moduleTag}>
+                            ✍️ {typeof f === "string" ? f : f.name}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* 🗑️ BOUTON SUPPRIMER TEMPLATE */}
+                  <button
+                    type="button"
+                    className={styles.deleteTemplateBtn}
+                    disabled={deletingId === t.id}
+                    onClick={() => handleDeleteTemplate(t.id, t.name)}
+                    title={`Supprimer le protocole ${t.name}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className={styles.emptyRack}>
+                Aucun protocole actif pour le moment. Créez votre premier
+                protocole à gauche.
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ import {
   CircleDot,
   Sparkles,
   FileSpreadsheet,
-  ShieldAlert,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
@@ -24,7 +24,6 @@ import BoardActions from "./components/BoardActions";
 import { LuxeOption } from "./ui/LuxeDropdown";
 import styles from "./PilotBoard.module.css";
 
-// 🌟 THE LUXE 70% WHITE / 30% ROYAL BLUE INTERACTIVE BACKGROUND
 const RoyalBackground = dynamic(() => import("./ux/RoyalBackground"), {
   ssr: false,
 });
@@ -32,74 +31,122 @@ const RoyalBackground = dynamic(() => import("./ux/RoyalBackground"), {
 const API_URL = "/api";
 
 // ============================================================================
-// 🧠 SMART EPS EXTRACTOR: Finds EPS-XXXX anywhere in the task or Excel columns
+// 📋 UNIVERSAL CLIPBOARD ENGINE (Works on BOTH HTTP IP & HTTPS!)
 // ============================================================================
-export function extractTaskEPS(task: any): string {
+export async function universalCopyToClipboard(text: string): Promise<boolean> {
+  if (!text) return false;
+
+  // 1. Try modern Clipboard API if available and secure
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.warn("Clipboard API failed, switching to fallback...", err);
+    }
+  }
+
+  // 2. Bulletproof Fallback using hidden textarea (Works on HTTP server IPs!)
+  try {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const success = document.execCommand("copy");
+    document.body.removeChild(textArea);
+    return success;
+  } catch (err) {
+    console.error("Fallback copy failed:", err);
+    return false;
+  }
+}
+
+// ============================================================================
+// 🧠 SMART EPS EXTRACTOR: Finds EPS anywhere in task properties or dynamicData
+// ============================================================================
+export function extractTaskEPS(task: any, editableCols: string[] = []): string {
   if (!task) return "";
 
-  if (
-    task.epsReference &&
-    typeof task.epsReference === "string" &&
-    !task.epsReference.startsWith("AUTO-")
-  ) {
-    return task.epsReference.trim();
+  // 1. Check direct top-level properties
+  const directCandidates = [
+    task.epsReference,
+    task.eps,
+    task.eps_reference,
+    task.idIntervention,
+    task.reference,
+  ];
+  for (const cand of directCandidates) {
+    if (cand && typeof cand === "string" && !cand.startsWith("AUTO-")) {
+      return cand.trim();
+    }
   }
 
   const dyn = task.dynamicData || {};
+  const keys = Object.keys(dyn);
 
-  const priorityKeys = [
+  // 2. Scan for any value matching "EPS-..." pattern across all columns
+  const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
+  for (const k of keys) {
+    const val = String(dyn[k] ?? "").trim();
+    const match = val.match(epsRegex);
+    if (match) return match[1].toUpperCase();
+  }
+
+  // 3. Check columns whose name contains eps, intervention, id, ref, dossier
+  const priorityNames = [
     "eps",
     "idintervention",
     "id_intervention",
     "id intervention",
     "intervention",
     "num_eps",
-    "reference_eps",
-    "code_eps",
+    "reference",
+    "ref",
+    "dossier",
+    "id",
   ];
-
-  for (const key of Object.keys(dyn)) {
-    const cleanKey = key.trim().toLowerCase();
-    if (priorityKeys.some((pk) => cleanKey.includes(pk))) {
-      const val = String(dyn[key] || "").trim();
+  for (const k of keys) {
+    const lowerK = k.trim().toLowerCase();
+    if (priorityNames.some((pn) => lowerK === pn || lowerK.includes(pn))) {
+      const val = String(dyn[k] ?? "").trim();
       if (val) return val;
     }
   }
 
-  const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
-  for (const val of Object.values(dyn)) {
-    if (val !== null && val !== undefined) {
-      const strVal = String(val).trim();
-      const match = strVal.match(epsRegex);
-      if (match) return match[1].toUpperCase();
+  // 4. Fallback: Take the first non-empty Excel column (excluding Admin editable columns)
+  const editSet = new Set(editableCols.map((c) => c.toLowerCase()));
+  for (const k of keys) {
+    if (!editSet.has(k.toLowerCase())) {
+      const val = String(dyn[k] ?? "").trim();
+      if (val) return val;
     }
   }
 
-  return task.epsReference || `TASK-${task.id}`;
+  return task.id ? `EPS-${task.id}` : "";
 }
 
 // ============================================================================
-// 🔒 LOCK DETECTOR: Checks if task is finished (2 clicks) or validated by Admin
+// 🔒 FINAL ADMIN LOCK DETECTOR:
+// Only locks when Admin validates in Kanban (NOT when Pilot clicks 2 times to DONE!)
 // ============================================================================
-export function isTaskLocked(task: any): boolean {
+export function isTaskLockedByAdmin(task: any): boolean {
   if (!task) return false;
   const st = String(task.status || "").toUpperCase().trim();
 
-  // Locked if Pilot finished (DONE after 2 clicks) OR Admin validated in Kanban
-  if (
-    st === "DONE" ||
+  return (
     st === "VALIDATED" ||
+    st === "VALIDE_FINAL" ||
+    st === "VALIDÉ_FINAL" ||
     st === "VALIDE" ||
-    st === "VALIDÉ" ||
     st === "ARCHIVED" ||
     st === "CLOSED" ||
     task.adminValidated === true ||
     task.locked === true
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }
 
 export default function PilotBoard() {
@@ -122,7 +169,7 @@ export default function PilotBoard() {
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   // ========================================================================
-  // 1. INITIAL LOAD: User Discovery & Strict Mission Fetching
+  // 1. INITIAL LOAD
   // ========================================================================
   useEffect(() => {
     const stored = localStorage.getItem("kyntus_user");
@@ -156,7 +203,7 @@ export default function PilotBoard() {
   }, []);
 
   // ========================================================================
-  // 2. DATA ENGINE: Refreshing Tasks for the Selected Mission
+  // 2. DATA ENGINE: Refreshing Tasks
   // ========================================================================
   const refreshTasks = () => {
     if (!user || !selectedTemplate) return;
@@ -227,7 +274,7 @@ export default function PilotBoard() {
     tasks.forEach((task) => {
       let rawVal = "";
       if (filterColumn === "EPS_ONLY") {
-        rawVal = extractTaskEPS(task);
+        rawVal = extractTaskEPS(task, allowedFields);
       } else {
         rawVal = String(task.dynamicData?.[filterColumn] ?? "").trim();
       }
@@ -268,7 +315,7 @@ export default function PilotBoard() {
     });
 
     return options;
-  }, [tasks, filterColumn]);
+  }, [tasks, filterColumn, allowedFields]);
 
   // ========================================================================
   // 5. MULTI-COLUMN + EXACT VALUE FILTER ENGINE
@@ -277,13 +324,13 @@ export default function PilotBoard() {
     return tasks.filter((task) => {
       if (statusFilter !== "ALL") {
         if (statusFilter === "VALIDATED") {
-          if (!isTaskLocked(task)) return false;
+          if (!isTaskLockedByAdmin(task)) return false;
         } else if (task.status !== statusFilter) {
           return false;
         }
       }
 
-      const eps = extractTaskEPS(task);
+      const eps = extractTaskEPS(task, allowedFields);
       const dyn = task.dynamicData || {};
 
       if (filterColumn !== "ALL" && columnExactValue !== "ALL") {
@@ -318,7 +365,7 @@ export default function PilotBoard() {
           .includes(q)
       );
     });
-  }, [tasks, searchQuery, filterColumn, columnExactValue, statusFilter]);
+  }, [tasks, searchQuery, filterColumn, columnExactValue, statusFilter, allowedFields]);
 
   const handleResetFilters = () => {
     setFilterColumn("ALL");
@@ -328,13 +375,13 @@ export default function PilotBoard() {
   };
 
   // ========================================================================
-  // 6. MISSION HANDLERS (WITH EDIT 1 LOCK & EDIT 2 MULTI-COLUMN COPY)
+  // 6. MISSION HANDLERS (EDIT 1 & EDIT 2 CORRIGÉS)
   // ========================================================================
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
     const targetTask = tasks.find((t) => t.id === taskId);
-    if (isTaskLocked(targetTask)) {
+    if (isTaskLockedByAdmin(targetTask)) {
       return toast({
-        message: "🔒 TÂCHE VERROUILLÉE : Modification impossible après validation.",
+        message: "🔒 VALIDÉ PAR L'ADMIN : Modification impossible.",
         type: "error",
       });
     }
@@ -367,24 +414,28 @@ export default function PilotBoard() {
     }
   };
 
-  // 🔥 EDIT 1: 2 Clics depuis A_FAIRE -> Clic 1: EN_COURS -> Clic 2: DONE (Verrouillé !)
+  // 🔥 EDIT 1 CORRIGÉ :
+  // - Clic 1 sur A_FAIRE -> EN_COURS
+  // - Clic 2 sur EN_COURS -> DONE (Terminé chez le Pilote, mais PAS verrouillé !)
+  // - Si le Pilote reclique sur DONE (tant que l'Admin n'a pas validé), il peut repasser en EN_COURS
+  // - Si l'Admin a validé dans le Kanban (VALIDATED), alors c'est 100% DISABLED !
   const handleStatusToggle = async (task: any) => {
-    if (isTaskLocked(task)) {
+    if (isTaskLockedByAdmin(task)) {
       return toast({
-        message: "🔒 Cet EPS est déjà terminé/validé et ne peut plus être modifié.",
+        message: "🔒 Cet EPS a été validé finalement par l'Admin dans le Kanban.",
         type: "error",
       });
     }
 
     const currentStatus = task.status || "A_FAIRE";
-    let newStatus = "";
+    let newStatus = "EN_COURS";
 
     if (currentStatus === "A_FAIRE") {
       newStatus = "EN_COURS";
     } else if (currentStatus === "EN_COURS") {
-      newStatus = "DONE"; // 2ème clic -> Terminé et verrouillé !
-    } else {
-      return;
+      newStatus = "DONE"; // 2ème clic -> Terminé par le pilote (envoyé au Kanban Admin)
+    } else if (currentStatus === "DONE") {
+      newStatus = "EN_COURS"; // Permet au pilote de rouvrir tant que l'Admin n'a pas fait la validation finale
     }
 
     setTasks((prev) =>
@@ -400,7 +451,7 @@ export default function PilotBoard() {
       if (res.ok) {
         if (newStatus === "DONE") {
           toast({
-            message: `TRAVAIL TERMINÉ & VERROUILLÉ 🔒✅`,
+            message: `TERMINÉ ✅ (En attente de validation finale Admin)`,
             type: "success",
           });
         }
@@ -426,15 +477,14 @@ export default function PilotBoard() {
       });
     }
 
-    // Filter out tasks that are already locked/validated
     const unlockedSelectedIds = selectedTasks.filter((id) => {
       const t = tasks.find((item) => item.id === id);
-      return t && !isTaskLocked(t);
+      return t && !isTaskLockedByAdmin(t);
     });
 
     if (unlockedSelectedIds.length === 0) {
       return toast({
-        message: "🔒 Toutes les lignes sélectionnées sont déjà verrouillées/validées !",
+        message: "🔒 Les lignes sélectionnées sont déjà validées par l'Admin !",
         type: "error",
       });
     }
@@ -446,6 +496,15 @@ export default function PilotBoard() {
           : t
       )
     );
+
+    // Clear local drafts for updated rows so table shows the new bulk value immediately
+    setDraftEdits((prev) => {
+      const copy = { ...prev };
+      unlockedSelectedIds.forEach((id) => {
+        delete copy[`${id}_${columnKey}`];
+      });
+      return copy;
+    });
 
     try {
       await Promise.all(
@@ -471,14 +530,19 @@ export default function PilotBoard() {
     if (selectedTasks.length === 0) {
       return toast({ message: "SÉLECTIONNEZ DES LIGNES D'ABORD", type: "error" });
     }
+    const unlockedIds = selectedTasks.filter((id) => {
+      const t = tasks.find((item) => item.id === id);
+      return t && !isTaskLockedByAdmin(t);
+    });
+
     setTasks((prev) =>
       prev.map((t) =>
-        selectedTasks.includes(t.id) ? { ...t, status: "DONE" } : t
+        unlockedIds.includes(t.id) ? { ...t, status: "DONE" } : t
       )
     );
     try {
       await Promise.all(
-        selectedTasks.map((id) =>
+        unlockedIds.map((id) =>
           fetch(`${API_URL}/tasks/${id}/status`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -487,7 +551,7 @@ export default function PilotBoard() {
         )
       );
       toast({
-        message: `${selectedTasks.length} TÂCHES VALIDÉES & VERROUILLÉES 🔒✅`,
+        message: `${unlockedIds.length} TÂCHES MARQUÉES TERMINÉES ✅`,
         type: "success",
       });
       setSelectedTasks([]);
@@ -512,9 +576,9 @@ export default function PilotBoard() {
   };
 
   // ========================================================================
-  // 📋 EDIT 2: COPY VALUES OF SELECTED COLUMN FOR SELECTED ROWS
+  // 📋 EDIT 2 CORRIGÉ: COPIER EPS OU N'IMPORTE QUELLE COLONNE (100% FIABLE)
   // ========================================================================
-  const handleCopyColumnValues = (targetCol?: string) => {
+  const handleCopyColumnValues = async (targetCol?: string) => {
     const colToCopy =
       targetCol && targetCol !== "ALL"
         ? targetCol
@@ -522,7 +586,7 @@ export default function PilotBoard() {
         ? filterColumn
         : "EPS_ONLY";
 
-    // Take selected rows if any, otherwise take currently filtered rows
+    // Take selected rows if any, otherwise take all currently filtered rows
     const sourceList =
       selectedTasks.length > 0
         ? tasks.filter((t) => selectedTasks.includes(t.id))
@@ -538,11 +602,16 @@ export default function PilotBoard() {
     const extractedValues = sourceList
       .map((t) => {
         if (colToCopy === "EPS_ONLY") {
-          return extractTaskEPS(t);
+          return extractTaskEPS(t, allowedFields);
+        }
+        // Check local draft first in case user just typed something, otherwise dynamicData
+        const cellKey = `${t.id}_${colToCopy}`;
+        if (draftEdits[cellKey] !== undefined) {
+          return String(draftEdits[cellKey]).trim();
         }
         return String(t.dynamicData?.[colToCopy] ?? "").trim();
       })
-      .filter((val) => val !== "" && !val.startsWith("TASK-"));
+      .filter((val) => val !== "");
 
     if (extractedValues.length === 0) {
       return toast({
@@ -553,19 +622,30 @@ export default function PilotBoard() {
       });
     }
 
-    navigator.clipboard.writeText(extractedValues.join("\n"));
+    const textToCopy = extractedValues.join("\n");
+    const ok = await universalCopyToClipboard(textToCopy);
+
     const labelCol = colToCopy === "EPS_ONLY" ? "EPS" : colToCopy;
-    toast({
-      message: `${extractedValues.length} VALEUR(S) DE [${labelCol}] COPIÉE(S) 📋`,
-      type: "success",
-    });
+    if (ok) {
+      toast({
+        message: `📋 ${extractedValues.length} VALEUR(S) [${labelCol}] COPIÉE(S) DANS LE PRESSE-PAPIERS !`,
+        type: "success",
+      });
+    } else {
+      toast({
+        message: "Erreur d'accès au presse-papiers du navigateur",
+        type: "error",
+      });
+    }
   };
 
-  const handleCopySingleEPS = (taskId: number, eps: string) => {
-    navigator.clipboard.writeText(eps);
-    setCopiedId(taskId);
-    toast({ message: `${eps} copié 📋`, type: "success" });
-    setTimeout(() => setCopiedId(null), 1500);
+  const handleCopySingleEPS = async (taskId: number, eps: string) => {
+    const ok = await universalCopyToClipboard(eps);
+    if (ok) {
+      setCopiedId(taskId);
+      toast({ message: `📋 ${eps} copié !`, type: "success" });
+      setTimeout(() => setCopiedId(null), 1500);
+    }
   };
 
   // Selection helpers
@@ -600,7 +680,6 @@ export default function PilotBoard() {
 
   return (
     <div className={styles.boardContainer}>
-      {/* 70% White / 30% Royal Blue Interactive Background */}
       <RoyalBackground />
 
       <div className={styles.glassOverlay}>
@@ -717,7 +796,7 @@ export default function PilotBoard() {
 
                         <th className={styles.thLocked}>
                           <div className={styles.thContent}>
-                            <span>STATUT (2 CLICS = FINI)</span>
+                            <span>STATUT PILOTE / ADMIN</span>
                           </div>
                         </th>
 
@@ -746,19 +825,19 @@ export default function PilotBoard() {
                     <tbody>
                       {filteredTasks.map((task, idx) => {
                         const isSelected = selectedTasks.includes(task.id);
-                        const locked = isTaskLocked(task);
-                        const epsCode = extractTaskEPS(task);
+                        const lockedByAdmin = isTaskLockedByAdmin(task);
+                        const epsCode = extractTaskEPS(task, allowedFields);
                         const dyn = task.dynamicData || {};
 
                         return (
                           <tr
                             key={task.id}
                             style={{
-                              animationDelay: `${Math.min(idx * 18, 300)}ms`,
+                              animationDelay: `${Math.min(idx * 15, 250)}ms`,
                             }}
                             className={`${styles.trRow} ${
                               isSelected ? styles.trSelected : ""
-                            } ${locked ? styles.trLockedAdmin : ""}`}
+                            } ${lockedByAdmin ? styles.trLockedAdmin : ""}`}
                           >
                             <td className={styles.tdCell}>
                               <input
@@ -789,30 +868,38 @@ export default function PilotBoard() {
                               </div>
                             </td>
 
-                            {/* 🔥 EDIT 1: Status Button (2 Clicks from A_FAIRE -> DONE & Locked) */}
+                            {/* 🔥 STATUT : 2 clics = TERMINÉ (modifiable), mais VALIDATED par Admin = DISABLED */}
                             <td className={styles.tdCell}>
                               <button
                                 type="button"
-                                disabled={locked}
+                                disabled={lockedByAdmin}
                                 onClick={() => handleStatusToggle(task)}
                                 title={
-                                  locked
-                                    ? "Tâche validée et verrouillée — Modification désactivée"
+                                  lockedByAdmin
+                                    ? "🔒 Validé finalement par l'Admin dans le Kanban — Lecture seule"
+                                    : task.status === "DONE"
+                                    ? "Terminé par vous (en attente validation Admin). Cliquez pour rouvrir."
                                     : task.status === "EN_COURS"
-                                    ? "Cliquez une 2ème fois pour terminer et verrouiller"
-                                    : "Cliquez pour passer En Cours (1/2)"
+                                    ? "Cliquez une 2ème fois pour marquer comme Terminé"
+                                    : "Cliquez pour démarrer (En Cours)"
                                 }
                                 className={`${styles.statusBtn} ${
-                                  locked
+                                  lockedByAdmin
                                     ? styles.statusLockedAdmin
+                                    : task.status === "DONE"
+                                    ? styles.statusDone
                                     : task.status === "EN_COURS"
                                     ? styles.statusProgress
                                     : styles.statusTodo
                                 }`}
                               >
-                                {locked ? (
+                                {lockedByAdmin ? (
                                   <>
-                                    <Lock size={12} /> VALIDÉ & VERROUILLÉ
+                                    <ShieldCheck size={13} /> VALIDÉ ADMIN 🔒
+                                  </>
+                                ) : task.status === "DONE" ? (
+                                  <>
+                                    <CheckCircle2 size={13} /> TERMINÉ (2/2)
                                   </>
                                 ) : task.status === "EN_COURS" ? (
                                   <>
@@ -826,7 +913,7 @@ export default function PilotBoard() {
                               </button>
                             </td>
 
-                            {/* ✍️ EDITABLE PILOT COLUMNS (Disabled if Task is Locked/Validated!) */}
+                            {/* ✍️ EDITABLE PILOT COLUMNS (Enabled even when DONE, Disabled ONLY when Admin VALIDATED) */}
                             {allowedFields.map((col: string) => {
                               const cellKey = `${task.id}_${col}`;
                               const currentVal =
@@ -839,13 +926,15 @@ export default function PilotBoard() {
                                   <div className={styles.pilotInputWrapper}>
                                     <input
                                       type="text"
-                                      disabled={locked}
+                                      disabled={lockedByAdmin}
                                       className={`${styles.pilotInput} ${
-                                        locked ? styles.pilotInputDisabled : ""
+                                        lockedByAdmin
+                                          ? styles.pilotInputDisabled
+                                          : ""
                                       }`}
                                       placeholder={
-                                        locked
-                                          ? "Verrouillé"
+                                        lockedByAdmin
+                                          ? "Validé par l'Admin"
                                           : `Saisir ${col}...`
                                       }
                                       value={currentVal}
@@ -857,7 +946,7 @@ export default function PilotBoard() {
                                       }
                                       onBlur={() => {
                                         if (
-                                          !locked &&
+                                          !lockedByAdmin &&
                                           draftEdits[cellKey] !== undefined &&
                                           draftEdits[cellKey] !==
                                             String(dyn[col] ?? "")
@@ -875,7 +964,7 @@ export default function PilotBoard() {
                                         }
                                       }}
                                     />
-                                    {locked ? (
+                                    {lockedByAdmin ? (
                                       <Lock
                                         size={13}
                                         className={styles.lockedInputIcon}
@@ -916,13 +1005,14 @@ export default function PilotBoard() {
 
                 <div className={styles.tableFooter}>
                   <span>
-                    🔒 Les lignes validées (2 clics ou validées par l&apos;Admin
-                    dans le Kanban) ainsi que les colonnes Excel sont
-                    verrouillées contre toute modification.
+                    💡 2 clics sur Statut = <strong>TERMINÉ</strong> (modifiable
+                    tant que l&apos;Admin ne l&apos;a pas validé). Une fois{" "}
+                    <strong>VALIDÉ ADMIN 🔒</strong> dans le Kanban, la ligne
+                    devient définitivement non modifiable.
                   </span>
                   <span>
                     {selectedTasks.length > 0
-                      ? `${selectedTasks.length} ligne(s) sélectionnée(s)`
+                      ? `${selectedTasks.length} ligne(s) cochée(s)`
                       : `${filteredTasks.length} ligne(s) affichée(s)`}
                   </span>
                 </div>

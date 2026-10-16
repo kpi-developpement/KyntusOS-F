@@ -1,218 +1,586 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-  Search, ShieldAlert, FileText, User, XCircle, AlertTriangle, 
-  RotateCcw, Clock, Database, Hash 
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  ShieldAlert,
+  FileText,
+  User,
+  RotateCcw,
+  Clock,
+  Database,
+  CheckCircle2,
+  Copy,
+  Check,
+  ArrowRightLeft,
+  Sparkles,
+  Lock,
 } from "lucide-react";
 import styles from "./Check.module.css";
-import LuxSelect from "@/components/ui/LuxSelect";
-import InteractiveBackground from "@/components/ui/InteractiveBackground";
 import { toast } from "@/components/ui/Toaster";
+
+// ============================================================================
+// 🧠 EXTRACT REAL EXCEL EPS FROM ANY TASK COLUMN
+// ============================================================================
+function extractExcelEPS(task: any): string {
+  if (!task) return "";
+  const dyn = task.dynamicData || {};
+
+  // 1. Scan for any value matching "EPS-..." inside Excel dynamicData
+  const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
+  for (const val of Object.values(dyn)) {
+    const str = String(val ?? "").trim();
+    const match = str.match(epsRegex);
+    if (match) return match[1].toUpperCase();
+  }
+
+  // 2. Check Excel columns named EPS, idIntervention, Intervention, etc.
+  const priorityCols = [
+    "eps",
+    "idintervention",
+    "id_intervention",
+    "id intervention",
+    "intervention",
+    "num_eps",
+    "reference",
+    "dossier",
+  ];
+  for (const key of Object.keys(dyn)) {
+    const lower = key.trim().toLowerCase();
+    if (priorityCols.some((p) => lower === p || lower.includes(p))) {
+      const val = String(dyn[key] ?? "").trim();
+      if (val) return val;
+    }
+  }
+
+  // 3. Fallback to epsReference if not auto-generated
+  if (task.epsReference && !String(task.epsReference).startsWith("AUTO-")) {
+    return String(task.epsReference);
+  }
+
+  return `TASK-#${task.id}`;
+}
 
 export default function InspectorPage() {
   const [templates, setTemplates] = useState<any[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [pilots, setPilots] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("ALL");
   const [epsInput, setEpsInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [matches, setMatches] = useState<any[]>([]);
   const [task, setTask] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/templates")
-      .then(res => res.json())
-      .then(data => setTemplates(data || []))
-      .catch(() => toast({ message: "Erreur chargement templates", type: "error" }));
+      .then((res) => res.json())
+      .then((data) => setTemplates(Array.isArray(data) ? data : []))
+      .catch(() =>
+        toast({ message: "Erreur chargement templates", type: "error" })
+      );
+
+    fetch("/api/users")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setPilots(
+            data.filter(
+              (u: any) =>
+                !u.role ||
+                String(u.role).toUpperCase().includes("PILOT") ||
+                String(u.role).toUpperCase().includes("USER")
+            )
+          );
+        }
+      })
+      .catch(() => {});
   }, []);
 
+  // ==========================================================================
+  // 🔍 DEEP EXCEL EPS SEARCH ENGINE (Finds real EPS inside Excel columns!)
+  // ==========================================================================
   const handleSearch = async (e?: React.FormEvent) => {
-    if(e) e.preventDefault();
-    if(!selectedTemplate) return toast({message: "Veuillez sélectionner un Template", type: "error"});
-    if(!epsInput.trim()) return toast({message: "Veuillez entrer un EPS", type: "error"});
+    if (e) e.preventDefault();
+    const cleanQuery = epsInput.trim().toLowerCase();
+    if (!cleanQuery) {
+      return toast({
+        message: "Veuillez saisir un numéro EPS du fichier Excel",
+        type: "error",
+      });
+    }
 
     setLoading(true);
     setTask(null);
+    setMatches([]);
 
     try {
-        const res = await fetch(`/api/admin/search?eps=${epsInput}`);
+      let candidateTasks: any[] = [];
+
+      // 1. Fetch tasks from selected template OR across all templates
+      if (selectedTemplate !== "ALL") {
+        const res = await fetch(`/api/tasks?templateId=${selectedTemplate}`);
         if (res.ok) {
-            const foundTask = await res.json();
-            if(foundTask.template?.id.toString() !== selectedTemplate) {
-                toast({ message: `EPS appartient au projet "${foundTask.template?.name}"`, type: "error" });
-                setLoading(false);
-                return;
-            }
-            setTask(foundTask);
-            toast({message: "DOSSIER CHARGÉ AVEC SUCCÈS", type: "success"});
-        } else {
-            toast({message: "EPS INTROUVABLE", type: "error"});
+          const data = await res.json();
+          if (Array.isArray(data)) candidateTasks = data;
         }
+      } else {
+        // Omni-scan across all active templates
+        const allRes = await Promise.all(
+          templates.map((tpl) =>
+            fetch(`/api/tasks?templateId=${tpl.id}`)
+              .then((r) => (r.ok ? r.json() : []))
+              .then((list) =>
+                Array.isArray(list)
+                  ? list.map((item) => ({
+                      ...item,
+                      template: item.template || tpl,
+                    }))
+                  : []
+              )
+              .catch(() => [])
+          )
+        );
+        candidateTasks = allRes.flat();
+      }
+
+      // 2. Also try backend /api/admin/search?eps=... in case it returns a direct match
+      try {
+        const directRes = await fetch(
+          `/api/admin/search?eps=${encodeURIComponent(epsInput.trim())}`
+        );
+        if (directRes.ok) {
+          const directTask = await directRes.json();
+          if (
+            directTask &&
+            directTask.id &&
+            !candidateTasks.some((t) => t.id === directTask.id)
+          ) {
+            candidateTasks.unshift(directTask);
+          }
+        }
+      } catch {}
+
+      // 3. Filter tasks by matching the query against the REAL Excel EPS or any Excel cell value
+      const foundList = candidateTasks.filter((t) => {
+        const realEps = extractExcelEPS(t).toLowerCase();
+        if (realEps.includes(cleanQuery)) return true;
+
+        const sysEps = String(t.epsReference || "").toLowerCase();
+        if (sysEps.includes(cleanQuery)) return true;
+
+        const dyn = t.dynamicData || {};
+        return Object.values(dyn).some((val) =>
+          String(val ?? "")
+            .toLowerCase()
+            .includes(cleanQuery)
+        );
+      });
+
+      if (foundList.length > 0) {
+        setMatches(foundList);
+        setTask(foundList[0]);
+        toast({
+          message: `✨ ${foundList.length} DOSSIER(S) EXCEL TROUVÉ(S)`,
+          type: "success",
+        });
+      } else {
+        toast({
+          message: `AUCUN EPS "${epsInput.toUpperCase()}" TROUVÉ DANS LES FICHIERS EXCEL`,
+          type: "error",
+        });
+      }
     } catch (error) {
-        toast({message: "Erreur de connexion", type: "error"});
+      toast({ message: "Erreur lors de la recherche", type: "error" });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
   const handleReset = () => {
-      setTask(null);
-      setEpsInput("");
-      // On garde le template selectionné pour enchainer rapidement
+    setTask(null);
+    setMatches([]);
+    setEpsInput("");
   };
 
-  const handleForceReject = async () => {
-      if(!task || !confirm("⚠️ CONFIRMER LE REJET FORCÉ ?")) return;
-      try {
-          const res = await fetch(`/api/tasks/${task.id}/status`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: "REJETE" })
-          });
-          if(res.ok) {
-              toast({message: "STATUS : REJETÉ", type: "success"});
-              setTask({...task, status: "REJETE"});
-          }
-      } catch (e) { toast({message: "ERREUR", type: "error"}); }
-  };
+  // Update Status (Reject OR Final Admin Validation Lock)
+  const handleStatusOverride = async (newStatus: string, label: string) => {
+    if (!task) return;
+    if (!window.confirm(`Confirmer le passage au statut : ${label} ?`)) return;
 
-  // Helper Couleur
-  const getStatusStyle = (status: string) => {
-      switch(status) {
-          case "VALIDE": return { color: "#39ff14", bg: "rgba(57, 255, 20, 0.1)", glow: "rgba(57, 255, 20, 0.4)" };
-          case "REJETE": return { color: "#ff0055", bg: "rgba(255, 0, 85, 0.1)", glow: "rgba(255, 0, 85, 0.4)" };
-          case "EN_COURS": return { color: "#00f2ea", bg: "rgba(0, 242, 234, 0.1)", glow: "rgba(0, 242, 234, 0.4)" };
-          default: return { color: "#f5a623", bg: "rgba(245, 166, 35, 0.1)", glow: "rgba(245, 166, 35, 0.4)" };
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        toast({ message: `STATUT MIS À JOUR : ${label}`, type: "success" });
+        const updated = { ...task, status: newStatus };
+        setTask(updated);
+        setMatches((prev) =>
+          prev.map((m) => (m.id === task.id ? updated : m))
+        );
       }
+    } catch (e) {
+      toast({ message: "ERREUR MISE À JOUR STATUT", type: "error" });
+    }
   };
 
-  // Helper Temps (Seconds -> HH:MM:SS)
+  // Reassign Task to another Pilot directly from Inspector
+  const handleReassignPilot = async (newPilotId: string) => {
+    if (!task || !newPilotId) return;
+    const targetPilot = pilots.find((p) => String(p.id) === String(newPilotId));
+
+    try {
+      const res = await fetch(`/api/tasks/reassign`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskId: task.id,
+          newPilotId: Number(newPilotId),
+        }),
+      });
+
+      if (res.ok || targetPilot) {
+        const updated = { ...task, assignee: targetPilot };
+        setTask(updated);
+        setMatches((prev) =>
+          prev.map((m) => (m.id === task.id ? updated : m))
+        );
+        toast({
+          message: `🔄 EPS réaffecté au pilote ${
+            targetPilot?.username || newPilotId
+          }`,
+          type: "success",
+        });
+      }
+    } catch (e) {
+      toast({ message: "Erreur transfert pilote", type: "error" });
+    }
+  };
+
+  const handleCopyEps = (epsStr: string) => {
+    navigator.clipboard?.writeText(epsStr);
+    setCopied(true);
+    toast({ message: `📋 ${epsStr} copié !`, type: "success" });
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const getStatusBadgeStyle = (status: string) => {
+    const st = String(status || "").toUpperCase();
+    if (st === "VALIDATED" || st === "VALIDE") {
+      return {
+        bg: "#dcfce7",
+        color: "#15803d",
+        border: "1px solid #86efac",
+        label: "🔒 VALIDÉ FINAL (VERROUILLÉ)",
+      };
+    }
+    if (st === "DONE") {
+      return {
+        bg: "#e0f2fe",
+        color: "#0369a1",
+        border: "1px solid #7dd3fc",
+        label: "✅ TERMINÉ PAR LE PILOTE",
+      };
+    }
+    if (st === "REJETE") {
+      return {
+        bg: "#ffe4e6",
+        color: "#e11d48",
+        border: "1px solid #fda4af",
+        label: "⚠️ REJETÉ",
+      };
+    }
+    if (st === "EN_COURS") {
+      return {
+        bg: "#fef3c7",
+        color: "#b45309",
+        border: "1px solid #fde68a",
+        label: "⏳ EN COURS D'ANALYSE",
+      };
+    }
+    return {
+      bg: "#f1f5f9",
+      color: "#475569",
+      border: "1px solid #cbd5e1",
+      label: st || "À FAIRE",
+    };
+  };
+
   const formatDuration = (seconds?: number) => {
-      if (!seconds) return "00h 00m 00s";
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = Math.floor(seconds % 60);
-      return `${h}h ${m}m ${s}s`;
+    if (!seconds) return "00h 00m 00s";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${h}h ${m}m ${s}s`;
   };
 
-  const statusStyle = task ? getStatusStyle(task.status) : {};
-  const tmplOpts = templates.map(t => ({value: t.id.toString(), label: t.name.toUpperCase()}));
+  const realExcelEps = task ? extractExcelEPS(task) : "";
+  const statusInfo = task ? getStatusBadgeStyle(task.status) : null;
+  const tplObj = task
+    ? task.template ||
+      templates.find((t) => String(t.id) === String(selectedTemplate))
+    : null;
 
   return (
     <div className={styles.container}>
-      <InteractiveBackground />
+      <div className={styles.ambientGlow} />
 
+      {/* HEADER */}
       <div className={styles.headerTitle}>
-          <h1 className={styles.titleMain}>INSPECTOR PROTOCOL</h1>
-          <span className={styles.subtitle}>// DEEP DIVE ANALYSIS</span>
+        <div className={styles.badgeTop}>
+          <Sparkles size={13} /> RECHERCHE INTELLIGENTE EXCEL & TRAÇABILITÉ PILOTE
+        </div>
+        <h1 className={styles.titleMain}>INSPECTOR PROTOCOL</h1>
+        <span className={styles.subtitle}>
+          // RECHERCHE PAR NUMÉRO EPS DU FICHIER EXCEL (EX: EPS-12345)
+        </span>
       </div>
 
-      {/* ZONE DE RECHERCHE (Cachée si résultat affiché pour focus, ou garde-la si tu veux) */}
-      {!task && (
-          <div className={styles.searchZone}>
-              <div style={{width: 300}}>
-                 <LuxSelect label="1. CIBLE" options={tmplOpts} value={selectedTemplate} onChange={setSelectedTemplate} placeholder="PROJET..." />
-              </div>
-              <form onSubmit={handleSearch} className={styles.inputWrapper} style={{display:'flex', gap:10, alignItems:'flex-end'}}>
-                  <div style={{flex:1}}>
-                      <label style={{display:'block', fontSize:'0.65rem', fontWeight:'bold', color:'#666', marginBottom:8}}>2. IDENTIFIANT (EPS)</label>
-                      <input type="text" className={styles.searchInput} placeholder="Scan ID..." value={epsInput} onChange={(e) => setEpsInput(e.target.value)} />
-                  </div>
-                  <button type="submit" className={styles.searchBtn} disabled={loading} style={{height: 52}}>
-                      {loading ? "SCAN..." : <Search size={20}/>}
-                  </button>
-              </form>
-          </div>
-      )}
+      {/* SEARCH BAR (Always accessible for fast switching) */}
+      <div className={styles.searchZone}>
+        <div className={styles.fieldCol}>
+          <label className={styles.fieldLabel}>1. PROJET / TEMPLATE CIBLE</label>
+          <select
+            className={styles.selectBox}
+            value={selectedTemplate}
+            onChange={(e) => setSelectedTemplate(e.target.value)}
+          >
+            <option value="ALL">🌐 TOUS LES PROJETS (OMNI-SCAN)</option>
+            {templates.map((t) => (
+              <option key={t.id} value={t.id.toString()}>
+                📁 {t.name.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* BOUTON RESET (Si task affichée) */}
-      {task && (
-          <div className={styles.resetZone}>
-              <button onClick={handleReset} className={styles.resetBtn}>
-                  <RotateCcw size={14}/> NOUVELLE RECHERCHE
+        <form onSubmit={handleSearch} className={styles.inputWrapper}>
+          <div style={{ flex: 1 }} className={styles.fieldCol}>
+            <label className={styles.fieldLabel}>
+              2. CODE EPS DU FICHIER EXCEL (OU VALEUR D&apos;INTERVENTION)
+            </label>
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Tapez le code EPS du fichier Excel (ex: EPS-84920)..."
+              value={epsInput}
+              onChange={(e) => setEpsInput(e.target.value)}
+            />
+          </div>
+          <button
+            type="submit"
+            className={styles.searchBtn}
+            disabled={loading}
+          >
+            <Search size={18} />
+            <span>{loading ? "RECHERCHE..." : "RECHERCHER EPS"}</span>
+          </button>
+        </form>
+      </div>
+
+      {/* IF MULTIPLE ROWS MATCH THE EPS QUERY */}
+      {matches.length > 1 && (
+        <div className={styles.matchesBanner}>
+          <span
+            style={{
+              fontSize: "0.78rem",
+              fontWeight: 800,
+              color: "#0369a1",
+            }}
+          >
+            {matches.length} DOSSIERS CORRESPONDANTS :
+          </span>
+          {matches.map((m) => {
+            const mEps = extractExcelEPS(m);
+            const isSelected = task?.id === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setTask(m)}
+                className={`${styles.matchPill} ${
+                  isSelected ? styles.matchPillActive : ""
+                }`}
+              >
+                {mEps} — 👤 {m.assignee?.username || "Non assigné"}
               </button>
-          </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* RESULTAT DEEP DIVE */}
-      {task && (
-          <div className={styles.resultCard} style={{"--status-color": statusStyle.color} as any}>
-              <div className={styles.cardBg}></div>
-              
-              {/* HEADER: ID & STATUS */}
-              <div className={styles.cardHeader}>
-                  <div>
-                      <div className={styles.epsTitle}>{task.epsReference}</div>
-                      <div className={styles.templateTag}>
-                          <FileText size={12}/> {task.template?.name}
-                      </div>
-                  </div>
-                  <div className={styles.statusBox}>
-                      <span className={styles.statusLabel} style={{"--status-bg": statusStyle.bg, "--status-text": statusStyle.color, "--status-glow": statusStyle.glow} as any}>
-                          {task.status}
-                      </span>
-                  </div>
+      {/* RESULT DOSSIER CARD */}
+      {task && statusInfo && (
+        <div className={styles.resultCard}>
+          {/* HEADER: REAL EXCEL EPS & STATUS */}
+          <div className={styles.cardHeader}>
+            <div>
+              <div className={styles.epsTitleRow}>
+                <div className={styles.epsTitle}>{realExcelEps}</div>
+                <button
+                  type="button"
+                  className={styles.copyEpsBtn}
+                  onClick={() => handleCopyEps(realExcelEps)}
+                >
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  <span>{copied ? "COPIÉ" : "COPIER EPS"}</span>
+                </button>
               </div>
+              <div className={styles.templateTag}>
+                <FileText size={13} />
+                <span>
+                  PROJET : {tplObj?.name || "MISSION KYNTUS"} (ID Tâche #
+                  {task.id})
+                </span>
+              </div>
+            </div>
 
-              {/* DECK: PILOT & TIME */}
-              <div className={styles.infoDeck}>
-                  {/* PILOT */}
-                  <div className={styles.deckSection}>
-                      <div className={styles.sectionLabel}><User size={14}/> UNITÉ RESPONSABLE</div>
-                      <div className={styles.pilotRow}>
-                          <div className={styles.pilotAvatar}>
-                              {task.assignee?.username.substring(0,1).toUpperCase() || "?"}
-                          </div>
-                          <div className={styles.pilotDetails}>
-                              <div>{task.assignee?.username || "NON ASSIGNÉ"}</div>
-                              <span>ROLE: PILOT // ID: {task.assignee?.id || "N/A"}</span>
-                          </div>
-                      </div>
-                  </div>
-
-                  {/* TIME */}
-                  <div className={styles.deckSection}>
-                      <div className={styles.sectionLabel}><Clock size={14}/> TEMPS D'OPÉRATION</div>
-                      <div className={styles.timeDisplay}>
-                          {formatDuration(task.cumulativeTimeSeconds)}
-                          <span>TOTAL</span>
-                      </div>
-                      <div style={{fontSize:"0.7rem", color:"#666", marginTop:5}}>
-                          Dernière activité: {task.lastStartedAt ? new Date(task.lastStartedAt).toLocaleString() : "N/A"}
-                      </div>
-                  </div>
-              </div>
-
-              {/* DATA GRID: FULL DATA (Map Dynamic Data) */}
-              <div style={{padding:"20px 30px 0", fontSize:"0.8rem", color:"#00f2ea", fontWeight:"bold", letterSpacing:1}}>
-                  <Database size={14} style={{display:'inline', marginRight:8}}/> DONNÉES SYSTÈME
-              </div>
-              
-              <div className={styles.fullDataGrid}>
-                  {/* Metadata Fixes */}
-                  <div className={styles.dataItem}>
-                      <label className={styles.dataLabel}>INTERNAL ID</label>
-                      <div className={styles.dataValue}>#{task.id}</div>
-                  </div>
-                  
-                  {/* Dynamic Data Loop */}
-                  {task.dynamicData ? (
-                      Object.entries(task.dynamicData).map(([key, value]) => (
-                          <div key={key} className={styles.dataItem}>
-                              <label className={styles.dataLabel}>{key}</label>
-                              <div className={styles.dataValue}>{String(value)}</div>
-                          </div>
-                      ))
-                  ) : (
-                      <div style={{color:"#444", fontStyle:"italic"}}>Aucune donnée dynamique</div>
-                  )}
-              </div>
-
-              {/* FOOTER ACTIONS */}
-              <div className={styles.actionZone}>
-                  <button onClick={handleForceReject} className={styles.rejectBtn}>
-                      <ShieldAlert size={18} /> FORCER REJET (OVERRIDE)
-                  </button>
-              </div>
+            <div
+              className={styles.statusBadge}
+              style={{
+                background: statusInfo.bg,
+                color: statusInfo.color,
+                border: statusInfo.border,
+              }}
+            >
+              {statusInfo.label}
+            </div>
           </div>
+
+          {/* DECK: PILOT RESPONSIBLE (+ REASSIGNMENT) & TIME */}
+          <div className={styles.infoDeck}>
+            {/* PILOT */}
+            <div className={styles.deckSection}>
+              <div className={styles.sectionLabel}>
+                <User size={15} /> PILOTE RESPONSABLE DE CET EPS
+              </div>
+              <div className={styles.pilotRow}>
+                <div className={styles.pilotIdentity}>
+                  <div className={styles.pilotAvatar}>
+                    {task.assignee?.username?.substring(0, 1).toUpperCase() ||
+                      "?"}
+                  </div>
+                  <div>
+                    <div className={styles.pilotName}>
+                      {task.assignee?.username || "AUCUN PILOTE ASSIGNÉ"}
+                    </div>
+                    <div className={styles.pilotMeta}>
+                      ID PILOTE : {task.assignee?.id || "N/A"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 🔄 Reassign to another Pilot */}
+                {pilots.length > 0 && (
+                  <div className={styles.reassignBox}>
+                    <ArrowRightLeft size={14} color="#0284c7" />
+                    <select
+                      className={styles.reassignSelect}
+                      value={task.assignee?.id || ""}
+                      onChange={(e) => handleReassignPilot(e.target.value)}
+                      title="Transférer cet EPS à un autre pilote"
+                    >
+                      <option value="">— Changer de pilote —</option>
+                      {pilots.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          👤 {p.username}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* TIME */}
+            <div className={styles.deckSection}>
+              <div className={styles.sectionLabel}>
+                <Clock size={15} /> TEMPS D&apos;OPÉRATION & TRAÇABILITÉ
+              </div>
+              <div className={styles.timeDisplay}>
+                {formatDuration(task.cumulativeTimeSeconds)}
+                <span>CUMULÉ</span>
+              </div>
+              <div
+                style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}
+              >
+                Dernière activité :{" "}
+                {task.lastStartedAt
+                  ? new Date(task.lastStartedAt).toLocaleString()
+                  : "Enregistré dans la base"}
+              </div>
+            </div>
+          </div>
+
+          {/* DATA GRID: ALL EXCEL COLUMNS + PILOT ANALYSIS */}
+          <div className={styles.gridSectionHeader}>
+            <Database size={15} /> DONNÉES DU FICHIER EXCEL & ANALYSE DU PILOTE
+          </div>
+
+          <div className={styles.fullDataGrid}>
+            {task.dynamicData && Object.keys(task.dynamicData).length > 0 ? (
+              Object.entries(task.dynamicData).map(([key, value]) => {
+                const isAnalysisCol =
+                  key.toLowerCase().includes("comment") ||
+                  key.toLowerCase().includes("etat") ||
+                  key.toLowerCase().includes("statut") ||
+                  key.toLowerCase().includes("analyse");
+
+                return (
+                  <div
+                    key={key}
+                    className={`${styles.dataItem} ${
+                      isAnalysisCol ? styles.dataItemHighlight : ""
+                    }`}
+                  >
+                    <label className={styles.dataLabel}>
+                      {isAnalysisCol ? `✍️ ${key}` : `📄 ${key}`}
+                    </label>
+                    <div className={styles.dataValue}>
+                      {value !== null && value !== undefined && String(value) !== ""
+                        ? String(value)
+                        : "—"}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ color: "#64748b", fontStyle: "italic" }}>
+                Aucune donnée Excel attachée à cette ligne.
+              </div>
+            )}
+          </div>
+
+          {/* FOOTER ACTIONS */}
+          <div className={styles.actionZone}>
+            <button onClick={handleReset} className={styles.resetBtn}>
+              <RotateCcw size={15} /> RÉINITIALISER L&apos;AFFICHAGE
+            </button>
+
+            <div className={styles.rightActions}>
+              <button
+                type="button"
+                onClick={() =>
+                  handleStatusOverride("VALIDATED", "VALIDÉ FINAL (VERROUILLÉ)")
+                }
+                className={styles.validateBtn}
+              >
+                <Lock size={16} /> VALIDER FINAL & VERROUILLER CHEZ LE PILOTE
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleStatusOverride("REJETE", "REJETÉ")}
+                className={styles.rejectBtn}
+              >
+                <ShieldAlert size={16} /> FORCER REJET (OVERRIDE)
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
