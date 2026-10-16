@@ -1,97 +1,140 @@
-/* ========================================================= */
-/* LUXE SAPPHIRE & ALABASTER BACKGROUND (70% WHITE / 30% BLUE)*/
-/* ========================================================= */
+/* ========================================================================== */
+/* KYNTUS ARGON SPATIAL BACKGROUND (2026) — 70% LIGHT BLUE / 30% WHITE        */
+/* GPU COMPOSITED (120 FPS LOCKED)                                            */
+/* ========================================================================== */
 
 .container {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 65%, #e0f2fe 100%);
+  /* 70% Argon Light Blue Atmosphere + 30% White Luminance */
+  background: linear-gradient(
+    140deg,
+    #bae6fd 0%,
+    #e0f2fe 45%,
+    #f0f9ff 80%,
+    #ffffff 100%
+  );
   perspective: 1200px;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  contain: strict;
 }
 
-/* Soft Ambient Orbs (30% Royal Blue presence) */
 .sapphireOrbPrimary {
   position: absolute;
   top: -15%;
   right: -5%;
-  width: 55vw;
-  height: 55vw;
-  max-width: 800px;
-  max-height: 800px;
-  background: radial-gradient(circle, rgba(2, 132, 199, 0.14) 0%, rgba(37, 99, 235, 0.05) 45%, transparent 70%);
+  width: 52vw;
+  height: 52vw;
+  max-width: 760px;
+  max-height: 760px;
+  background: radial-gradient(
+    circle,
+    rgba(56, 189, 248, 0.35) 0%,
+    rgba(2, 132, 199, 0.14) 45%,
+    transparent 70%
+  );
   border-radius: 50%;
-  filter: blur(60px);
-  animation: floatSlow 14s ease-in-out infinite alternate;
+  will-change: transform;
+  animation: floatSlow 16s ease-in-out infinite alternate;
 }
 
 .sapphireOrbSecondary {
   position: absolute;
   bottom: -20%;
   left: -10%;
-  width: 50vw;
-  height: 50vw;
-  max-width: 700px;
-  max-height: 700px;
-  background: radial-gradient(circle, rgba(30, 64, 175, 0.1) 0%, rgba(56, 189, 248, 0.06) 50%, transparent 70%);
+  width: 48vw;
+  height: 48vw;
+  max-width: 680px;
+  max-height: 680px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(56, 189, 248, 0.22) 50%,
+    transparent 72%
+  );
   border-radius: 50%;
-  filter: blur(70px);
-  animation: floatSlow 18s ease-in-out infinite alternate-reverse;
+  will-change: transform;
+  animation: floatSlow 20s ease-in-out infinite alternate-reverse;
 }
 
-/* Mouse Interactive Aura */
+/* GPU-Composited Mouse Spotlight (Zero Layout Thrashing) */
 .interactiveAura {
   position: fixed;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 65%);
+  top: 0;
+  left: 0;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(56, 189, 248, 0.25) 40%,
+    transparent 70%
+  );
   border-radius: 50%;
-  filter: blur(40px);
-  transform: translate(-50%, -50%);
-  transition: top 0.25s cubic-bezier(0.16, 1, 0.3, 1), left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translate3d(-1000px, -1000px, 0);
+  will-change: transform;
   pointer-events: none;
 }
 
 /* 3D Architectural Horizon Grid */
 .grid3d {
   position: absolute;
-  bottom: -45%;
+  bottom: -42%;
   left: -50%;
   width: 200%;
-  height: 130%;
+  height: 125%;
   background-image:
-    linear-gradient(rgba(2, 132, 199, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(2, 132, 199, 0.12) 1px, transparent 1px);
-  background-size: 55px 55px;
-  transform: rotateX(72deg);
+    linear-gradient(rgba(2, 132, 199, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 132, 199, 0.18) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: rotateX(72deg) translate3d(0, 0, 0);
   transform-origin: center top;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0) 95%);
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0) 95%);
-  animation: moveGrid 6s linear infinite;
+  will-change: transform;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.75) 50%,
+    rgba(0, 0, 0, 0) 95%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.75) 50%,
+    rgba(0, 0, 0, 0) 95%
+  );
+  animation: moveGrid 8s linear infinite;
 }
 
-/* Subtle Top Light Beam */
 .topBeam {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 75%;
+  width: 80%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, #0284c7, transparent);
-  box-shadow: 0 4px 25px rgba(2, 132, 199, 0.35);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #ffffff,
+    #38bdf8,
+    #0284c7,
+    #38bdf8,
+    #ffffff,
+    transparent
+  );
+  box-shadow: 0 4px 25px rgba(56, 189, 248, 0.55);
 }
 
 @keyframes moveGrid {
-  0% { transform: rotateX(72deg) translateY(0); }
-  100% { transform: rotateX(72deg) translateY(55px); }
+  0% { transform: rotateX(72deg) translate3d(0, 0, 0); }
+  100% { transform: rotateX(72deg) translate3d(0, 56px, 0); }
 }
 
 @keyframes floatSlow {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(30px, -25px) scale(1.08); }
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(28px, -22px, 0) scale(1.06); }
 }

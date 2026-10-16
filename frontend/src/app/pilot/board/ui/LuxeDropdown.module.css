@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/* LUXE CUSTOM DROPDOWN — 70% PORCELAIN WHITE / 30% ROYAL SAPPHIRE BLUE       */
+/* KYNTUS ARGON DROPDOWN (2026) — 70% LIGHT BLUE / 30% PURE WHITE             */
 /* ========================================================================== */
 
 .dropdownContainer {
@@ -10,60 +10,59 @@
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Trigger Button */
 .trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1.5px solid #7dd3fc;
+  border-radius: 13px;
   padding: 9px 14px;
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #0c4a6e;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 
+    0 4px 12px rgba(56, 189, 248, 0.14),
+    inset 0 1px 0 #ffffff;
   position: relative;
   overflow: hidden;
 }
 
 .trigger:hover {
-  border-color: #38bdf8;
-  background: #f8fafc;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.1);
+  border-color: #0284c7;
+  background: #ffffff;
+  transform: translate3d(0, -1px, 0);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.24);
 }
 
 .triggerOpen {
   border-color: #0284c7 !important;
   background: #ffffff !important;
-  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.14), 0 8px 20px rgba(2, 132, 199, 0.12) !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.28) !important;
 }
 
-/* Variant: Royal Blue Accent Trigger */
 .triggerRoyal {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-color: #7dd3fc;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-color: #38bdf8;
   color: #0369a1;
 }
 
 .triggerRoyal:hover {
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-  border-color: #0284c7;
+  background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+  border-color: #ffffff;
 }
 
-/* Variant: Hero Header Mission Selector */
 .triggerHero {
   padding: 11px 16px;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1.5px solid rgba(2, 132, 199, 0.3);
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);
+  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.18), inset 0 1px 2px #ffffff;
 }
 
 .triggerLeft {
@@ -76,26 +75,29 @@
 }
 
 .prefixLabel {
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.68rem;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #0284c7;
-  background: #e0f2fe;
-  padding: 2px 7px;
-  border-radius: 6px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  padding: 3px 8px;
+  border-radius: 7px;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
 }
 
 .selectedText {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #0f172a;
+  color: #0c4a6e;
+  font-weight: 800;
 }
 
 .placeholderText {
-  color: #94a3b8;
+  color: #0369a1;
+  opacity: 0.7;
   font-weight: 600;
 }
 
@@ -113,22 +115,22 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #e2e8f0;
-  color: #475569;
-  border: none;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .clearMiniBtn:hover {
-  background: #ef4444;
+  background: #e11d48;
+  border-color: #e11d48;
   color: #ffffff;
-  transform: scale(1.1);
 }
 
 .chevron {
   color: #0284c7;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .chevronOpen {
@@ -136,7 +138,7 @@
 }
 
 /* ========================================================================== */
-/* POPOVER MENU (FLOATING GLASSMORPHISM + SPRING ANIMATION)                   */
+/* POPOVER MENU (ARGON AERO CRYSTAL)                                          */
 /* ========================================================================== */
 
 .menuPopover {
@@ -146,19 +148,20 @@
   min-width: 100%;
   width: max-content;
   max-width: 360px;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1.5px solid rgba(2, 132, 199, 0.25);
+  background: linear-gradient(
+    160deg,
+    rgba(224, 242, 254, 0.96) 0%,
+    rgba(255, 255, 255, 0.98) 100%
+  );
+  border: 1.5px solid #38bdf8;
   border-radius: 16px;
   box-shadow:
-    0 20px 45px -10px rgba(15, 23, 42, 0.16),
-    0 8px 20px -4px rgba(2, 132, 199, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 20px 45px -10px rgba(2, 132, 199, 0.28),
+    inset 0 2px 4px #ffffff;
   z-index: 9999;
   overflow: hidden;
   transform-origin: top center;
-  animation: menuSpringIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: menuSpringIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .menuAlignRight {
@@ -166,11 +169,10 @@
   right: 0;
 }
 
-/* Internal Search Box inside Dropdown */
 .searchHeader {
   padding: 10px 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-bottom: 1.5px solid #bae6fd;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -186,17 +188,16 @@
   border: none;
   background: transparent;
   font-size: 0.8rem;
-  font-weight: 600;
-  color: #0f172a;
+  font-weight: 700;
+  color: #0c4a6e;
   outline: none;
 }
 
 .searchInput::placeholder {
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 500;
 }
 
-/* Options List */
 .optionsList {
   max-height: 270px;
   overflow-y: auto;
@@ -211,17 +212,13 @@
 }
 
 .optionsList::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #e0f2fe;
   border-radius: 8px;
 }
 
 .optionsList::-webkit-scrollbar-thumb {
-  background: #93c5fd;
+  background: #38bdf8;
   border-radius: 8px;
-}
-
-.optionsList::-webkit-scrollbar-thumb:hover {
-  background: #0284c7;
 }
 
 .optionItem {
@@ -232,25 +229,27 @@
   padding: 9px 12px;
   border-radius: 10px;
   font-size: 0.82rem;
-  font-weight: 600;
-  color: #334155;
+  font-weight: 700;
+  color: #0c4a6e;
   cursor: pointer;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.15s ease, transform 0.15s ease;
   border: 1px solid transparent;
 }
 
 .optionItem:hover {
-  background: #f0f9ff;
-  color: #0369a1;
-  border-color: #bae6fd;
-  transform: translateX(3px);
+  background: #ffffff;
+  color: #0284c7;
+  border-color: #7dd3fc;
+  transform: translate3d(3px, 0, 0);
+  box-shadow: 0 4px 10px rgba(56, 189, 248, 0.15);
 }
 
 .optionSelected {
-  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
   color: #ffffff !important;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  border-color: #ffffff !important;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
 }
 
 .optionLeft {
@@ -267,32 +266,27 @@
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #e0f2fe;
+  background: #ffffff;
   color: #0284c7;
+  border: 1px solid #bae6fd;
   flex-shrink: 0;
-  transition: all 0.2s ease;
 }
 
 .optionSelected .optionBadge {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .emptyOptions {
   padding: 18px 12px;
   text-align: center;
   font-size: 0.8rem;
-  color: #64748b;
-  font-weight: 600;
+  color: #0369a1;
+  font-weight: 700;
 }
 
 @keyframes menuSpringIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-10px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  0% { opacity: 0; transform: translate3d(0, -8px, 0) scale(0.97); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }

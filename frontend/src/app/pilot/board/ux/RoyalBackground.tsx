@@ -1,17 +1,36 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import styles from "./RoyalBackground.module.css";
 
 export default function RoyalBackground() {
-  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const auraRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
+    let rafId: number | null = null;
+    let targetX = -1000;
+    let targetY = -1000;
+
+    const updatePosition = () => {
+      if (auraRef.current) {
+        auraRef.current.style.transform = `translate3d(${targetX - 260}px, ${targetY - 260}px, 0)`;
+      }
+      rafId = null;
     };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      if (rafId === null) {
+        rafId = window.requestAnimationFrame(updatePosition);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafId !== null) window.cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
@@ -19,10 +38,7 @@ export default function RoyalBackground() {
       <div className={styles.topBeam} />
       <div className={styles.sapphireOrbPrimary} />
       <div className={styles.sapphireOrbSecondary} />
-      <div
-        className={styles.interactiveAura}
-        style={{ left: `${mousePos.x}px`, top: `${mousePos.y}px` }}
-      />
+      <div ref={auraRef} className={styles.interactiveAura} />
       <div className={styles.grid3d} />
     </div>
   );

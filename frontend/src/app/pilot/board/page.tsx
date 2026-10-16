@@ -36,7 +36,6 @@ const API_URL = "/api";
 export async function universalCopyToClipboard(text: string): Promise<boolean> {
   if (!text) return false;
 
-  // 1. Try modern Clipboard API if available and secure
   if (navigator.clipboard && window.isSecureContext) {
     try {
       await navigator.clipboard.writeText(text);
@@ -46,7 +45,6 @@ export async function universalCopyToClipboard(text: string): Promise<boolean> {
     }
   }
 
-  // 2. Bulletproof Fallback using hidden textarea (Works on HTTP server IPs!)
   try {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -71,7 +69,6 @@ export async function universalCopyToClipboard(text: string): Promise<boolean> {
 export function extractTaskEPS(task: any, editableCols: string[] = []): string {
   if (!task) return "";
 
-  // 1. Check direct top-level properties
   const directCandidates = [
     task.epsReference,
     task.eps,
@@ -88,7 +85,6 @@ export function extractTaskEPS(task: any, editableCols: string[] = []): string {
   const dyn = task.dynamicData || {};
   const keys = Object.keys(dyn);
 
-  // 2. Scan for any value matching "EPS-..." pattern across all columns
   const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
   for (const k of keys) {
     const val = String(dyn[k] ?? "").trim();
@@ -96,7 +92,6 @@ export function extractTaskEPS(task: any, editableCols: string[] = []): string {
     if (match) return match[1].toUpperCase();
   }
 
-  // 3. Check columns whose name contains eps, intervention, id, ref, dossier
   const priorityNames = [
     "eps",
     "idintervention",
@@ -117,7 +112,6 @@ export function extractTaskEPS(task: any, editableCols: string[] = []): string {
     }
   }
 
-  // 4. Fallback: Take the first non-empty Excel column (excluding Admin editable columns)
   const editSet = new Set(editableCols.map((c) => c.toLowerCase()));
   for (const k of keys) {
     if (!editSet.has(k.toLowerCase())) {
@@ -375,7 +369,7 @@ export default function PilotBoard() {
   };
 
   // ========================================================================
-  // 6. MISSION HANDLERS (EDIT 1 & EDIT 2 CORRIGÉS)
+  // 6. MISSION HANDLERS
   // ========================================================================
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
     const targetTask = tasks.find((t) => t.id === taskId);
@@ -414,11 +408,6 @@ export default function PilotBoard() {
     }
   };
 
-  // 🔥 EDIT 1 CORRIGÉ :
-  // - Clic 1 sur A_FAIRE -> EN_COURS
-  // - Clic 2 sur EN_COURS -> DONE (Terminé chez le Pilote, mais PAS verrouillé !)
-  // - Si le Pilote reclique sur DONE (tant que l'Admin n'a pas validé), il peut repasser en EN_COURS
-  // - Si l'Admin a validé dans le Kanban (VALIDATED), alors c'est 100% DISABLED !
   const handleStatusToggle = async (task: any) => {
     if (isTaskLockedByAdmin(task)) {
       return toast({
@@ -433,9 +422,9 @@ export default function PilotBoard() {
     if (currentStatus === "A_FAIRE") {
       newStatus = "EN_COURS";
     } else if (currentStatus === "EN_COURS") {
-      newStatus = "DONE"; // 2ème clic -> Terminé par le pilote (envoyé au Kanban Admin)
+      newStatus = "DONE";
     } else if (currentStatus === "DONE") {
-      newStatus = "EN_COURS"; // Permet au pilote de rouvrir tant que l'Admin n'a pas fait la validation finale
+      newStatus = "EN_COURS";
     }
 
     setTasks((prev) =>
@@ -497,7 +486,6 @@ export default function PilotBoard() {
       )
     );
 
-    // Clear local drafts for updated rows so table shows the new bulk value immediately
     setDraftEdits((prev) => {
       const copy = { ...prev };
       unlockedSelectedIds.forEach((id) => {
@@ -576,7 +564,7 @@ export default function PilotBoard() {
   };
 
   // ========================================================================
-  // 📋 EDIT 2 CORRIGÉ: COPIER EPS OU N'IMPORTE QUELLE COLONNE (100% FIABLE)
+  // 📋 COPIER EPS OU N'IMPORTE QUELLE COLONNE (100% FIABLE)
   // ========================================================================
   const handleCopyColumnValues = async (targetCol?: string) => {
     const colToCopy =
@@ -586,7 +574,6 @@ export default function PilotBoard() {
         ? filterColumn
         : "EPS_ONLY";
 
-    // Take selected rows if any, otherwise take all currently filtered rows
     const sourceList =
       selectedTasks.length > 0
         ? tasks.filter((t) => selectedTasks.includes(t.id))
@@ -604,7 +591,6 @@ export default function PilotBoard() {
         if (colToCopy === "EPS_ONLY") {
           return extractTaskEPS(t, allowedFields);
         }
-        // Check local draft first in case user just typed something, otherwise dynamicData
         const cellKey = `${t.id}_${colToCopy}`;
         if (draftEdits[cellKey] !== undefined) {
           return String(draftEdits[cellKey]).trim();
@@ -648,7 +634,6 @@ export default function PilotBoard() {
     }
   };
 
-  // Selection helpers
   const allFilteredSelected =
     filteredTasks.length > 0 &&
     filteredTasks.every((t) => selectedTasks.includes(t.id));
@@ -814,7 +799,7 @@ export default function PilotBoard() {
                         {lockedExcelCols.map((col: string) => (
                           <th key={col} className={styles.thLocked}>
                             <div className={styles.thContent}>
-                              <Lock size={12} style={{ opacity: 0.6 }} />
+                              <Lock size={12} style={{ opacity: 0.7 }} />
                               <span>{col}</span>
                             </div>
                           </th>
@@ -823,7 +808,7 @@ export default function PilotBoard() {
                     </thead>
 
                     <tbody>
-                      {filteredTasks.map((task, idx) => {
+                      {filteredTasks.map((task) => {
                         const isSelected = selectedTasks.includes(task.id);
                         const lockedByAdmin = isTaskLockedByAdmin(task);
                         const epsCode = extractTaskEPS(task, allowedFields);
@@ -832,9 +817,6 @@ export default function PilotBoard() {
                         return (
                           <tr
                             key={task.id}
-                            style={{
-                              animationDelay: `${Math.min(idx * 15, 250)}ms`,
-                            }}
                             className={`${styles.trRow} ${
                               isSelected ? styles.trSelected : ""
                             } ${lockedByAdmin ? styles.trLockedAdmin : ""}`}
@@ -913,7 +895,7 @@ export default function PilotBoard() {
                               </button>
                             </td>
 
-                            {/* ✍️ EDITABLE PILOT COLUMNS (Enabled even when DONE, Disabled ONLY when Admin VALIDATED) */}
+                            {/* ✍️ EDITABLE PILOT COLUMNS */}
                             {allowedFields.map((col: string) => {
                               const cellKey = `${task.id}_${col}`;
                               const currentVal =
