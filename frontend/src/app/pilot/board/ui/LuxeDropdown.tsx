@@ -45,7 +45,6 @@ export default function LuxeDropdown({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -59,10 +58,9 @@ export default function LuxeDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Auto-focus search input when opened
   useEffect(() => {
     if (isOpen && searchable) {
-      setTimeout(() => searchInputRef.current?.focus(), 60);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
     } else {
       setQuery("");
     }
@@ -92,7 +90,9 @@ export default function LuxeDropdown({
   return (
     <div
       ref={containerRef}
-      className={styles.dropdownContainer}
+      className={`${styles.dropdownContainer} ${
+        isOpen ? styles.dropdownContainerOpen : ""
+      }`}
       style={{ minWidth }}
     >
       {/* Trigger Button */}
@@ -105,10 +105,15 @@ export default function LuxeDropdown({
         }`}
       >
         <div className={styles.triggerLeft}>
-          {icon && <span style={{ color: "#0284c7", display: "flex" }}>{icon}</span>}
+          {icon && <span className={styles.iconWrap}>{icon}</span>}
           {prefixLabel && <span className={styles.prefixLabel}>{prefixLabel}</span>}
           {selectedOption ? (
-            <span className={styles.selectedText}>{selectedOption.label}</span>
+            <span className={styles.selectedText}>
+              {selectedOption.icon && (
+                <span className={styles.iconWrap}>{selectedOption.icon}</span>
+              )}
+              <span>{selectedOption.label}</span>
+            </span>
           ) : (
             <span className={styles.placeholderText}>{placeholder}</span>
           )}
@@ -135,7 +140,7 @@ export default function LuxeDropdown({
         </div>
       </div>
 
-      {/* Floating Animated Menu */}
+      {/* Floating 3D Popover Menu */}
       {isOpen && (
         <div
           className={`${styles.menuPopover} ${
@@ -182,7 +187,9 @@ export default function LuxeDropdown({
                     }}
                   >
                     <div className={styles.optionLeft}>
-                      {opt.icon && <span>{opt.icon}</span>}
+                      {opt.icon && (
+                        <span className={styles.optionIcon}>{opt.icon}</span>
+                      )}
                       <span>{opt.label}</span>
                     </div>
 

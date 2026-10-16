@@ -13,6 +13,15 @@ import {
   ListFilter,
   RotateCcw,
   ClipboardCheck,
+  Globe,
+  Zap,
+  FileText,
+  Clock,
+  CircleDot,
+  Lock,
+  Layers,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 import ActionButton from "../ui/ActionButton";
 import LuxeDropdown, { LuxeOption } from "../ui/LuxeDropdown";
@@ -73,7 +82,6 @@ export default function BoardActions({
     }
   }, [allowedFields, bulkCol]);
 
-  // Synchronize copyTargetCol with filterColumn when user selects a column in filter
   useEffect(() => {
     if (filterColumn && filterColumn !== "ALL") {
       setCopyTargetCol(filterColumn);
@@ -89,39 +97,42 @@ export default function BoardActions({
     setBulkVal("");
   };
 
-  // Build LuxeOptions for Columns
+  // Pure Vector Options for Columns (Zero Emoji)
   const columnDropdownOptions: LuxeOption[] = [
-    { value: "ALL", label: "🌐 Toutes les colonnes" },
-    { value: "EPS_ONLY", label: "⚡ Référence EPS (EPS-...)" },
+    { value: "ALL", label: "Toutes les colonnes", icon: <Globe size={14} /> },
+    { value: "EPS_ONLY", label: "Référence EPS (EPS-...)", icon: <Zap size={14} /> },
     ...allColumns.map((col) => ({
       value: col,
-      label: allowedFields.includes(col) ? `✍️ ${col}` : `📄 ${col}`,
+      label: col,
+      icon: allowedFields.includes(col) ? <Edit3 size={14} /> : <FileText size={14} />,
       badge: allowedFields.includes(col) ? "ANALYSE" : undefined,
     })),
   ];
 
-  // Build LuxeOptions for Copy Column Selector
+  // Pure Vector Options for Copy Column Selector (Zero Emoji)
   const copyColumnOptions: LuxeOption[] = [
-    { value: "EPS_ONLY", label: "⚡ Référence EPS (EPS-...)" },
+    { value: "EPS_ONLY", label: "Référence EPS (EPS-...)", icon: <Zap size={14} /> },
     ...allColumns.map((col) => ({
       value: col,
-      label: `📋 ${col}`,
+      label: col,
+      icon: <Copy size={14} />,
     })),
   ];
 
-  // Build LuxeOptions for Status
+  // Pure Vector Options for Status (Zero Emoji)
   const statusDropdownOptions: LuxeOption[] = [
-    { value: "ALL", label: "Tous les statuts", badge: tasksCount },
-    { value: "A_FAIRE", label: "⚪ À Faire" },
-    { value: "EN_COURS", label: "🔵 En Cours" },
-    { value: "DONE", label: "🟢 Terminé (Pilote)" },
-    { value: "VALIDATED", label: "🔒 Validé (Admin Kanban)" },
+    { value: "ALL", label: "Tous les statuts", badge: tasksCount, icon: <Layers size={14} /> },
+    { value: "A_FAIRE", label: "À Faire", icon: <CircleDot size={14} /> },
+    { value: "EN_COURS", label: "En Cours", icon: <Clock size={14} /> },
+    { value: "DONE", label: "Terminé (Pilote)", icon: <CheckCircle2 size={14} /> },
+    { value: "VALIDATED", label: "Validé (Admin Kanban)", icon: <Lock size={14} /> },
   ];
 
-  // Build LuxeOptions for Bulk Editable Columns
+  // Pure Vector Options for Bulk Editable Columns (Zero Emoji)
   const editableDropdownOptions: LuxeOption[] = allowedFields.map((f) => ({
     value: f,
-    label: `✍️ ${f}`,
+    label: f,
+    icon: <Edit3 size={14} />,
   }));
 
   const hasActiveFilters =
@@ -130,7 +141,6 @@ export default function BoardActions({
     statusFilter !== "ALL" ||
     searchQuery.trim() !== "";
 
-  // Dynamic Label for the Copy Button
   const activeCopyColName =
     copyTargetCol === "EPS_ONLY" ? "EPS" : copyTargetCol.toUpperCase();
   const countToCopy = selectedCount > 0 ? selectedCount : filteredCount;
@@ -142,7 +152,7 @@ export default function BoardActions({
         <div className={styles.filterGroup}>
           {/* 1. COLUMN SELECTOR DROPDOWN */}
           <LuxeDropdown
-            minWidth={230}
+            minWidth={235}
             icon={<Filter size={15} />}
             prefixLabel="COLONNE"
             options={columnDropdownOptions}
@@ -202,7 +212,7 @@ export default function BoardActions({
 
           {/* 4. STATUS DROPDOWN */}
           <LuxeDropdown
-            minWidth={195}
+            minWidth={205}
             prefixLabel="STATUT"
             options={statusDropdownOptions}
             value={statusFilter}
@@ -224,7 +234,7 @@ export default function BoardActions({
           )}
         </div>
 
-        {/* Right: Quick Action Buttons (Smart Column Copy + Validation + Purge) */}
+        {/* Right: Quick Action Buttons */}
         <div className={styles.actionButtonsGroup}>
           <ActionButton
             icon={Copy}
@@ -253,20 +263,18 @@ export default function BoardActions({
         </div>
       </div>
 
-      {/* BOTTOM ROW: MASS EDIT & MULTI-LINE COLUMN COPY BAR (When rows are selected) */}
+      {/* BOTTOM ROW: MASS EDIT & MULTI-LINE COLUMN COPY BAR */}
       {selectedCount > 0 && (
         <div className={styles.massActionBanner}>
-          {/* Left: Selected Count + Multi-Line Column Copy Selector */}
           <div className={styles.massLeftZone}>
             <div className={styles.massBadge}>
               <Sparkles size={15} className={styles.spinSlow} />
               <span>{selectedCount} LIGNE(S) COCHÉE(S)</span>
             </div>
 
-            {/* 🔥 EDIT 2: Copier les valeurs d'une colonne précise pour les lignes sélectionnées */}
             <div className={styles.massCopyBox}>
               <LuxeDropdown
-                minWidth={200}
+                minWidth={210}
                 prefixLabel="COPIER COL."
                 options={copyColumnOptions}
                 value={copyTargetCol}
@@ -285,7 +293,6 @@ export default function BoardActions({
             </div>
           </div>
 
-          {/* Center/Right: Bulk Edit Comment/Analysis on Editable Columns */}
           <form onSubmit={handleBulkSubmit} className={styles.massControls}>
             <div className={styles.massFieldGroup}>
               <Edit3 size={15} className={styles.massIcon} />
@@ -293,7 +300,7 @@ export default function BoardActions({
               {allowedFields.length > 0 ? (
                 <LuxeDropdown
                   variant="royal"
-                  minWidth={190}
+                  minWidth={195}
                   options={editableDropdownOptions}
                   value={bulkCol}
                   onChange={setBulkCol}
@@ -307,7 +314,6 @@ export default function BoardActions({
 
             {allowedFields.length > 0 && (
               <>
-                {/* Smart Quick-Prefixes compatible with PilotEquipeService.java */}
                 <div className={styles.quickTagsGroup}>
                   <button
                     type="button"
@@ -321,7 +327,8 @@ export default function BoardActions({
                     }
                     title="Préfixe reconnu par l'Export Équipe"
                   >
-                    + VALIDE
+                    <Check size={12} />
+                    <span>VALIDE</span>
                   </button>
                   <button
                     type="button"
@@ -335,7 +342,8 @@ export default function BoardActions({
                     }
                     title="Préfixe reconnu par l'Export Équipe"
                   >
-                    + CONTESTER
+                    <AlertTriangle size={12} />
+                    <span>CONTESTER</span>
                   </button>
                 </div>
 
@@ -347,7 +355,8 @@ export default function BoardActions({
                   onChange={(e) => setBulkVal(e.target.value)}
                 />
                 <button type="submit" className={styles.massApplyBtn}>
-                  APPLIQUER ⚡
+                  <Zap size={14} />
+                  <span>APPLIQUER</span>
                 </button>
               </>
             )}
