@@ -12,6 +12,7 @@ import {
   Edit3,
   ListFilter,
   RotateCcw,
+  ClipboardCheck,
 } from "lucide-react";
 import ActionButton from "../ui/ActionButton";
 import LuxeDropdown, { LuxeOption } from "../ui/LuxeDropdown";
@@ -32,7 +33,7 @@ interface BoardActionsProps {
   setColumnExactValue?: (val: string) => void;
   statusFilter?: string;
   setStatusFilter?: (val: string) => void;
-  onCopyEPS?: () => void;
+  onCopyColumnValues?: (targetColumn?: string) => void;
   onPurgeDoublons?: () => void;
   onCoachSync?: () => void;
   onBulkEdit?: (col: string, val: string) => void;
@@ -55,7 +56,7 @@ export default function BoardActions({
   setColumnExactValue = () => {},
   statusFilter = "ALL",
   setStatusFilter = () => {},
-  onCopyEPS = () => {},
+  onCopyColumnValues = () => {},
   onPurgeDoublons = () => {},
   onCoachSync = () => {},
   onBulkEdit = () => {},
@@ -64,12 +65,22 @@ export default function BoardActions({
 }: BoardActionsProps) {
   const [bulkCol, setBulkCol] = useState<string>(allowedFields?.[0] || "");
   const [bulkVal, setBulkVal] = useState<string>("");
+  const [copyTargetCol, setCopyTargetCol] = useState<string>("EPS_ONLY");
 
   useEffect(() => {
     if (allowedFields.length > 0 && (!bulkCol || !allowedFields.includes(bulkCol))) {
       setBulkCol(allowedFields[0]);
     }
   }, [allowedFields, bulkCol]);
+
+  // Synchronize copyTargetCol with filterColumn when user selects a column in filter
+  useEffect(() => {
+    if (filterColumn && filterColumn !== "ALL") {
+      setCopyTargetCol(filterColumn);
+    } else {
+      setCopyTargetCol("EPS_ONLY");
+    }
+  }, [filterColumn]);
 
   const handleBulkSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,12 +100,22 @@ export default function BoardActions({
     })),
   ];
 
+  // Build LuxeOptions for Copy Column Selector
+  const copyColumnOptions: LuxeOption[] = [
+    { value: "EPS_ONLY", label: "⚡ Référence EPS (EPS-...)" },
+    ...allColumns.map((col) => ({
+      value: col,
+      label: `📋 ${col}`,
+    })),
+  ];
+
   // Build LuxeOptions for Status
   const statusDropdownOptions: LuxeOption[] = [
     { value: "ALL", label: "Tous les statuts", badge: tasksCount },
     { value: "A_FAIRE", label: "⚪ À Faire" },
     { value: "EN_COURS", label: "🔵 En Cours" },
-    { value: "DONE", label: "🟢 Terminé (Validé)" },
+    { value: "DONE", label: "🟢 Terminé (Pilote)" },
+    { value: "VALIDATED", label: "🔒 Validé (Admin Kanban)" },
   ];
 
   // Build LuxeOptions for Bulk Editable Columns
@@ -108,6 +129,11 @@ export default function BoardActions({
     columnExactValue !== "ALL" ||
     statusFilter !== "ALL" ||
     searchQuery.trim() !== "";
+
+  // Dynamic Label for the Copy Button
+  const activeCopyColName =
+    copyTargetCol === "EPS_ONLY" ? "EPS" : copyTargetCol.toUpperCase();
+  const countToCopy = selectedCount > 0 ? selectedCount : filteredCount;
 
   return (
     <div className={styles.actionsContainer}>
@@ -123,19 +149,19 @@ export default function BoardActions({
             value={filterColumn}
             onChange={(newCol) => {
               setFilterColumn(newCol);
-              setColumnExactValue("ALL"); // Reset specific value when switching column
+              setColumnExactValue("ALL");
             }}
             searchable={allColumns.length > 5}
             searchPlaceholder="Chercher une colonne..."
             clearable
           />
 
-          {/* 2. 🔥 CASCADING DISTINCT VALUES DROPDOWN (Appears when a specific column is selected) */}
+          {/* 2. CASCADING DISTINCT VALUES DROPDOWN */}
           {filterColumn !== "ALL" && (
             <div className={styles.cascadingDropReveal}>
               <LuxeDropdown
                 variant="royal"
-                minWidth={260}
+                minWidth={250}
                 icon={<ListFilter size={15} />}
                 prefixLabel="VALEUR"
                 placeholder={`Choisir dans ${filterColumn}...`}
@@ -198,25 +224,21 @@ export default function BoardActions({
           )}
         </div>
 
-        {/* Right: Quick Action Buttons */}
+        {/* Right: Quick Action Buttons (Smart Column Copy + Validation + Purge) */}
         <div className={styles.actionButtonsGroup}>
           <ActionButton
             icon={Copy}
-            label={
-              selectedCount > 0
-                ? `COPIER ${selectedCount} EPS`
-                : `COPIER ${filteredCount} EPS`
-            }
+            label={`COPIER (${countToCopy}) ${activeCopyColName}`}
             variant="primary"
-            onClick={onCopyEPS}
+            onClick={() => onCopyColumnValues(copyTargetCol)}
           />
 
           <ActionButton
             icon={CheckCircle2}
             label={
               selectedCount > 0
-                ? `VALIDER (${selectedCount})`
-                : "VALIDER SÉLECTION"
+                ? `TERMINER (${selectedCount})`
+                : "TERMINER SÉLECTION"
             }
             variant="secondary"
             onClick={onCoachSync}
@@ -231,48 +253,105 @@ export default function BoardActions({
         </div>
       </div>
 
-      {/* BOTTOM ROW: MASS EDIT BAR (Shows with smooth animation when rows are selected) */}
+      {/* BOTTOM ROW: MASS EDIT & MULTI-LINE COLUMN COPY BAR (When rows are selected) */}
       {selectedCount > 0 && (
-        <form onSubmit={handleBulkSubmit} className={styles.massActionBanner}>
-          <div className={styles.massBadge}>
-            <Sparkles size={16} className={styles.spinSlow} />
-            <span>{selectedCount} LIGNES SÉLECTIONNÉES</span>
+        <div className={styles.massActionBanner}>
+          {/* Left: Selected Count + Multi-Line Column Copy Selector */}
+          <div className={styles.massLeftZone}>
+            <div className={styles.massBadge}>
+              <Sparkles size={15} className={styles.spinSlow} />
+              <span>{selectedCount} LIGNE(S) COCHÉE(S)</span>
+            </div>
+
+            {/* 🔥 EDIT 2: Copier les valeurs d'une colonne précise pour les lignes sélectionnées */}
+            <div className={styles.massCopyBox}>
+              <LuxeDropdown
+                minWidth={200}
+                prefixLabel="COPIER COL."
+                options={copyColumnOptions}
+                value={copyTargetCol}
+                onChange={setCopyTargetCol}
+                searchable={allColumns.length > 5}
+              />
+              <button
+                type="button"
+                className={styles.massCopyTriggerBtn}
+                onClick={() => onCopyColumnValues(copyTargetCol)}
+                title="Copier les valeurs de cette colonne pour les lignes sélectionnées"
+              >
+                <ClipboardCheck size={15} />
+                <span>COPIER {selectedCount} VALEURS</span>
+              </button>
+            </div>
           </div>
 
-          <div className={styles.massControls}>
+          {/* Center/Right: Bulk Edit Comment/Analysis on Editable Columns */}
+          <form onSubmit={handleBulkSubmit} className={styles.massControls}>
             <div className={styles.massFieldGroup}>
               <Edit3 size={15} className={styles.massIcon} />
-              <span className={styles.massLabel}>Cible :</span>
+              <span className={styles.massLabel}>Modifier :</span>
               {allowedFields.length > 0 ? (
                 <LuxeDropdown
                   variant="royal"
-                  minWidth={210}
+                  minWidth={190}
                   options={editableDropdownOptions}
                   value={bulkCol}
                   onChange={setBulkCol}
                 />
               ) : (
                 <span className={styles.noEditableWarn}>
-                  Aucune colonne d&apos;analyse ajoutée par l&apos;Admin
+                  Aucune colonne modifiable
                 </span>
               )}
             </div>
 
             {allowedFields.length > 0 && (
               <>
+                {/* Smart Quick-Prefixes compatible with PilotEquipeService.java */}
+                <div className={styles.quickTagsGroup}>
+                  <button
+                    type="button"
+                    className={styles.quickTagValide}
+                    onClick={() =>
+                      setBulkVal((prev) =>
+                        prev.toLowerCase().startsWith("valide")
+                          ? prev
+                          : `VALIDE - ${prev}`
+                      )
+                    }
+                    title="Préfixe reconnu par l'Export Équipe"
+                  >
+                    + VALIDE
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.quickTagContest}
+                    onClick={() =>
+                      setBulkVal((prev) =>
+                        prev.toLowerCase().startsWith("contester")
+                          ? prev
+                          : `CONTESTER - ${prev}`
+                      )
+                    }
+                    title="Préfixe reconnu par l'Export Équipe"
+                  >
+                    + CONTESTER
+                  </button>
+                </div>
+
                 <input
                   type="text"
                   className={styles.massInput}
-                  placeholder={`Saisir le commentaire / analyse à appliquer aux ${selectedCount} lignes...`}
+                  placeholder={`Commentaire / analyse pour les ${selectedCount} lignes...`}
                   value={bulkVal}
                   onChange={(e) => setBulkVal(e.target.value)}
                 />
                 <button type="submit" className={styles.massApplyBtn}>
-                  APPLIQUER AUX {selectedCount} LIGNES ⚡
+                  APPLIQUER ⚡
                 </button>
               </>
             )}
-          </div>
+          </form>
 
           <button
             type="button"
@@ -282,7 +361,7 @@ export default function BoardActions({
           >
             <X size={16} />
           </button>
-        </form>
+        </div>
       )}
     </div>
   );

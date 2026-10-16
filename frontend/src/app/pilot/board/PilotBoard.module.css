@@ -1,6 +1,6 @@
 /* ========================================================================== */
 /* KYNTUS EXECUTIVE PILOT BOARD — 70% PURE WHITE / 30% ROYAL SAPPHIRE BLUE    */
-/* LUXE ANIMATED EDITION                                                      */
+/* LUXE ANIMATED EDITION (WITH KANBAN LOCK & MULTI-COLUMN COPY)               */
 /* ========================================================================== */
 
 .boardContainer {
@@ -19,13 +19,13 @@
   flex-direction: column;
   min-height: 100vh;
   padding: 1.75rem 2.25rem;
-  max-width: 1740px;
+  max-width: 1760px;
   margin: 0 auto;
   gap: 1.35rem;
 }
 
 /* ========================================================================== */
-/* 1. EXECUTIVE HEADER CARD (WITH AMBIENT SHIMMER)                            */
+/* 1. EXECUTIVE HEADER CARD                                                   */
 /* ========================================================================== */
 
 .headerBento {
@@ -242,7 +242,7 @@
 
 .actionsWrapper {
   position: relative;
-  z-index: 40; /* Keeps custom dropdown menus floating above the data grid */
+  z-index: 40;
   padding: 1.2rem 1.5rem;
   animation: heroEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -269,7 +269,6 @@
   flex: 1;
 }
 
-/* Smooth reveal when cascading value dropdown appears */
 .cascadingDropReveal {
   animation: popReveal 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
@@ -280,7 +279,7 @@
   align-items: center;
   flex: 1;
   min-width: 220px;
-  max-width: 380px;
+  max-width: 360px;
 }
 
 .searchIcon {
@@ -361,7 +360,7 @@
   flex-wrap: wrap;
 }
 
-/* MASS ACTION BANNER (30% Royal Blue Highlight) */
+/* MASS ACTION BANNER (MULTI-LINE COPY & BULK COMMENT) */
 .massActionBanner {
   display: flex;
   align-items: center;
@@ -376,13 +375,20 @@
   animation: popReveal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+.massLeftZone {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .massBadge {
   display: flex;
   align-items: center;
   gap: 8px;
   background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: #ffffff;
-  padding: 7px 14px;
+  padding: 8px 14px;
   border-radius: 10px;
   font-size: 0.76rem;
   font-weight: 800;
@@ -390,18 +396,50 @@
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
+.massCopyBox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.75);
+  padding: 4px 6px;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+}
+
+.massCopyTriggerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.massCopyTriggerBtn:hover {
+  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
 .massControls {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.65rem;
   flex: 1;
 }
 
 .massFieldGroup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .massIcon {
@@ -409,20 +447,60 @@
 }
 
 .massLabel {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: #0369a1;
 }
 
+.quickTagsGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.quickTagValide {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickTagValide:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.quickTagContest {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickTagContest:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
 .massInput {
   flex: 1;
-  min-width: 240px;
+  min-width: 210px;
   background: #ffffff;
   border: 1.5px solid #7dd3fc;
   color: #0f172a;
-  padding: 9px 15px;
+  padding: 9px 14px;
   border-radius: 11px;
-  font-size: 0.84rem;
+  font-size: 0.83rem;
   font-weight: 600;
   outline: none;
   transition: all 0.2s ease;
@@ -437,9 +515,9 @@
   background: linear-gradient(135deg, #0284c7 0%, #1e40af 100%);
   color: #ffffff;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 18px;
   border-radius: 11px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -479,7 +557,7 @@
 }
 
 /* ========================================================================== */
-/* 4. SMART EXECUTIVE DATA TABLE (PILOT EDITABLE VS LOCKED COLUMNS)           */
+/* 4. SMART EXECUTIVE DATA TABLE (WITH ADMIN LOCK & 2-CLICK WORKFLOW)         */
 /* ========================================================================== */
 
 .gridWrapper {
@@ -527,7 +605,6 @@
   text-align: left;
 }
 
-/* Royal Blue Header for Admin-Added Pilot Editable Columns */
 .thEditable {
   background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: #ffffff;
@@ -540,7 +617,7 @@
   border-right: 1px solid rgba(255, 255, 255, 0.18);
   white-space: nowrap;
   text-align: left;
-  min-width: 250px;
+  min-width: 260px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -570,6 +647,12 @@
   box-shadow: inset 4px 0 0 #1d4ed8;
 }
 
+/* 🔒 Row Validated by Admin in Kanban (Read-Only for Pilot) */
+.trLockedAdmin {
+  background: #f8fafc !important;
+  opacity: 0.88;
+}
+
 .tdCell {
   padding: 10px 16px;
   border-bottom: 1px solid #e2e8f0;
@@ -588,7 +671,7 @@
   border-right: 1px solid #e0f2fe;
   background: rgba(240, 249, 255, 0.6);
   vertical-align: middle;
-  min-width: 250px;
+  min-width: 260px;
 }
 
 /* EPS Badge Styling */
@@ -615,11 +698,6 @@
   transition: all 0.2s ease;
 }
 
-.trRow:hover .epsBadge {
-  border-color: #0284c7;
-  background: #e0f2fe;
-}
-
 .copyMiniBtn {
   background: #ffffff;
   border: 1px solid #cbd5e1;
@@ -641,7 +719,6 @@
   transform: scale(1.12);
 }
 
-/* Disabled Excel Cell */
 .lockedValue {
   color: #475569;
   font-size: 0.82rem;
@@ -670,19 +747,29 @@
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
-.pilotInput:hover {
+.pilotInput:hover:not(:disabled) {
   border-color: #38bdf8;
 }
 
-.pilotInput:focus {
+.pilotInput:focus:not(:disabled) {
   border-color: #0284c7;
   box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.16);
   transform: scale(1.01);
 }
 
-.pilotInput::placeholder {
-  color: #94a3b8;
-  font-weight: 400;
+/* 🔒 Disabled Pilot Input when Admin has validated in Kanban */
+.pilotInputDisabled {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+  cursor: not-allowed !important;
+}
+
+.lockedInputIcon {
+  position: absolute;
+  right: 9px;
+  color: #64748b;
+  pointer-events: none;
 }
 
 .savedIndicator {
@@ -690,7 +777,7 @@
   right: 9px;
   color: #0284c7;
   pointer-events: none;
-  animation: spinSlow 2s linear infinite;
+  animation: rotateSlow 2s linear infinite;
 }
 
 /* Status Pill Buttons */
@@ -708,7 +795,7 @@
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.statusBtn:hover {
+.statusBtn:hover:not(:disabled) {
   transform: scale(1.06);
 }
 
@@ -730,7 +817,16 @@
   border-color: #86efac;
 }
 
-/* Checkbox */
+/* 🔒 Locked Status Badge (Validated by Admin in Kanban) */
+.statusLockedAdmin {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  color: #ffffff;
+  border-color: #1e40af;
+  cursor: not-allowed !important;
+  opacity: 0.95;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
+
 .luxeCheckbox {
   width: 17px;
   height: 17px;
@@ -744,7 +840,6 @@
   transform: scale(1.12);
 }
 
-/* Empty & Loader States */
 .emptyStateBox {
   display: flex;
   flex-direction: column;
@@ -781,71 +876,35 @@
   font-weight: 600;
 }
 
-/* ========================================================================== */
-/* KEYFRAME ANIMATIONS                                                        */
-/* ========================================================================== */
-
 @keyframes heroEntrance {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.99);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  0% { opacity: 0; transform: translateY(20px) scale(0.99); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes popReveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.92) translateX(-8px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateX(0);
-  }
+  0% { opacity: 0; transform: scale(0.92) translateX(-8px); }
+  100% { opacity: 1; transform: scale(1) translateX(0); }
 }
 
 @keyframes rowFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes livePulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 @keyframes rotateSlow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes floatIcon {
-  from {
-    transform: translateY(0px);
-  }
-  to {
-    transform: translateY(-6px);
-  }
+  from { transform: translateY(0px); }
+  to { transform: translateY(-6px); }
 }
 
 .spinSlow {

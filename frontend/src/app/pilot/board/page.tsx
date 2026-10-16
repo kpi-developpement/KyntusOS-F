@@ -15,6 +15,7 @@ import {
   CircleDot,
   Sparkles,
   FileSpreadsheet,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
@@ -75,6 +76,30 @@ export function extractTaskEPS(task: any): string {
   }
 
   return task.epsReference || `TASK-${task.id}`;
+}
+
+// ============================================================================
+// 🔒 LOCK DETECTOR: Checks if task is finished (2 clicks) or validated by Admin
+// ============================================================================
+export function isTaskLocked(task: any): boolean {
+  if (!task) return false;
+  const st = String(task.status || "").toUpperCase().trim();
+
+  // Locked if Pilot finished (DONE after 2 clicks) OR Admin validated in Kanban
+  if (
+    st === "DONE" ||
+    st === "VALIDATED" ||
+    st === "VALIDE" ||
+    st === "VALIDÉ" ||
+    st === "ARCHIVED" ||
+    st === "CLOSED" ||
+    task.adminValidated === true ||
+    task.locked === true
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 export default function PilotBoard() {
@@ -191,7 +216,7 @@ export default function PilotBoard() {
   }, [allDynamicCols, allowedFields]);
 
   // ========================================================================
-  // 4. 🔥 CASCADING DISTINCT VALUES ENGINE FOR SELECTED COLUMN
+  // 4. CASCADING DISTINCT VALUES ENGINE FOR SELECTED COLUMN
   // ========================================================================
   const columnDistinctOptions = useMemo<LuxeOption[]>(() => {
     if (filterColumn === "ALL") return [];
@@ -250,15 +275,17 @@ export default function PilotBoard() {
   // ========================================================================
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      // 1. Status Filter
-      if (statusFilter !== "ALL" && task.status !== statusFilter) {
-        return false;
+      if (statusFilter !== "ALL") {
+        if (statusFilter === "VALIDATED") {
+          if (!isTaskLocked(task)) return false;
+        } else if (task.status !== statusFilter) {
+          return false;
+        }
       }
 
       const eps = extractTaskEPS(task);
       const dyn = task.dynamicData || {};
 
-      // 2. Cascading Exact Value Filter (when a column + specific value is chosen)
       if (filterColumn !== "ALL" && columnExactValue !== "ALL") {
         const targetCell =
           filterColumn === "EPS_ONLY"
@@ -272,7 +299,6 @@ export default function PilotBoard() {
         }
       }
 
-      // 3. Free-text Search Query Filter
       const q = searchQuery.trim().toLowerCase();
       if (!q) return true;
 
@@ -285,7 +311,6 @@ export default function PilotBoard() {
         return cellVal.includes(q);
       }
 
-      // ALL COLUMNS global search
       if (eps.toLowerCase().includes(q)) return true;
       return Object.values(dyn).some((val) =>
         String(val ?? "")
@@ -303,9 +328,17 @@ export default function PilotBoard() {
   };
 
   // ========================================================================
-  // 6. MISSION HANDLERS (SINGLE & BULK PATCH OPERATIONS)
+  // 6. MISSION HANDLERS (WITH EDIT 1 LOCK & EDIT 2 MULTI-COLUMN COPY)
   // ========================================================================
   const handleUpdateData = async (taskId: number, key: string, value: any) => {
+    const targetTask = tasks.find((t) => t.id === taskId);
+    if (isTaskLocked(targetTask)) {
+      return toast({
+        message: "🔒 TÂCHE VERROUILLÉE : Modification impossible après validation.",
+        type: "error",
+      });
+    }
+
     const cellKey = `${taskId}_${key}`;
     setSavingCell(cellKey);
 
@@ -334,23 +367,45 @@ export default function PilotBoard() {
     }
   };
 
-  const handleStatusToggle = async (taskId: number, currentStatus: string) => {
-    let newStatus = "EN_COURS";
-    if (currentStatus === "A_FAIRE") newStatus = "EN_COURS";
-    else if (currentStatus === "EN_COURS") newStatus = "DONE";
-    else newStatus = "A_FAIRE";
+  // 🔥 EDIT 1: 2 Clics depuis A_FAIRE -> Clic 1: EN_COURS -> Clic 2: DONE (Verrouillé !)
+  const handleStatusToggle = async (task: any) => {
+    if (isTaskLocked(task)) {
+      return toast({
+        message: "🔒 Cet EPS est déjà terminé/validé et ne peut plus être modifié.",
+        type: "error",
+      });
+    }
+
+    const currentStatus = task.status || "A_FAIRE";
+    let newStatus = "";
+
+    if (currentStatus === "A_FAIRE") {
+      newStatus = "EN_COURS";
+    } else if (currentStatus === "EN_COURS") {
+      newStatus = "DONE"; // 2ème clic -> Terminé et verrouillé !
+    } else {
+      return;
+    }
 
     setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
+      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
     );
+
     try {
-      const res = await fetch(`${API_URL}/tasks/${taskId}/status`, {
+      const res = await fetch(`${API_URL}/tasks/${task.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.ok && newStatus === "DONE") {
-        toast({ message: `TÂCHE VALIDÉE ✅`, type: "success" });
+      if (res.ok) {
+        if (newStatus === "DONE") {
+          toast({
+            message: `TRAVAIL TERMINÉ & VERROUILLÉ 🔒✅`,
+            type: "success",
+          });
+        }
+      } else {
+        throw new Error("Server error");
       }
     } catch (e) {
       refreshTasks();
@@ -371,9 +426,22 @@ export default function PilotBoard() {
       });
     }
 
+    // Filter out tasks that are already locked/validated
+    const unlockedSelectedIds = selectedTasks.filter((id) => {
+      const t = tasks.find((item) => item.id === id);
+      return t && !isTaskLocked(t);
+    });
+
+    if (unlockedSelectedIds.length === 0) {
+      return toast({
+        message: "🔒 Toutes les lignes sélectionnées sont déjà verrouillées/validées !",
+        type: "error",
+      });
+    }
+
     setTasks((prev) =>
       prev.map((t) =>
-        selectedTasks.includes(t.id)
+        unlockedSelectedIds.includes(t.id)
           ? { ...t, dynamicData: { ...t.dynamicData, [columnKey]: value } }
           : t
       )
@@ -381,7 +449,7 @@ export default function PilotBoard() {
 
     try {
       await Promise.all(
-        selectedTasks.map((id) =>
+        unlockedSelectedIds.map((id) =>
           fetch(`${API_URL}/tasks/${id}/data`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -390,7 +458,7 @@ export default function PilotBoard() {
         )
       );
       toast({
-        message: `${selectedTasks.length} LIGNES MISES À JOUR AVEC SUCCÈS ⚡`,
+        message: `${unlockedSelectedIds.length} LIGNE(S) MISE(S) À JOUR AVEC SUCCÈS ⚡`,
         type: "success",
       });
       setSelectedTasks([]);
@@ -419,7 +487,7 @@ export default function PilotBoard() {
         )
       );
       toast({
-        message: `${selectedTasks.length} TÂCHES VALIDÉES ✅`,
+        message: `${selectedTasks.length} TÂCHES VALIDÉES & VERROUILLÉES 🔒✅`,
         type: "success",
       });
       setSelectedTasks([]);
@@ -443,31 +511,52 @@ export default function PilotBoard() {
     }
   };
 
-  // 📋 SMART MULTI-EPS COPY
-  const handleCopyEPSList = () => {
+  // ========================================================================
+  // 📋 EDIT 2: COPY VALUES OF SELECTED COLUMN FOR SELECTED ROWS
+  // ========================================================================
+  const handleCopyColumnValues = (targetCol?: string) => {
+    const colToCopy =
+      targetCol && targetCol !== "ALL"
+        ? targetCol
+        : filterColumn !== "ALL"
+        ? filterColumn
+        : "EPS_ONLY";
+
+    // Take selected rows if any, otherwise take currently filtered rows
     const sourceList =
       selectedTasks.length > 0
         ? tasks.filter((t) => selectedTasks.includes(t.id))
         : filteredTasks;
 
-    const epsValues = Array.from(
-      new Set(
-        sourceList
-          .map((t) => extractTaskEPS(t))
-          .filter((eps) => eps && !eps.startsWith("TASK-"))
-      )
-    );
-
-    if (epsValues.length === 0) {
+    if (sourceList.length === 0) {
       return toast({
-        message: "AUCUN CODE EPS DÉTECTÉ DANS LA SÉLECTION",
+        message: "AUCUNE LIGNE À COPIER",
         type: "error",
       });
     }
 
-    navigator.clipboard.writeText(epsValues.join("\n"));
+    const extractedValues = sourceList
+      .map((t) => {
+        if (colToCopy === "EPS_ONLY") {
+          return extractTaskEPS(t);
+        }
+        return String(t.dynamicData?.[colToCopy] ?? "").trim();
+      })
+      .filter((val) => val !== "" && !val.startsWith("TASK-"));
+
+    if (extractedValues.length === 0) {
+      return toast({
+        message: `AUCUNE VALEUR TROUVÉE DANS LA COLONNE [${
+          colToCopy === "EPS_ONLY" ? "EPS" : colToCopy
+        }]`,
+        type: "error",
+      });
+    }
+
+    navigator.clipboard.writeText(extractedValues.join("\n"));
+    const labelCol = colToCopy === "EPS_ONLY" ? "EPS" : colToCopy;
     toast({
-      message: `${epsValues.length} RÉFÉRENCES EPS COPIÉES 📋`,
+      message: `${extractedValues.length} VALEUR(S) DE [${labelCol}] COPIÉE(S) 📋`,
       type: "success",
     });
   };
@@ -557,7 +646,7 @@ export default function PilotBoard() {
             </div>
           </div>
 
-          {/* 3. LUXE CASCADING FILTER & BULK COMMENT TOOLBAR */}
+          {/* 3. LUXE CASCADING FILTER & MULTI-COLUMN COPY / BULK COMMENT TOOLBAR */}
           <div className={`${styles.bentoCard} ${styles.actionsWrapper}`}>
             <BoardActions
               tasksCount={tasks.length}
@@ -574,7 +663,7 @@ export default function PilotBoard() {
               setColumnExactValue={setColumnExactValue}
               statusFilter={statusFilter}
               setStatusFilter={setStatusFilter}
-              onCopyEPS={handleCopyEPSList}
+              onCopyColumnValues={handleCopyColumnValues}
               onPurgeDoublons={handlePurgeDoublons}
               onCoachSync={handleCoachSync}
               onBulkEdit={handleBulkEdit}
@@ -628,7 +717,7 @@ export default function PilotBoard() {
 
                         <th className={styles.thLocked}>
                           <div className={styles.thContent}>
-                            <span>STATUT</span>
+                            <span>STATUT (2 CLICS = FINI)</span>
                           </div>
                         </th>
 
@@ -657,6 +746,7 @@ export default function PilotBoard() {
                     <tbody>
                       {filteredTasks.map((task, idx) => {
                         const isSelected = selectedTasks.includes(task.id);
+                        const locked = isTaskLocked(task);
                         const epsCode = extractTaskEPS(task);
                         const dyn = task.dynamicData || {};
 
@@ -668,7 +758,7 @@ export default function PilotBoard() {
                             }}
                             className={`${styles.trRow} ${
                               isSelected ? styles.trSelected : ""
-                            }`}
+                            } ${locked ? styles.trLockedAdmin : ""}`}
                           >
                             <td className={styles.tdCell}>
                               <input
@@ -699,40 +789,44 @@ export default function PilotBoard() {
                               </div>
                             </td>
 
+                            {/* 🔥 EDIT 1: Status Button (2 Clicks from A_FAIRE -> DONE & Locked) */}
                             <td className={styles.tdCell}>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  handleStatusToggle(
-                                    task.id,
-                                    task.status || "A_FAIRE"
-                                  )
+                                disabled={locked}
+                                onClick={() => handleStatusToggle(task)}
+                                title={
+                                  locked
+                                    ? "Tâche validée et verrouillée — Modification désactivée"
+                                    : task.status === "EN_COURS"
+                                    ? "Cliquez une 2ème fois pour terminer et verrouiller"
+                                    : "Cliquez pour passer En Cours (1/2)"
                                 }
                                 className={`${styles.statusBtn} ${
-                                  task.status === "DONE"
-                                    ? styles.statusDone
+                                  locked
+                                    ? styles.statusLockedAdmin
                                     : task.status === "EN_COURS"
                                     ? styles.statusProgress
                                     : styles.statusTodo
                                 }`}
                               >
-                                {task.status === "DONE" ? (
+                                {locked ? (
                                   <>
-                                    <CheckCircle2 size={13} /> TERMINÉ
+                                    <Lock size={12} /> VALIDÉ & VERROUILLÉ
                                   </>
                                 ) : task.status === "EN_COURS" ? (
                                   <>
-                                    <Clock size={13} /> EN COURS
+                                    <Clock size={13} /> EN COURS (1/2)
                                   </>
                                 ) : (
                                   <>
-                                    <CircleDot size={13} /> À FAIRE
+                                    <CircleDot size={13} /> À FAIRE (0/2)
                                   </>
                                 )}
                               </button>
                             </td>
 
-                            {/* ✍️ EDITABLE PILOT COLUMNS */}
+                            {/* ✍️ EDITABLE PILOT COLUMNS (Disabled if Task is Locked/Validated!) */}
                             {allowedFields.map((col: string) => {
                               const cellKey = `${task.id}_${col}`;
                               const currentVal =
@@ -745,8 +839,15 @@ export default function PilotBoard() {
                                   <div className={styles.pilotInputWrapper}>
                                     <input
                                       type="text"
-                                      className={styles.pilotInput}
-                                      placeholder={`Saisir ${col}...`}
+                                      disabled={locked}
+                                      className={`${styles.pilotInput} ${
+                                        locked ? styles.pilotInputDisabled : ""
+                                      }`}
+                                      placeholder={
+                                        locked
+                                          ? "Verrouillé"
+                                          : `Saisir ${col}...`
+                                      }
                                       value={currentVal}
                                       onChange={(e) =>
                                         setDraftEdits((prev) => ({
@@ -756,6 +857,7 @@ export default function PilotBoard() {
                                       }
                                       onBlur={() => {
                                         if (
+                                          !locked &&
                                           draftEdits[cellKey] !== undefined &&
                                           draftEdits[cellKey] !==
                                             String(dyn[col] ?? "")
@@ -773,11 +875,18 @@ export default function PilotBoard() {
                                         }
                                       }}
                                     />
-                                    {savingCell === cellKey && (
-                                      <Sparkles
-                                        size={14}
-                                        className={styles.savedIndicator}
+                                    {locked ? (
+                                      <Lock
+                                        size={13}
+                                        className={styles.lockedInputIcon}
                                       />
+                                    ) : (
+                                      savingCell === cellKey && (
+                                        <Sparkles
+                                          size={14}
+                                          className={styles.savedIndicator}
+                                        />
+                                      )
                                     )}
                                   </div>
                                 </td>
@@ -807,9 +916,9 @@ export default function PilotBoard() {
 
                 <div className={styles.tableFooter}>
                   <span>
-                    🔒 Les colonnes issues du fichier Excel sont verrouillées en
-                    lecture seule. Seules les colonnes bleues ajoutées par
-                    l&apos;Admin sont modifiables.
+                    🔒 Les lignes validées (2 clics ou validées par l&apos;Admin
+                    dans le Kanban) ainsi que les colonnes Excel sont
+                    verrouillées contre toute modification.
                   </span>
                   <span>
                     {selectedTasks.length > 0
