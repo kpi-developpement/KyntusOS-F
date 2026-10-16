@@ -29,7 +29,8 @@ public class AdminController {
     // 1. SEARCH GLOBAL
     @GetMapping("/search")
     public ResponseEntity<?> searchByEps(@RequestParam String eps) {
-        Optional<Task> taskOpt = taskRepository.findByEpsReference(eps);
+        // 🔥 THE FIX: Utilisation de la nouvelle méthode sécurisée 🔥
+        Optional<Task> taskOpt = taskRepository.findFirstByEpsReferenceOrderByIdDesc(eps);
         if (taskOpt.isPresent()) {
             return ResponseEntity.ok(taskOpt.get());
         } else {

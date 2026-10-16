@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import ImportZone from "@/components/features/ImportZone";
-import styles from "@/components/features/TemplatesPage.module.css"; // Nkhdmou b nefs style dyal templates
-import Select from "@/components/ui/Select"; // Ila kan 3ndk, sinon nsta3mlo select 3adi
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { UploadCloud, Cpu, Zap, CheckCircle2, AlertTriangle, FileSpreadsheet, DatabaseZap } from "lucide-react";
+import InteractiveBackground from "@/components/ui/InteractiveBackground";
+import styles from "./Import.module.css";
 
 export default function ImportPage() {
   const [templates, setTemplates] = useState<any[]>([]);
@@ -11,8 +12,11 @@ export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 1. Jib les Templates bach l'utilisateur ykhtar fin ylo7 l'Excel
+  // 1. Fetch Templates
   useEffect(() => {
     fetch("/api/templates")
       .then((res) => res.json())
@@ -20,14 +24,31 @@ export default function ImportPage() {
       .catch((err) => console.error("Error fetching templates:", err));
   }, []);
 
-  // 2. Fonction d'Upload
+  // 2. Drag & Drop Handlers
+  const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
+  const handleDragLeave = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); };
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setFile(e.dataTransfer.files[0]);
+      setMessage(null);
+    }
+  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+      setMessage(null);
+    }
+  };
+
+  // 3. Injection Logic
   const handleImport = async () => {
-    if (!file) {
-      setMessage({ text: "Veuillez sélectionner un fichier Excel.", type: "error" });
+    if (!selectedTemplate) {
+      setMessage({ text: "SYSTEM HALT: Veuillez choisir un Protocole Cible.", type: "error" });
       return;
     }
-    if (!selectedTemplate) {
-      setMessage({ text: "Veuillez choisir un Protocol (Template).", type: "error" });
+    if (!file) {
+      setMessage({ text: "SYSTEM HALT: Aucun payload (Fichier Excel) détecté.", type: "error" });
       return;
     }
 
@@ -38,8 +59,6 @@ export default function ImportPage() {
     formData.append("file", file);
 
     try {
-      // --- HNA FIN KAN L'ERROR ---
-      // L'URL s7i7a hiya: /api/import/{templateId}
       const res = await fetch(`/api/import/${selectedTemplate}`, {
         method: "POST",
         body: formData,
@@ -47,88 +66,142 @@ export default function ImportPage() {
 
       if (res.ok) {
         const text = await res.text();
-        setMessage({ text: "Import réussi ! " + text, type: "success" });
-        setFile(null); // Reset file
+        setMessage({ text: `[SUCCESS] PAYLOAD INJECTED: ${text}`, type: "success" });
+        setFile(null); 
+        if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
         const errorText = await res.text();
-        setMessage({ text: "Erreur: " + errorText, type: "error" });
+        setMessage({ text: `[ERROR] INJECTION FAILED: ${errorText}`, type: "error" });
       }
     } catch (error) {
-      console.error(error);
-      setMessage({ text: "Erreur de connexion au serveur (Failed to fetch).", type: "error" });
+      setMessage({ text: "[FATAL] CONNECTION TO NEXUS CORE LOST.", type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.container} style={{ flexDirection: "column", alignItems: "center", paddingTop: "50px" }}>
-      
-      <div className={styles.builderPanel} style={{ width: "100%", maxWidth: "800px", height: "auto" }}>
-        <div className={styles.builderHeader}>
-          <h1 className={styles.title}>Data Injection</h1>
-          <p className={styles.subtitle}>// UPLOAD EXCEL DATA TO WORKFLOW</p>
-        </div>
-
-        {/* STEP 1: SELECT TEMPLATE */}
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>1. SELECT TARGET PROTOCOL</label>
-          <select 
-            className={styles.neonInput}
-            value={selectedTemplate}
-            onChange={(e) => setSelectedTemplate(e.target.value)}
-            style={{ background: "#000", color: "white" }}
-          >
-            <option value="">-- Choose a Template --</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name} (ID: {t.id})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* STEP 2: UPLOAD FILE */}
-        <div className={styles.inputGroup}>
-          <label className={styles.label}>2. UPLOAD SOURCE FILE (.xlsx)</label>
-          <div style={{ marginTop: "10px" }}>
-            <ImportZone 
-              onFileSelect={(f) => setFile(f)} 
-              isLoading={loading} 
-            />
-          </div>
-          {file && (
-            <p style={{ color: "#00f3ff", marginTop: "10px", fontSize: "0.9rem" }}>
-              Selected: {file.name}
-            </p>
-          )}
-        </div>
-
-        {/* MESSAGE AREA */}
-        {message && (
-          <div style={{
-            padding: "15px", 
-            borderRadius: "8px", 
-            marginTop: "20px",
-            background: message.type === "success" ? "rgba(0, 255, 0, 0.1)" : "rgba(255, 0, 0, 0.1)",
-            border: message.type === "success" ? "1px solid #00ff00" : "1px solid #ff0000",
-            color: message.type === "success" ? "#00ff00" : "#ff0000"
-          }}>
-            {message.text}
-          </div>
-        )}
-
-        {/* ACTION BUTTON */}
-        <button 
-          className={styles.saveBtn} 
-          onClick={handleImport}
-          disabled={loading}
-          style={{ marginTop: "30px" }}
-        >
-          {loading ? "INJECTING DATA..." : "⚡ INJECT DATA"}
-        </button>
-
+    <>
+      {/* Background Global */}
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
+        <InteractiveBackground />
       </div>
-    </div>
+
+      <div className={styles.container}>
+        <motion.div 
+          className={styles.terminal}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          
+          {/* HEADER */}
+          <div className={styles.header}>
+            <h1 className={styles.title}>DATA <span>INJECTION</span></h1>
+            <p className={styles.subtitle}>
+              <Cpu size={16} /> UPLOAD EXCEL PAYLOAD TO WORKFLOW CORE
+            </p>
+          </div>
+
+          {/* STEP 1: SELECT TEMPLATE */}
+          <div className={styles.stepBox}>
+            <div className={styles.stepLabel}>
+              <span className={styles.stepNumber}>1</span> TARGET PROTOCOL
+            </div>
+            <select 
+              className={styles.cyberSelect}
+              value={selectedTemplate}
+              onChange={(e) => { setSelectedTemplate(e.target.value); setMessage(null); }}
+              disabled={loading}
+            >
+              <option value="" disabled>-- INITIALIZE PROTOCOL --</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} (ID: {t.id})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* STEP 2: DROPZONE REACTOR */}
+          <div className={styles.stepBox}>
+            <div className={styles.stepLabel}>
+              <span className={styles.stepNumber}>2</span> UPLOAD PAYLOAD (.XLSX)
+            </div>
+            
+            <div 
+              className={`${styles.dropzone} ${isDragging ? styles.active : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => !loading && fileInputRef.current?.click()}
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                accept=".xlsx, .xls, .csv" 
+                style={{ display: 'none' }} 
+                onChange={handleFileChange} 
+                disabled={loading}
+              />
+              
+              {file ? (
+                <div className={styles.fileReady}>
+                  <FileSpreadsheet size={60} color="#39ff14" />
+                  <div className={styles.fileName}>{file.name}</div>
+                  <div className={styles.dropSub}>{(file.size / 1024 / 1024).toFixed(2)} MB - Ready for injection</div>
+                </div>
+              ) : (
+                <>
+                  <UploadCloud size={60} color={isDragging ? "#00f0ff" : "#64748b"} className={styles.dropIcon} />
+                  <h3 className={styles.dropTitle}>
+                    {isDragging ? "DROP TO LOCK TARGET" : "DRAG & DROP EXCEL FILE HERE"}
+                  </h3>
+                  <p className={styles.dropSub}>or click to browse local system</p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ACTION BUTTON */}
+          <button 
+            className={styles.injectBtn} 
+            onClick={handleImport}
+            disabled={loading || !file || !selectedTemplate}
+          >
+            {loading ? (
+              <>
+                <Zap size={24} className={styles.spin} /> INJECTING DATA...
+              </>
+            ) : (
+              <>
+                <DatabaseZap size={24} /> ENGAGE INJECTION
+              </>
+            )}
+          </button>
+
+          {/* TERMINAL LOGS (MESSAGES) */}
+          <AnimatePresence>
+            {message && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={`${styles.terminalLog} ${message.type === 'success' ? styles.logSuccess : styles.logError}`}
+              >
+                {message.type === 'success' ? <CheckCircle2 size={24} /> : <AlertTriangle size={24} />}
+                <div>
+                  <strong style={{ display: 'block', marginBottom: '4px' }}>
+                    {message.type === 'success' ? 'SYSTEM OVERRIDE SUCCESSFUL' : 'CRITICAL ERROR DETECTED'}
+                  </strong>
+                  {message.text}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+        </motion.div>
+      </div>
+    </>
   );
 }

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { 
   LayoutGrid, Target, SquareActivity, DatabaseZap, UsersRound, Cpu, LogOut, ScanSearch, FileDown,
-  TableProperties, Map, ShieldAlert 
+  TableProperties, Map, ShieldAlert, FileCheck 
 } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import { useAuth } from "@/context/AuthContext";
@@ -13,7 +13,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  // Liste des menus (BLA CHOUROUT - Hit Sidebar ghir dyal Admin)
+  // Liste des menus (Zidna Contrat Qualité b' isExternal: true)
   const menuItems = [
     { name: "Command Center", path: "/", icon: LayoutGrid },
     { name: "Strategic Map", path: "/admin/strategic", icon: Map },
@@ -25,7 +25,7 @@ export default function Sidebar() {
     { name: "Data Injection", path: "/import", icon: DatabaseZap },
     { name: "Team Ops", path: "/admin/stats", icon: UsersRound },
     { name: "System Config", path: "/admin/templates", icon: Cpu },
-    // Dima bayna db:
+    { name: "Contrat Qualité", path: "http://localhost:8741", icon: FileCheck, isExternal: true },
     { name: "Access Control", path: "/admin/users", icon: ShieldAlert } 
   ];
 
@@ -39,6 +39,21 @@ export default function Sidebar() {
       <div className={styles.menu}>
         {menuItems.map((item) => {
           const isActive = pathname === item.path;
+          
+          // L'FIX: Ila kan lien externe (Contrat Quality), kan-khedmou b <a> 3adiya bach n-bypassiow l'router dyal Next.js
+          if (item.isExternal) {
+            return (
+              <a
+                key={item.path}
+                href={item.path}
+                className={styles.menuItem}
+              >
+                <item.icon size={22} />
+                <span className={styles.itemLabel}>{item.name}</span>
+              </a>
+            );
+          }
+
           return (
             <Link
               key={item.path}
@@ -55,12 +70,10 @@ export default function Sidebar() {
 
       <div className={styles.footer}>
           <div className={styles.userSection}>
-              {/* Fallback "A" bach mayb9ach khawi ila kan null */}
               <div className={styles.avatar}>
                 {user?.username ? user.username.charAt(0).toUpperCase() : "A"}
               </div>
               <div className={styles.userInfo}>
-                  {/* Fallback Admin bach tban dima 3amra */}
                   <div className={styles.userName}>{user?.username || "Admin"}</div>
                   <div className={styles.userStatus}>SECURE LINK ●</div>
               </div>

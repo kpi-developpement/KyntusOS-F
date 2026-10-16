@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # ⚙️ BACKEND (Spring Boot) - Kay-t-builda w kay-t-lanca
+  # ⚙️ BACKEND (Spring Boot)
   backend:
     build: 
       context: ./Workflow
@@ -11,7 +11,7 @@ services:
     ports:
       - "8082:8082"
     environment:
-      # 🔥 THE FIX: N-connectaw l'DB l-qedima li deja kheddama f l'serveur
+      # 🔥 Khelina .50 hna hit l'DB bqat f l'host l-qdim, kheliha haka s7i7a!
       - SPRING_DATASOURCE_URL=jdbc:postgresql://10.10.10.50:5432/kyntus_db
       - SPRING_DATASOURCE_USERNAME=kyntus_user
       - SPRING_DATASOURCE_PASSWORD=kyntus_password
@@ -19,7 +19,7 @@ services:
       - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=500MB
       - SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=500MB
 
-  # 🌐 FRONTEND (Next.js) - Kay-t-builda w kay-t-lanca
+  # 🌐 FRONTEND (Next.js)
   frontend:
     build:
       context: ./frontend
@@ -30,7 +30,8 @@ services:
     container_name: kyntus-frontend
     restart: always
     ports:
-      - "3000:3000"
+      # 🔥 Tbedlat mn 3000 l 3827
+      - "3827:3827"
     depends_on:
       - backend
     environment:

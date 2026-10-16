@@ -13,7 +13,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     // --- STANDARD QUERIES ---
     List<Task> findByTemplateId(Long templateId);
     List<Task> findByAssigneeId(Long assigneeId);
-    Optional<Task> findByEpsReference(String epsReference);
+
+    // 🔥 THE FIX: Dima njibou l'kher (le plus récent) bach n-évitiw NonUniqueResultException 🔥
+    Optional<Task> findFirstByEpsReferenceOrderByIdDesc(String epsReference);
 
     // --- ADVANCED QUERIES (STATS) ---
     List<Task> findByAssigneeIdAndTemplateId(Long assigneeId, Long templateId);

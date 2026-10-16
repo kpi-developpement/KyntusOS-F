@@ -11,15 +11,15 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 🔥 FIX: Injection dyal les variables l-Next.js f l-code JavaScript (Browser)
+# Injection dyal les variables l-Next.js f l-code JavaScript (Browser)
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# 🔥 FIX: Injection dyal l'URL interne dyal Docker bach l-Proxy y-qraha f l-Build
+# Injection dyal l'URL interne dyal Docker bach l-Proxy y-qraha f l-Build
 ARG BACKEND_URL
 ENV BACKEND_URL=$BACKEND_URL
 
-# Disable telemetry bach l-build ykoun r7em
+# Disable telemetry
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
@@ -28,7 +28,9 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
-ENV PORT 3000
+
+# 🔥 FIX: Port redinah 3827 hna bach Next.js ylanci fih
+ENV PORT 3827
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -39,5 +41,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
-EXPOSE 3000
+# 🔥 FIX: Expose 3827
+EXPOSE 3827
 CMD ["node", "server.js"]

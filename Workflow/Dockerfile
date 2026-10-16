@@ -11,7 +11,7 @@ RUN mvn dependency:go-offline -B
 # 3. N-copiw l'code source
 COPY src ./src
 
-# 4. 🔥 L-FIX HNA: Mse7na '-o' bach Maven y-qder y-jib dakchi li naqess
+# 4. Mse7na '-o' bach Maven y-qder y-jib dakchi li naqess
 RUN mvn clean package -DskipTests
 
 # --- Stage 2: Run (Lightweight Java) ---

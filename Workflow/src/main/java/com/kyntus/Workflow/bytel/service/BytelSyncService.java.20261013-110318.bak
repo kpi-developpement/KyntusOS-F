@@ -1,0 +1,124 @@
+package com.kyntus.Workflow.bytel.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kyntus.Workflow.bytel.model.BytelQualification;
+import com.kyntus.Workflow.bytel.repository.BytelInterventionRepository;
+import com.kyntus.Workflow.bytel.repository.BytelQualificationRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+/**
+ * Lit l'API dashboard et alimente bytel_interventions + bytel_qualifications.
+ *
+ * Le versionnage n'est pas deduit : il est FOURNI par l'API.
+ * qualificationInterventions est une chronologie, du plus recent (index 0)
+ * au plus ancien. Chaque element devient une ligne de bytel_qualifications.
+ *
+ * Volontairement SANS @Transactional : chaque page est ecrite dans sa propre
+ * transaction par BytelPageWriter, qui vide ensuite le contexte de persistance.
+ * Une periode entiere peut depasser la centaine de pages ; tout garder en
+ * memoire jusqu'au commit final saturait le tas et provoquait des 500.
+ */
+@Service
+public class BytelSyncService {
+
+    private final BytelInterventionRepository interventionRepo;
+    private final BytelQualificationRepository qualifRepo;
+    private final BytelPageWriter pageWriter;
+    private final ObjectMapper mapper;
+    private final RestClient restClient;
+
+    @Value("${bytel.dashboard.url:http://10.10.10.25:8117/api/dashboard/interventions}")
+    private String dashboardUrl;
+
+    @Value("${bytel.dashboard.page-size:200}")
+    private int pageSize;
+
+    @Value("${bytel.dashboard.max-pages:500}")
+    private int maxPages;
+
+    public BytelSyncService(BytelInterventionRepository interventionRepo,
+                            BytelQualificationRepository qualifRepo,
+                            BytelPageWriter pageWriter,
+                            ObjectMapper mapper) {
+        this.interventionRepo = interventionRepo;
+        this.qualifRepo = qualifRepo;
+        this.pageWriter = pageWriter;
+        this.mapper = mapper;
+        this.restClient = RestClient.builder().build();
+    }
+
+    public Map<String, Object> synchroniserPeriode(String periode) {
+        int page = 0, totalPages = 1;
+        int epsLus = 0, versionsNouvelles = 0, versionsMaj = 0;
+        List<String> erreurs = new ArrayList<>();
+        String urlPremierePage = null;
+        long debut = System.currentTimeMillis();
+
+        while (page < totalPages && page < maxPages) {
+            String url = dashboardUrl + "?period=" + periode + "&size=" + pageSize + "&page=" + page;
+            if (page == 0) urlPremierePage = url;
+
+            JsonNode root;
+            try {
+                String body = restClient.get().uri(url).retrieve().body(String.class);
+                root = mapper.readTree(body == null ? "{}" : body);
+            } catch (Exception e) {
+                erreurs.add("Page " + page + " : " + e.getClass().getSimpleName() + " - " + e.getMessage());
+                break;
+            }
+
+            if (page == 0) {
+                totalPages = root.path("totalPages").asInt(1);
+                if (root.path("content").isMissingNode()) {
+                    erreurs.add("Reponse sans champ 'content' pour " + url);
+                    break;
+                }
+            }
+
+            JsonNode content = root.path("content");
+            if (!content.isArray() || content.isEmpty()) break;
+
+            try {
+                int[] r = pageWriter.ecrirePage(content, periode, erreurs);
+                epsLus += r[0];
+                versionsNouvelles += r[1];
+                versionsMaj += r[2];
+            } catch (Throwable t) {
+                // Une page qui echoue n'interrompt pas les suivantes
+                erreurs.add("Ecriture page " + page + " : " + t.getClass().getSimpleName() + " - " + t.getMessage());
+            }
+
+            page++;
+        }
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("periode", periode);
+        res.put("urlAppelee", urlPremierePage);
+        res.put("pagesLues", page);
+        res.put("pagesTotal", totalPages);
+        res.put("epsLus", epsLus);
+        res.put("versionsNouvelles", versionsNouvelles);
+        res.put("versionsMisesAJour", versionsMaj);
+        res.put("dureeMs", System.currentTimeMillis() - debut);
+
+        try {
+            res.put("totalEps", interventionRepo.countByPeriode(periode));
+            res.put("totalVersions", qualifRepo.countByPeriode(periode));
+            res.put("actionnables", qualifRepo.countCourantesParEtat(periode, BytelQualification.ETAT_ACTIONNABLE));
+        } catch (Exception e) {
+            res.put("totalEps", 0);
+            res.put("totalVersions", 0);
+            res.put("actionnables", 0);
+        }
+
+        res.put("erreurs", erreurs);
+        res.put("syncAt", LocalDateTime.now().toString());
+        return res;
+    }
+}
