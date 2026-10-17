@@ -36,7 +36,7 @@ import { toast } from "@/components/ui/Toaster";
 import BoardHeader from "../../pilot/board/components/BoardHeader";
 import BoardActions from "../../pilot/board/components/BoardActions";
 import LuxeDropdown, { LuxeOption } from "../../pilot/board/ui/LuxeDropdown";
-import styles from "../../board/PilotBoard.module.css";
+import styles from "../../pilot/board/PilotBoard.module.css";
 
 const RoyalBackground = dynamic(() => import("../../pilot/board/ux/RoyalBackground"), {
   ssr: false,
