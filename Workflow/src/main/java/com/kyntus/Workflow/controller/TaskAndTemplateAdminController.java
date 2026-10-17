@@ -4,6 +4,7 @@ import com.kyntus.Workflow.model.Task;
 import com.kyntus.Workflow.model.User;
 import com.kyntus.Workflow.repository.TaskRepository;
 import com.kyntus.Workflow.repository.UserRepository;
+import com.kyntus.Workflow.repository.WorkflowTemplateRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,15 +20,19 @@ public class TaskAndTemplateAdminController {
     private final JdbcTemplate jdbcTemplate;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final WorkflowTemplateRepository workflowTemplateRepository;
 
+    // 🔥 THE FIX: Zedna WorkflowTemplateRepository hna bach n-khedmou b Hibernate f l-msi7
     public TaskAndTemplateAdminController(
             JdbcTemplate jdbcTemplate,
             TaskRepository taskRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            WorkflowTemplateRepository workflowTemplateRepository
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.workflowTemplateRepository = workflowTemplateRepository;
     }
 
     // =========================================================================
@@ -37,17 +42,18 @@ public class TaskAndTemplateAdminController {
     @Transactional
     public ResponseEntity<?> deleteTemplate(@PathVariable Long templateId) {
         try {
-            // 🔥 THE FIX: Utilisation des VRAIS noms de tables générés par Hibernate (PostgreSQL)
-            
-            // 1. On supprime d'abord les tâches liées au protocole (évite l'erreur Foreign Key)
-            jdbcTemplate.update("DELETE FROM tasks WHERE template_id = ?", templateId);
-            
-            // 2. On supprime les colonnes dynamiques (La table s'appelle field_definitions)
-            jdbcTemplate.update("DELETE FROM field_definitions WHERE template_id = ?", templateId);
-            
-            // 3. On supprime le protocole lui-même (La table s'appelle workflow_template)
-            jdbcTemplate.update("DELETE FROM workflow_template WHERE id = ?", templateId);
-            
+            // 🔥 THE ULTIMATE FIX: On utilise Hibernate/JPA au lieu du SQL brut.
+            // Ça gère automatiquement les Foreign Keys et les Cascades sans faire crasher PostgreSQL.
+
+            // 1. Supprimer toutes les tâches liées à ce protocole
+            List<Task> tasksToDelete = taskRepository.findByTemplateId(templateId);
+            if (!tasksToDelete.isEmpty()) {
+                taskRepository.deleteAll(tasksToDelete);
+            }
+
+            // 2. Supprimer le protocole (Hibernate va automatiquement supprimer les field_definitions liés grâce au CascadeType.ALL)
+            workflowTemplateRepository.deleteById(templateId);
+
             return ResponseEntity.ok(Map.of("message", "Protocole et tâches supprimés avec succès", "id", templateId));
         } catch (Exception e) {
             e.printStackTrace();
