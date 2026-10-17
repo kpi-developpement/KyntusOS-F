@@ -37,20 +37,21 @@ public class TaskAndTemplateAdminController {
     @Transactional
     public ResponseEntity<?> deleteTemplate(@PathVariable Long templateId) {
         try {
-            // 1. Supprimer d'abord les tâches liées au template (évite l'erreur Foreign Key)
+            // 🔥 THE FIX: Utilisation des VRAIS noms de tables générés par Hibernate (PostgreSQL)
+            
+            // 1. On supprime d'abord les tâches liées au protocole (évite l'erreur Foreign Key)
             jdbcTemplate.update("DELETE FROM tasks WHERE template_id = ?", templateId);
-            // 2. Supprimer les champs/colonnes du template si table séparée
-            try {
-                jdbcTemplate.update("DELETE FROM template_fields WHERE template_id = ?", templateId);
-            } catch (Exception ignored) {}
-            // 3. Supprimer le template
-            int deleted = jdbcTemplate.update("DELETE FROM task_templates WHERE id = ?", templateId);
-            if (deleted == 0) {
-                jdbcTemplate.update("DELETE FROM templates WHERE id = ?", templateId);
-            }
-            return ResponseEntity.ok(Map.of("message", "Template et ses tâches supprimés avec succès", "id", templateId));
+            
+            // 2. On supprime les colonnes dynamiques (La table s'appelle field_definitions)
+            jdbcTemplate.update("DELETE FROM field_definitions WHERE template_id = ?", templateId);
+            
+            // 3. On supprime le protocole lui-même (La table s'appelle workflow_template)
+            jdbcTemplate.update("DELETE FROM workflow_template WHERE id = ?", templateId);
+            
+            return ResponseEntity.ok(Map.of("message", "Protocole et tâches supprimés avec succès", "id", templateId));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -112,7 +113,7 @@ public class TaskAndTemplateAdminController {
     }
 
     // =========================================================================
-    // 4. 🔍 EDIT 3 : RECHERCHER QUI A TRAVAILLÉ SUR UN EPS (HISTORIQUE & PILOTE)
+    // 4. 🔍 RECHERCHER QUI A TRAVAILLÉ SUR UN EPS (HISTORIQUE & PILOTE)
     // =========================================================================
     @GetMapping("/tasks/search-eps")
     @Transactional(readOnly = true)
