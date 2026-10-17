@@ -11,7 +11,12 @@ import {
   Lock,
   Sparkles,
   FolderKanban,
+  PenLine,
+  Server,
+  Loader2,
+  ShieldAlert,
   CheckCircle2,
+  Database
 } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
@@ -79,7 +84,7 @@ export default function TemplatesPage() {
         setColumns([]);
         setComplexity(1);
         toast({
-          message: "✨ PROTOCOLE INITIALISÉ AVEC SUCCÈS",
+          message: "PROTOCOLE INITIALISÉ AVEC SUCCÈS",
           type: "success",
         });
       } else {
@@ -92,11 +97,11 @@ export default function TemplatesPage() {
     }
   };
 
-  // 🗑️ SUPPRESSION D'UN TEMPLATE (AVEC CONFIRMATION)
+  // SUPPRESSION D'UN TEMPLATE (AVEC CONFIRMATION ET LOADER)
   const handleDeleteTemplate = async (tplId: number, tplName: string) => {
     if (
       !window.confirm(
-        `⚠️ Voulez-vous vraiment supprimer le protocole "${tplName}" ainsi que toutes les tâches associées ?`
+        `ATTENTION : Voulez-vous vraiment supprimer le protocole "${tplName}" ainsi que TOUTES les tâches associées ? Cette action est irréversible.`
       )
     ) {
       return;
@@ -111,13 +116,12 @@ export default function TemplatesPage() {
       if (res.ok) {
         setTemplates((prev) => prev.filter((t) => t.id !== tplId));
         toast({
-          message: `🗑️ PROTOCOLE "${tplName}" SUPPRIMÉ AVEC SUCCÈS`,
+          message: `PROTOCOLE "${tplName}" SUPPRIMÉ AVEC SUCCÈS`,
           type: "success",
         });
       } else {
         toast({
-          message:
-            "Impossible de supprimer ce protocole (Vérifiez l'endpoint DELETE /api/templates/{id})",
+          message: "Impossible de supprimer ce protocole. Vérifiez les dépendances.",
           type: "error",
         });
       }
@@ -134,7 +138,7 @@ export default function TemplatesPage() {
       <div className={styles.ambientOrb2} />
 
       <div className={styles.workspaceGrid}>
-        {/* LEFT PANEL: BUILDER */}
+        {/* LEFT PANEL: BUILDER STUDIO */}
         <div className={styles.builderPanel}>
           <div className={styles.contentRelatif}>
             <div className={styles.builderHeader}>
@@ -152,7 +156,7 @@ export default function TemplatesPage() {
             {/* 1. Nom du Protocole */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                1. NOM DU PROTOCOLE (PROJET / MISSION)
+                <Database size={15} /> 1. NOM DU PROTOCOLE (PROJET / MISSION)
               </label>
               <input
                 type="text"
@@ -183,29 +187,23 @@ export default function TemplatesPage() {
                   disabled
                   style={{ flex: 1, opacity: 0.35 }}
                 />
-                <span
-                  style={{
-                    fontSize: "1.2rem",
-                    fontWeight: 900,
-                    color: "#0284c7",
-                  }}
-                >
-                  01
-                </span>
+                <span className={styles.complexityValue}>01</span>
               </div>
             </div>
 
             {/* 3. Colonnes d'Analyse Pilote */}
             <div className={styles.inputGroup}>
               <label className={styles.label}>
-                3. COLONNES D&apos;ANALYSE AJOUTÉES (MODIFIABLES PAR LE PILOTE)
+                <Layers size={15} /> 3. COLONNES D&apos;ANALYSE AJOUTÉES (MODIFIABLES PAR LE PILOTE)
               </label>
 
               {columns.length > 0 && (
                 <div className={styles.fieldsContainer}>
                   {columns.map((col, idx) => (
                     <div key={idx} className={styles.fieldModule}>
-                      <span className={styles.fieldText}>✍️ {col}</span>
+                      <span className={styles.fieldText}>
+                        <PenLine size={13} /> {col}
+                      </span>
                       <button
                         type="button"
                         onClick={() => removeColumn(idx)}
@@ -251,7 +249,7 @@ export default function TemplatesPage() {
             >
               {loading ? (
                 <>
-                  <Sparkles size={20} /> INITIALISATION EN COURS...
+                  <Loader2 size={20} className={styles.spin} /> INITIALISATION EN COURS...
                 </>
               ) : (
                 <>
@@ -262,11 +260,11 @@ export default function TemplatesPage() {
           </div>
         </div>
 
-        {/* RIGHT PANEL: ACTIVE TEMPLATES RACK WITH DELETE BUTTON */}
+        {/* RIGHT PANEL: ACTIVE TEMPLATES RACK */}
         <div className={styles.rackPanel}>
           <div className={styles.rackHeaderRow}>
             <div className={styles.rackHeader}>
-              <Layers size={22} color="#0284c7" />
+              <Server size={22} color="#0284c7" />
               <span>PROTOCOLES ACTIFS</span>
             </div>
             <span className={styles.countPill}>
@@ -280,7 +278,7 @@ export default function TemplatesPage() {
                 <div
                   key={t.id}
                   style={{ animationDelay: `${Math.min(idx * 40, 300)}ms` }}
-                  className={styles.cartridge}
+                  className={`${styles.cartridge} ${deletingId === t.id ? styles.cartridgeDeleting : ""}`}
                 >
                   <div className={styles.cartridgeLeft}>
                     <div className={styles.idRow}>
@@ -295,18 +293,17 @@ export default function TemplatesPage() {
                     <div className={styles.cMeta}>
                       <span className={styles.moduleTag}>
                         <Layers size={12} color="#0284c7" />
-                        {t.fields ? t.fields.length : 0} COLONNE(S) D&apos;ANALYSE
+                        {t.fields ? t.fields.length : 0} COLONNE(S)
                       </span>
                       {t.fields &&
                         t.fields.slice(0, 3).map((f: any, i: number) => (
                           <span key={i} className={styles.moduleTag}>
-                            ✍️ {typeof f === "string" ? f : f.name}
+                            <PenLine size={11} /> {typeof f === "string" ? f : f.name}
                           </span>
                         ))}
                     </div>
                   </div>
 
-                  {/* 🗑️ BOUTON SUPPRIMER TEMPLATE */}
                   <button
                     type="button"
                     className={styles.deleteTemplateBtn}
@@ -314,14 +311,19 @@ export default function TemplatesPage() {
                     onClick={() => handleDeleteTemplate(t.id, t.name)}
                     title={`Supprimer le protocole ${t.name}`}
                   >
-                    <Trash2 size={16} />
+                    {deletingId === t.id ? (
+                      <Loader2 size={16} className={styles.spin} />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
                   </button>
                 </div>
               ))
             ) : (
               <div className={styles.emptyRack}>
-                Aucun protocole actif pour le moment. Créez votre premier
-                protocole à gauche.
+                <ShieldAlert size={48} color="#cbd5e1" style={{ marginBottom: "1rem" }} />
+                <p>Aucun protocole actif pour le moment.</p>
+                <p>Créez votre premier protocole dans l'Architecte Système.</p>
               </div>
             )}
           </div>
