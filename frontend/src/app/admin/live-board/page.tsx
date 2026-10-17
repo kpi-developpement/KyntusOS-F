@@ -33,12 +33,12 @@ import {
 import { toast } from "@/components/ui/Toaster";
 
 // 🔥 RE-USE DES COMPOSANTS DU PILOTE (Ajuste les chemins selon ton arborescence)
-import BoardHeader from "../../board/components/BoardHeader";
-import BoardActions from "../../board/components/BoardActions";
-import LuxeDropdown, { LuxeOption } from "../../board/ui/LuxeDropdown";
+import BoardHeader from "../../pilot/board/components/BoardHeader";
+import BoardActions from "../../pilot/board/components/BoardActions";
+import LuxeDropdown, { LuxeOption } from "../../pilot/board/ui/LuxeDropdown";
 import styles from "../../board/PilotBoard.module.css";
 
-const RoyalBackground = dynamic(() => import("../../board/ux/RoyalBackground"), {
+const RoyalBackground = dynamic(() => import("../../pilot/board/ux/RoyalBackground"), {
   ssr: false,
 });
 
