@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 🔥 THE FIX: N-tal3ou l-timeout l-5 minutes bash may-qte3ch l-connection
+// 🔥 N-tal3ou l-timeout l-5 minutes
 export const maxDuration = 300; 
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("🚀 [NEXT.JS PROXY] Transfert des fichiers vers Spring Boot en mode Streaming...");
+    console.log("🚀 [NEXT.JS PROXY] Réception des fichiers depuis le navigateur...");
     
-    // L-URL dyal Spring Boot wst Docker
+    // 1. N-khlliw Next.js y-parsi l-FormData b' tariqa s7i7a (Bla Raw Stream)
+    const formData = await req.formData();
+    
+    console.log("✅ [NEXT.JS PROXY] Fichiers parsés. Envoi vers Spring Boot (backend:8082)...");
+
+    // 2. L-URL dyal Spring Boot wst Docker
     const backendUrl = "http://backend:8082/api/facture/generate";
 
-    // N-siftou l-Request b' Streaming (bla ma n-chargiwha f' RAM)
+    // 3. N-siftou l-FormData l-Spring Boot
     const response = await fetch(backendUrl, {
       method: 'POST',
-      headers: {
-        // Khassna n-khelliw l-Content-Type kima howa 7it fih l-Boundary dyal Multipart
-        'Content-Type': req.headers.get('Content-Type') || '',
-      },
-      body: req.body,
-      // @ts-ignore - L-Qaleb dyal Node.js Fetch bash y-qbel Streaming Body
-      duplex: 'half',
+      body: formData,
+      // ⚠️ ATTENTION: Ma-kandirouch 'Content-Type' hna! Node.js ghay-dirha auto m3a l-Boundary dyal Multipart
     });
 
     if (!response.ok) {
@@ -28,17 +28,17 @@ export async function POST(req: NextRequest) {
       return new NextResponse(errorText, { status: response.status });
     }
 
-    // N-qraw l-Excel li rje3 mn Spring Boot
+    // 4. N-qraw l-Excel li rje3 mn Spring Boot
     const arrayBuffer = await response.arrayBuffer();
 
-    console.log("✅ [NEXT.JS PROXY] Fichier Excel reçu avec succès !");
+    console.log("✅ [NEXT.JS PROXY] Fichier Excel reçu avec succès depuis Spring Boot !");
 
-    // N-rej3ouh l-Navigateur
+    // 5. N-rej3ouh l-Navigateur
     return new NextResponse(arrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': response.headers.get('Content-Type') || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': response.headers.get('Content-Disposition') || 'attachment; filename="Facture.xlsx"',
+        'Content-Disposition': response.headers.get('Content-Disposition') || 'attachment; filename="Facture_Kyntus.xlsx"',
       },
     });
 

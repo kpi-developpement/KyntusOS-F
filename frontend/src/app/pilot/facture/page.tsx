@@ -91,7 +91,7 @@ export default function FacturePage() {
     const timeoutId = setTimeout(() => controller.abort(), 300000); 
 
     try {
-      // 🔥 THE FIX: N-pointiw 3la l-API Route jdid li sawbna f' Next.js 🔥
+      // 🔥 THE FIX: Kan-siftou l-fichiers l-Proxy dyal Next.js li sawbna l-foq 🔥
       const response = await fetch(`/api/proxy/facture`, {
         method: "POST",
         body: formData,
@@ -120,7 +120,7 @@ export default function FacturePage() {
     } catch (err: any) {
       console.error(err);
       if (err.name === 'AbortError') {
-        setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre (Fichiers trop volumineux).");
+        setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre.");
       } else if (err.message.includes("Failed to fetch")) {
         setErrorMessage("⚠️ ERREUR RÉSEAU : La connexion a été interrompue.");
       } else {
