@@ -91,11 +91,8 @@ export default function FacturePage() {
     const timeoutId = setTimeout(() => controller.abort(), 300000); 
 
     try {
-      // 🔥 THE FIX: N-rej3ou n-khedmou b' l-API dyal Next.js bash n-tfadaw l-Firewall 🔥
-      // Next.js ghay-ched l-requête w y-sifetha l-Spring Boot (backend:8082) mn wst Docker
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
-      
-      const response = await fetch(`${API_URL}/facture/generate`, {
+      // 🔥 THE FIX: N-pointiw 3la l-API Route jdid li sawbna f' Next.js 🔥
+      const response = await fetch(`/api/proxy/facture`, {
         method: "POST",
         body: formData,
         signal: controller.signal
@@ -124,6 +121,8 @@ export default function FacturePage() {
       console.error(err);
       if (err.name === 'AbortError') {
         setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre (Fichiers trop volumineux).");
+      } else if (err.message.includes("Failed to fetch")) {
+        setErrorMessage("⚠️ ERREUR RÉSEAU : La connexion a été interrompue.");
       } else {
         setErrorMessage(err.message || "Erreur de connexion au serveur Backend.");
       }
