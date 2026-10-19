@@ -1,29 +1,20 @@
-import type { NextConfig } from "next";
-
-const target = process.env.NODE_ENV === 'production' 
-    ? 'http://backend:8082' 
-    : 'http://localhost:8082';
-
-const nextConfig: NextConfig = {
-  transpilePackages: ['animejs'],
-  reactCompiler: true,
-  output: "standalone",
-  typescript: {
-    ignoreBuildErrors: true,
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 🔥 HADCHI LI GHAY-KHELLI NEXT.JS Y-QBEL LES FICHIERS KBAR 🔥
+  api: {
+    bodyParser: {
+      sizeLimit: '500mb',
+    },
+    responseLimit: '500mb',
   },
-  
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: `${target}/api/:path*`, 
+        destination: 'http://backend:8082/api/:path*', // Proxy l-Spring Boot wst Docker
       },
-      {
-        source: '/ws/:path*',
-        destination: `${target}/ws/:path*`,
-      }
     ];
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

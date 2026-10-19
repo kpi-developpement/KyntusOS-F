@@ -91,12 +91,11 @@ export default function FacturePage() {
     const timeoutId = setTimeout(() => controller.abort(), 300000); 
 
     try {
-      // 🔥 THE FIX: N-jebdou l-IP dyal serveur auto (ex: 10.10.10.25) w n-derbou f' port 8082 🔥
-      // Haka kan-by-passiw Next.js w kan-sifto l-fichiers direct l-Spring Boot!
-      const serverIp = window.location.hostname;
-      const BACKEND_URL = `http://${serverIp}:8082`;
+      // 🔥 THE FIX: N-rej3ou n-khedmou b' l-API dyal Next.js bash n-tfadaw l-Firewall 🔥
+      // Next.js ghay-ched l-requête w y-sifetha l-Spring Boot (backend:8082) mn wst Docker
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
       
-      const response = await fetch(`${BACKEND_URL}/api/facture/generate`, {
+      const response = await fetch(`${API_URL}/facture/generate`, {
         method: "POST",
         body: formData,
         signal: controller.signal
@@ -125,8 +124,6 @@ export default function FacturePage() {
       console.error(err);
       if (err.name === 'AbortError') {
         setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre (Fichiers trop volumineux).");
-      } else if (err.message.includes("Failed to fetch")) {
-        setErrorMessage("⚠️ ERREUR RÉSEAU : Impossible de contacter le Backend (Port 8082). Vérifiez le pare-feu (firewall) du serveur.");
       } else {
         setErrorMessage(err.message || "Erreur de connexion au serveur Backend.");
       }
