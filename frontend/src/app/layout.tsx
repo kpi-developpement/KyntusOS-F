@@ -4,8 +4,6 @@ import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 // 1. IMPORT L PROVIDER
 import { AuthProvider } from "@/context/AuthContext";
-// 2. IMPORT L-ANTI-GLITCH LOADER
-import PageTransitionLoader from "@/components/layout/PageTransitionLoader";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,22 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body
-        className={inter.className}
-        style={{
-          backgroundColor: "#F8FAFC",
-          color: "#0F172A",
-          margin: 0,
-          overflowX: "hidden",
-        }}
-      >
-        {/* GHELLEF L APP KAMLA B AUTHPROVIDER */}
+      <body className={inter.className}>
+        {/* 2. GHELLEF L APP KAMLA B AUTHPROVIDER */}
         <AuthProvider>
           <AppShell>
-            {/* 🔥 ANTI-GLITCH SMOOTH LOADER 🔥 */}
-            <PageTransitionLoader>
-              {children}
-            </PageTransitionLoader>
+             {children}
           </AppShell>
         </AuthProvider>
       </body>
