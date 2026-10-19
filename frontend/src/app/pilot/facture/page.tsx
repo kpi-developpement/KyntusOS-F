@@ -13,7 +13,6 @@ export default function FacturePage() {
   const [finalExcelBlob, setFinalExcelBlob] = useState<Blob | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 📂 STATE DYAL LES FICHIERS
   const [filesMap, setFilesMap] = useState<{
     vide: File | null; tvc: File | null; rep: File | null; 
     diag: File | null; qa: File | null; intervention: File | null;
@@ -21,12 +20,10 @@ export default function FacturePage() {
     vide: null, tvc: null, rep: null, diag: null, qa: null, intervention: null
   });
 
-  // 💰 STATE DYAL DEVIS OVERRIDE
   const [devisMap, setDevisMap] = useState<Record<string, number>>({});
   const [epsInput, setEpsInput] = useState('');
   const [valInput, setValInput] = useState('');
 
-  // --- 1. SELECTION DYAL LES FICHIERS ---
   const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -47,7 +44,6 @@ export default function FacturePage() {
     setFilesMap(newMap);
   };
 
-  // --- 2. GESTION DYAL DEVIS ---
   const handleAddDevis = () => {
     if (!epsInput.trim() || !valInput.trim()) return;
     const value = parseFloat(valInput);
@@ -64,7 +60,6 @@ export default function FacturePage() {
     setDevisMap(newMap);
   };
 
-  // --- 3. LANCEMENT DYAL T-TRAITEMENT L-BACKEND ---
   const handleGenerate = async () => {
     if (!filesMap.vide || !filesMap.tvc || !filesMap.rep || !filesMap.diag || !filesMap.qa) {
       setErrorMessage("⚠️ PROTOCOLE REFUSÉ : Fichiers vitaux manquants (A VIDE, TVC, Repeteur, Diag Wifi, QA).");
@@ -86,13 +81,12 @@ export default function FacturePage() {
       formData.append("devisData", JSON.stringify(devisMap));
     }
 
-    // 🛡️ ANTI-CRASH TIMEOUT (5 Minutes)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 300000); 
 
     try {
-      // 🔥 THE FIX: Kan-siftou l-fichiers l-Proxy dyal Next.js li sawbna l-foq 🔥
-      const response = await fetch(`/api/proxy/facture`, {
+      // 🔥 THE FIX: Rje3na l-URL l-asliya dyalek li kanet kheddama mzyan 🔥
+      const response = await fetch("/api/facture/generate", {
         method: "POST",
         body: formData,
         signal: controller.signal
@@ -121,8 +115,6 @@ export default function FacturePage() {
       console.error(err);
       if (err.name === 'AbortError') {
         setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre.");
-      } else if (err.message.includes("Failed to fetch")) {
-        setErrorMessage("⚠️ ERREUR RÉSEAU : La connexion a été interrompue.");
       } else {
         setErrorMessage(err.message || "Erreur de connexion au serveur Backend.");
       }
@@ -144,11 +136,10 @@ export default function FacturePage() {
 
   return (
     <main style={{ padding: "2rem", minHeight: "100vh", position: "relative", color: "#e2e8f0" }}>
-      <QuantumDataGrid /> {/* Background NASA */}
+      <QuantumDataGrid />
 
       <div style={{ maxWidth: "1400px", margin: "0 auto", position: "relative", zIndex: 10 }}>
         
-        {/* HEADER */}
         <div style={{ textAlign: 'center', marginBottom: '3rem', borderBottom: '1px solid rgba(0,240,255,0.2)', paddingBottom: '2rem' }}>
           <h1 style={{ fontFamily: 'monospace', fontSize: '3.5rem', color: '#fff', textShadow: '0 0 30px rgba(0,240,255,0.8)', margin: 0, fontWeight: 900, letterSpacing: '2px' }}>
             NEXUS <span style={{ color: '#b026ff', textShadow: '0 0 30px rgba(176,38,255,0.8)' }}>ENGINE</span>
@@ -159,7 +150,6 @@ export default function FacturePage() {
           </p>
         </div>
 
-        {/* ALERTS */}
         <AnimatePresence>
           {errorMessage && (
             <motion.div 
@@ -171,10 +161,8 @@ export default function FacturePage() {
           )}
         </AnimatePresence>
 
-        {/* NASA DASHBOARD GRID */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
           
-          {/* PANNEAU 1 : DATABANKS UPLOAD */}
           <div style={{ background: 'rgba(2, 6, 23, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(0,240,255,0.3)', borderRadius: '20px', padding: '2rem', boxShadow: 'inset 0 0 20px rgba(0,240,255,0.05)' }}>
             <h2 style={{ fontFamily: 'monospace', color: '#00f0ff', borderBottom: '1px solid rgba(0,240,255,0.2)', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px 0' }}>
               <Database size={20} /> ALIMENTATION DES DONNÉES
@@ -203,7 +191,6 @@ export default function FacturePage() {
             </div>
           </div>
 
-          {/* PANNEAU 2 : MANUAL OVERRIDE PROTOCOL (DEVIS) */}
           <div style={{ background: 'rgba(2, 6, 23, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid rgba(176,38,255,0.3)', borderRadius: '20px', padding: '2rem', boxShadow: 'inset 0 0 20px rgba(176,38,255,0.05)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', background: 'radial-gradient(circle, rgba(176,38,255,0.2) 0%, transparent 70%)', borderRadius: '50%' }}></div>
             
@@ -245,7 +232,6 @@ export default function FacturePage() {
           </div>
         </div>
 
-        {/* BOUTON D'ALLUMAGE (ENGAGE) */}
         <motion.button
           onClick={handleGenerate}
           disabled={isProcessing}
@@ -260,7 +246,6 @@ export default function FacturePage() {
           )}
         </motion.button>
 
-        {/* RESULTATS HOLOGRAPHIQUES */}
         <AnimatePresence>
           {sheetsData && (
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', damping: 20 }}>

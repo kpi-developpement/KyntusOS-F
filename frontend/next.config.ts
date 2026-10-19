@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
   
-  // 🔥 THE FIX: N-goulou l-Next.js y-ghemmed 3inih 3la les erreurs TS w ESLint f' l-Build
+  // 🔥 Bash TypeScript w ESLint ma-y-blokiwch l-build f' Docker
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // 🔥 THE FIX: N-kellou Next.js y-qbel les fichiers kbar (500MB)
+  // 🔥 N-khelliw Next.js y-qbel les fichiers kbar
   experimental: {
     serverActions: {
       bodySizeLimit: '500mb',
