@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Table as TableIcon, Layers } from 'lucide-react';
 
 interface HoloSpreadsheetProps {
-  sheetsData: Record<string, any[]>; // L-Khotta: { "A REMPLIS": [...], "TVC": [...] }
+  sheetsData: Record<string, any[]>; 
   onDownload: () => void;
 }
 

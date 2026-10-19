@@ -88,11 +88,18 @@ export default function FacturePage() {
       formData.append("devisData", JSON.stringify(devisMap));
     }
 
+    // 🛡️ ANTI-CRASH TIMEOUT (5 Minutes)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); 
+
     try {
       const response = await fetch("/api/facture/generate", {
         method: "POST",
         body: formData,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -113,7 +120,11 @@ export default function FacturePage() {
       setSheetsData(parsedSheets);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || "Erreur de connexion au serveur Backend.");
+      if (err.name === 'AbortError') {
+        setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre (Fichiers trop volumineux).");
+      } else {
+        setErrorMessage(err.message || "Erreur de connexion au serveur Backend.");
+      }
     } finally {
       setIsProcessing(false);
     }
