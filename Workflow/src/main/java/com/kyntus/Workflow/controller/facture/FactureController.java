@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.Map;
 
+@CrossOrigin(origins = "*") // 🔥 THE FIX: Y-qbel les requêtes direct mn l-Frontend
 @RestController
 @RequestMapping("/api/facture")
 public class FactureController {
@@ -47,7 +48,7 @@ public class FactureController {
             @RequestParam("fichierDiagWifi") MultipartFile fichierDiagWifi,
             @RequestParam("fichierQA") MultipartFile fichierQA,
             @RequestParam(value = "fichierIntervention", required = false) MultipartFile fichierIntervention,
-            @RequestParam(value = "devisData", required = false) String devisDataJson // 🔥 L-Qaleb dyal Devis hna!
+            @RequestParam(value = "devisData", required = false) String devisDataJson
     ) {
         try {
             System.out.println("🚀 [FACTURE ENGINE] Début du traitement...");
@@ -77,6 +78,7 @@ public class FactureController {
             headers.setContentDispositionFormData("attachment", "Facture_Kyntus_2080.xlsx");
             headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
+            System.out.println("✅ [FACTURE ENGINE] Traitement terminé avec succès !");
             return new ResponseEntity<>(finalExcelBytes, headers, HttpStatus.OK);
 
         } catch (Exception e) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
 import { UploadCloud, Cpu, AlertTriangle, CheckCircle2, XCircle, Plus, Trash2, Zap, Settings, Database } from 'lucide-react';
@@ -26,7 +26,7 @@ export default function FacturePage() {
   const [epsInput, setEpsInput] = useState('');
   const [valInput, setValInput] = useState('');
 
-  // --- 1. SELECTION DYAL LES FICHIERS (BLA MAY-LANCER L-CALCUL) ---
+  // --- 1. SELECTION DYAL LES FICHIERS ---
   const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -66,7 +66,6 @@ export default function FacturePage() {
 
   // --- 3. LANCEMENT DYAL T-TRAITEMENT L-BACKEND ---
   const handleGenerate = async () => {
-    // Verification des fichiers obligatoires
     if (!filesMap.vide || !filesMap.tvc || !filesMap.rep || !filesMap.diag || !filesMap.qa) {
       setErrorMessage("⚠️ PROTOCOLE REFUSÉ : Fichiers vitaux manquants (A VIDE, TVC, Repeteur, Diag Wifi, QA).");
       return;
@@ -83,7 +82,6 @@ export default function FacturePage() {
     formData.append("fichierQA", filesMap.qa);
     if (filesMap.intervention) formData.append("fichierIntervention", filesMap.intervention);
 
-    // 🔥 ENVOI DYAL DEVIS L-BACKEND 🔥
     if (Object.keys(devisMap).length > 0) {
       formData.append("devisData", JSON.stringify(devisMap));
     }
@@ -93,7 +91,12 @@ export default function FacturePage() {
     const timeoutId = setTimeout(() => controller.abort(), 300000); 
 
     try {
-      const response = await fetch("/api/facture/generate", {
+      // 🔥 THE FIX: N-jebdou l-IP dyal serveur auto (ex: 10.10.10.25) w n-derbou f' port 8082 🔥
+      // Haka kan-by-passiw Next.js w kan-sifto l-fichiers direct l-Spring Boot!
+      const serverIp = window.location.hostname;
+      const BACKEND_URL = `http://${serverIp}:8082`;
+      
+      const response = await fetch(`${BACKEND_URL}/api/facture/generate`, {
         method: "POST",
         body: formData,
         signal: controller.signal
@@ -122,6 +125,8 @@ export default function FacturePage() {
       console.error(err);
       if (err.name === 'AbortError') {
         setErrorMessage("⚠️ TIMEOUT : Le serveur a mis trop de temps à répondre (Fichiers trop volumineux).");
+      } else if (err.message.includes("Failed to fetch")) {
+        setErrorMessage("⚠️ ERREUR RÉSEAU : Impossible de contacter le Backend (Port 8082). Vérifiez le pare-feu (firewall) du serveur.");
       } else {
         setErrorMessage(err.message || "Erreur de connexion au serveur Backend.");
       }
