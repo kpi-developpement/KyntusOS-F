@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Table as TableIcon, Layers } from 'lucide-react';
+import { Download, Layers, Sparkles, FileSpreadsheet } from 'lucide-react';
 
 interface HoloSpreadsheetProps {
-  sheetsData: Record<string, any[]>; 
+  sheetsData: Record<string, any[]>;
   onDownload: () => void;
 }
 
@@ -17,105 +17,244 @@ export default function HoloSpreadsheet({ sheetsData, onDownload }: HoloSpreadsh
   const headers = currentData.length > 0 ? Object.keys(currentData[0]) : [];
 
   return (
-    <div className="holo-container">
+    <div className="lux-sheet-shell">
       <style>{`
-        .holo-container {
-          background: rgba(4, 9, 20, 0.6); backdrop-filter: blur(20px);
-          border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 24px;
-          box-shadow: 0 0 40px rgba(0, 240, 255, 0.1), inset 0 0 20px rgba(0, 240, 255, 0.05);
-          overflow: hidden; display: flex; flex-direction: column; height: 75vh;
+        .lux-sheet-shell {
+          background: rgba(255, 255, 255, 0.86);
+          backdrop-filter: blur(28px) saturate(180%);
+          border: 1px solid rgba(0, 82, 255, 0.16);
+          border-radius: 28px;
+          box-shadow: 0 25px 60px -15px rgba(0, 52, 150, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          height: 76vh;
         }
-        .neo-tabs::-webkit-scrollbar { height: 4px; }
-        .neo-tabs::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 10px; }
-        
-        .neo-table-container::-webkit-scrollbar { width: 6px; height: 6px; }
-        .neo-table-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-        .neo-table-container::-webkit-scrollbar-thumb { background: #b026ff; border-radius: 10px; }
-        
-        .neo-th {
-          background: rgba(0, 240, 255, 0.1); color: #00f0ff; padding: 12px 20px;
-          text-align: left; font-family: monospace; font-size: 0.85rem; letter-spacing: 1px;
-          border-bottom: 2px solid rgba(0, 240, 255, 0.4); white-space: nowrap;
-          position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px);
+        .lux-sheet-topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 22px 32px;
+          background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+          border-bottom: 1px solid rgba(0, 82, 255, 0.12);
+          gap: 20px;
+          flex-wrap: wrap;
         }
-        .neo-td {
-          padding: 10px 20px; color: #e2e8f0; font-family: monospace; font-size: 0.85rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05); white-space: nowrap;
+        .lux-tabs-bar {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          max-width: 52vw;
+          padding: 6px;
+          background: #F1F5F9;
+          border-radius: 16px;
+          border: 1px solid rgba(0, 82, 255, 0.08);
         }
-        .neo-tr:hover .neo-td { background: rgba(176, 38, 255, 0.15); color: #fff; }
+        .lux-tabs-bar::-webkit-scrollbar { height: 4px; }
+        .lux-tabs-bar::-webkit-scrollbar-thumb { background: #93C5FD; border-radius: 10px; }
+
+        .lux-table-viewport {
+          flex: 1;
+          overflow: auto;
+          position: relative;
+          background: #FFFFFF;
+        }
+        .lux-table-viewport::-webkit-scrollbar { width: 8px; height: 8px; }
+        .lux-table-viewport::-webkit-scrollbar-track { background: #F1F5F9; }
+        .lux-table-viewport::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #0052FF, #0EA5E9);
+          border-radius: 99px;
+        }
+
+        .lux-th {
+          background: rgba(239, 246, 255, 0.95);
+          color: #0F172A;
+          padding: 14px 22px;
+          text-align: left;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size: 0.78rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          border-bottom: 2px solid rgba(0, 82, 255, 0.2);
+          white-space: nowrap;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          backdrop-filter: blur(12px);
+        }
+        .lux-td {
+          padding: 13px 22px;
+          color: #1E293B;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.84rem;
+          border-bottom: 1px solid #F1F5F9;
+          white-space: nowrap;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .lux-tr:nth-child(even) .lux-td {
+          background: #FAFBFD;
+        }
+        .lux-tr:hover .lux-td {
+          background: #EFF6FF;
+          color: #0052FF;
+        }
       `}</style>
 
-      {/* 🟢 HEADER & TABS 🟢 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 30px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <Layers color="#b026ff" size={28} />
-          <h2 style={{ margin: 0, color: '#fff', fontFamily: 'monospace', letterSpacing: '2px' }}>
-            QUANTUM <span style={{ color: '#00f0ff' }}>SHEETS</span>
-          </h2>
+      {/* HEADER & TABS */}
+      <div className="lux-sheet-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #0052FF 0%, #0EA5E9 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 20px rgba(0, 82, 255, 0.25)'
+            }}
+          >
+            <Layers color="#FFFFFF" size={22} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ margin: 0, color: '#0F172A', fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
+                QUANTUM <span style={{ color: '#0052FF' }}>SHEETS</span>
+              </h2>
+              <span
+                style={{
+                  background: '#EFF6FF',
+                  color: '#0052FF',
+                  border: '1px solid rgba(0, 82, 255, 0.2)',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '3px 10px',
+                  borderRadius: '99px'
+                }}
+              >
+                {currentData.length} LIGNES
+              </span>
+            </div>
+            <p style={{ margin: '2px 0 0 0', color: '#64748B', fontSize: '0.78rem', fontWeight: 500 }}>
+              Matrice de facturation vérifiée et prête à l&apos;exportation
+            </p>
+          </div>
         </div>
 
-        {/* TABS (LES FEUILLES) */}
-        <div className="neo-tabs" style={{ display: 'flex', gap: '10px', overflowX: 'auto', maxWidth: '50vw', paddingBottom: '5px' }}>
-          {sheetNames.map((sheet) => (
-            <button
-              key={sheet}
-              onClick={() => setActiveSheet(sheet)}
-              style={{
-                position: 'relative', padding: '8px 20px', borderRadius: '12px', border: 'none',
-                background: 'transparent', color: activeSheet === sheet ? '#00f0ff' : '#64748b',
-                fontFamily: 'monospace', fontWeight: 'bold', cursor: 'pointer', transition: '0.3s'
-              }}
-            >
-              {activeSheet === sheet && (
-                <motion.div
-                  layoutId="activeTab"
-                  style={{ position: 'absolute', inset: 0, background: 'rgba(0, 240, 255, 0.1)', border: '1px solid #00f0ff', borderRadius: '12px', zIndex: -1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-              {sheet}
-            </button>
-          ))}
+        {/* TABS */}
+        <div className="lux-tabs-bar">
+          {sheetNames.map((sheet) => {
+            const isActive = activeSheet === sheet;
+            return (
+              <button
+                key={sheet}
+                onClick={() => setActiveSheet(sheet)}
+                style={{
+                  position: 'relative',
+                  padding: '9px 18px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'transparent',
+                  color: isActive ? '#FFFFFF' : '#475569',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'color 0.2s ease',
+                  zIndex: 1,
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeLuxuryTab"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'linear-gradient(135deg, #0052FF 0%, #0EA5E9 100%)',
+                      borderRadius: '11px',
+                      boxShadow: '0 4px 14px rgba(0, 82, 255, 0.3)',
+                      zIndex: -1
+                    }}
+                    transition={{ type: 'spring', stiffness: 360, damping: 28 }}
+                  />
+                )}
+                {sheet}
+              </button>
+            );
+          })}
         </div>
 
-        {/* DOWNLOAD BUTTON */}
+        {/* EXPORT BUTTON */}
         <motion.button
-          whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(0, 240, 255, 0.5)' }} whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.03, boxShadow: '0 14px 28px rgba(0, 82, 255, 0.3)' }}
+          whileTap={{ scale: 0.97 }}
           onClick={onDownload}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#00f0ff', color: '#000', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 'bold', fontFamily: 'monospace', cursor: 'pointer' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'linear-gradient(135deg, #0052FF 0%, #1D4ED8 100%)',
+            color: '#FFFFFF',
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: '14px',
+            fontWeight: 700,
+            fontSize: '0.86rem',
+            letterSpacing: '0.03em',
+            cursor: 'pointer',
+            boxShadow: '0 8px 20px rgba(0, 82, 255, 0.22)'
+          }}
         >
           <Download size={18} /> EXPORTER .XLSX
         </motion.button>
       </div>
 
-      {/* 🟢 THE DATA GRID (TABLEAU) 🟢 */}
-      <div className="neo-table-container" style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
+      {/* DATA TABLE */}
+      <div className="lux-table-viewport">
         <AnimatePresence mode="wait">
           <motion.table
             key={activeSheet}
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22 }}
             style={{ width: '100%', borderCollapse: 'collapse' }}
           >
             <thead>
               <tr>
-                <th className="neo-th">#</th>
-                {headers.map((h, i) => <th key={i} className="neo-th">{h}</th>)}
+                <th className="lux-th" style={{ width: '60px', color: '#0052FF' }}>#</th>
+                {headers.map((h, i) => (
+                  <th key={i} className="lux-th">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {currentData.map((row, rowIndex) => (
-                <tr key={rowIndex} className="neo-tr">
-                  <td className="neo-td" style={{ color: '#b026ff', fontWeight: 'bold' }}>{rowIndex + 1}</td>
+                <tr key={rowIndex} className="lux-tr">
+                  <td className="lux-td" style={{ color: '#0052FF', fontWeight: 700 }}>
+                    {rowIndex + 1}
+                  </td>
                   {headers.map((h, colIndex) => (
-                    <td key={colIndex} className="neo-td">
-                      {row[h] !== null && row[h] !== undefined ? String(row[h]) : '-'}
+                    <td key={colIndex} className="lux-td">
+                      {row[h] !== null && row[h] !== undefined && String(row[h]) !== "" ? String(row[h]) : '—'}
                     </td>
                   ))}
                 </tr>
               ))}
               {currentData.length === 0 && (
                 <tr>
-                  <td colSpan={headers.length + 1} style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontFamily: 'monospace' }}>
+                  <td
+                    colSpan={headers.length + 1}
+                    style={{
+                      textAlign: 'center',
+                      padding: '4rem',
+                      color: '#64748B',
+                      fontWeight: 600
+                    }}
+                  >
+                    <FileSpreadsheet size={32} color="#94A3B8" style={{ display: 'block', margin: '0 auto 10px auto' }} />
                     AUCUNE DONNÉE DANS CETTE FEUILLE
                   </td>
                 </tr>
