@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.Map;
 
-@CrossOrigin(origins = "*") // 🔥 THE FIX: Y-qbel les requêtes direct mn l-Frontend
 @RestController
 @RequestMapping("/api/facture")
 public class FactureController {
