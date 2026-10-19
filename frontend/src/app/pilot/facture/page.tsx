@@ -92,9 +92,9 @@ export default function FacturePage() {
 
     try {
       // 🔥 THE MASTER FIX: DIRECT TO BACKEND 🔥
-      // N-jebdou l-IP dyal l-Navigateur (ex: 10.10.10.25) w n-siftou l-port 8082
-      const serverIp = window.location.hostname;
-      const directBackendUrl = `http://${serverIp}:8082/api/facture/generate`;
+      // N-jebdou l-IP dyal l-Navigateur (ex: 10.10.10.25) w n-siftou l-port 8082 direct!
+  
+      const directBackendUrl = `http://10.10.10.25:8082/api/facture/generate`;
       
       console.log("🚀 Envoi direct vers le Backend :", directBackendUrl);
 
