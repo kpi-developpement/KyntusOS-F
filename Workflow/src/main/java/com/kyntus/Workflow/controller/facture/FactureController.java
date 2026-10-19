@@ -3,6 +3,7 @@ package com.kyntus.Workflow.controller.facture;
 import com.kyntus.Workflow.service.facture.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.poi.util.IOUtils; // 🔥 THE POI IMPORT FIX
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +52,9 @@ public class FactureController {
     ) {
         try {
             System.out.println("🚀 [FACTURE ENGINE] Début du traitement...");
+
+            // 🔥 THE POI MASTER FIX : Augmenter la limite de mémoire à 300 Mo bach y-passer l-fichiers kbar
+            IOUtils.setByteArrayMaxOverride(300_000_000);
 
             // 🧠 Traduction dyal l-JSON d-Devis l-Map Java 🧠
             Map<String, Double> devisMap = new HashMap<>();
