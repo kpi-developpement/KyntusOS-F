@@ -103,23 +103,18 @@ public class MesProcessorService {
                         offreLower.contains("asso");
 
                 boolean isMatLivOui = mesResult.matLiv.equals("OUI") || mesResult.matLiv.equals("OUI !!!");
-
-                // 🔥 THE NEW STRATEGIC FLAG 🔥
                 boolean isDiagWifiSet = mesResult.diagWifi.equals("VRAI") || mesResult.diagWifi.equals("FAUX");
 
                 // ==========================================================
                 // Calcul dyal TYPE MES
                 // ==========================================================
                 if (isDiagWifiSet) {
-                    // 🚀 SI DIAG WIFI = VRAI ou FAUX (Override Actif)
                     if (isMatLivOui) {
-                        mesResult.typeMes = "MES 1/2/3 P"; // J'ai utilisé 1/2/3 P bach t-machi m3a l'format dyal l'code dyalek
+                        mesResult.typeMes = "MES 1/2/3 P";
                     } else {
-                        // Si NON
                         mesResult.typeMes = "NOK";
                     }
                 } else {
-                    // ⚙️ SI DIAG WIFI = VIDE (Formule Classique)
                     if (mesResult.matLiv.equals("NON")) {
                         mesResult.typeMes = "NOK";
                     } else if (isMatLivOui && isSpecialOffre) {
@@ -135,11 +130,13 @@ public class MesProcessorService {
                         mesResult.typeMes = "";
                     }
                 }
-                // ==========================================================
 
+                // 🔥 THE NEW LOGIC: Branchement IAD TV + NOK f' TV 🔥
+                boolean forceMt5 = false;
                 if ("Branchement IAD TV".equals(mesResult.typeMes)) {
                     if ("NOK".equalsIgnoreCase(mesResult.tv)) {
                         mesResult.typeMes = "Branchement IAD";
+                        forceMt5 = true; // N-sauviw l-flag bash n-forciw 5 f' lekhir
                     }
                 }
 
@@ -174,6 +171,12 @@ public class MesProcessorService {
                 mesResult.mtPlusDiagWifi = mesResult.mt;
                 if ("VRAI".equals(mesResult.diagWifi) && isMatLivOui) {
                     mesResult.mtPlusDiagWifi += 10;
+                }
+
+                // 🔥 FORCER MT = 5 w MT+DiagWifi = 5 ila kanet l-Condition m-7eqqa 🔥
+                if (forceMt5) {
+                    mesResult.mt = 5;
+                    mesResult.mtPlusDiagWifi = 5;
                 }
 
                 mesDataMap.put(codeInter, mesResult);

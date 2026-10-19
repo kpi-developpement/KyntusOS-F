@@ -129,36 +129,28 @@ public class FactureMasterService {
 
                 setCellValue(row, colSupport, String.valueOf(supportVal));
                 setCellValue(row, colTvcOut, tvcTypologie);
-
-                // 🔥 L-FIX HNA: Ila malqahch y-khelliha Vide machi "FAUX" 🔥
                 setCellValue(row, colDiagWifiOut, diagWifiMap.getOrDefault(codeInter, ""));
 
-                // MATERIEL
+                // 🔥 MATERIEL (NEW LOGIC) 🔥
                 String tvcInputVal = "";
                 if (colTvcInput != -1) {
                     tvcInputVal = getCellValueAsString(safeGetCell(row, colTvcInput)).trim().toLowerCase();
                 }
                 boolean isTvcZeroOrEmpty = tvcInputVal.isEmpty() || tvcInputVal.equals("0") || tvcInputVal.equals("vide");
 
-                double ahVal = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colMateriel)));
-                double materielVal = 0.0;
+                // N-qraw l-valeur dyal INSTALLATION kifma m-ktouba f' Excel qbel ma n-bedlouha
+                double rawInstallation = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colInstallation)));
+                double currentMateriel = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colMateriel)));
+                
+                // N-jebdou MATERIEL 3la 7sab INSTALLATION
+                double materielVal = calculateMaterielByInstallation(rawInstallation, currentMateriel);
 
-                if (isTvcZeroOrEmpty) {
-                    if (ahVal == 0.0) materielVal = 0.0;
-                    else if (ahVal == 12.77) materielVal = 11.03;
-                    else if (ahVal == 33.02) materielVal = 31.28;
-                    else if (ahVal == 30.36) materielVal = 28.62;
-                    else if (ahVal == 42.96) materielVal = 41.22;
-                    else if (ahVal == 3.20) materielVal = 1.46;
-                    else if (ahVal == 10.35) materielVal = 8.61;
-                    else materielVal = ahVal;
-                } else {
-                    if (ahVal == 0.0) materielVal = 0.0;
-                    else if (ahVal == 12.77) materielVal = 53.14;
-                    else if (ahVal == 33.02) materielVal = 115.21;
-                    else if (ahVal == 30.36) materielVal = 77.41;
-                    else if (ahVal == 42.96) materielVal = 128.0;
-                    else materielVal = ahVal;
+                // Ila kant TVC 3amra, n-diro l-Upgrade
+                if (!isTvcZeroOrEmpty) {
+                    if (materielVal == 11.03) materielVal = 53.14;
+                    else if (materielVal == 31.28) materielVal = 115.21;
+                    else if (materielVal == 28.62) materielVal = 77.41;
+                    else if (materielVal == 41.22 || materielVal == 41.21) materielVal = 128.0;
                 }
                 setCellValue(row, colMateriel, String.valueOf(materielVal));
 
@@ -194,7 +186,7 @@ public class FactureMasterService {
                 double mesVal = mesResult != null ? mesResult.mtPlusDiagWifi : 0.0;
                 setCellValue(row, colMes, String.valueOf(mesVal));
 
-                // TOTAL
+                // TOTAL (N-jem3o kolchi kima kan)
                 double prixGoulotte = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colPrixHtGoulotte)));
                 double prixEth = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colPrixHtEth)));
                 double deplacement = parseDoubleSafe(getCellValueAsString(safeGetCell(row, colDeplacement)));
@@ -273,6 +265,21 @@ public class FactureMasterService {
             workbook.write(bos);
             return bos.toByteArray();
         }
+    }
+
+    // 🔥 HELPER JDID BASH Y-7SEB MATERIEL 3LA 7SAB INSTALLATION 🔥
+    private double calculateMaterielByInstallation(double inst, double fallback) {
+        // N-arrondi l-valeur bash n-tfadaw machakil dyal virgule flottante f' Java (ex: 77.0499999)
+        double val = Math.round(inst * 100.0) / 100.0;
+        
+        if (val == 0.0 || val == 67.0 || val == 70.0 || val == 77.05 || val == 80.05) return 1.46;
+        if (val == 108.0 || val == 111.0 || val == 124.2 || val == 127.65) return 11.03;
+        if (val == 218.0 || val == 221.0 || val == 250.7 || val == 254.15) return 31.28;
+        if (val == 273.0 || val == 276.0 || val == 313.95 || val == 317.4) return 28.62;
+        if (val == 86.0 || val == 89.0 || val == 98.9 || val == 102.35) return 8.61;
+        if (val == 303.0 || val == 306.0 || val == 348.45 || val == 351.9) return 41.22;
+        
+        return fallback; // Ila malqa 7etta we7da, y-khli l-valeur l-qdima li f' Excel
     }
 
     private int getOrCreateColumn(Row headerRow, String colName) {
