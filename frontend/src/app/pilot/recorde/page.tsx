@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import SmartTable from "./components/SmartTable";
 import FileUploadModal from "./ui/FileUploadModal";
 import CyberSelect from "./CyberSelect";
@@ -27,14 +28,20 @@ import {
 const API_BASE = "";
 
 /**
- * 🔥 120 FPS INTERACTIVE ARCHITECTURAL BLUE/WHITE CANVAS BACKGROUND 🔥
- * Zero React re-renders: runs purely on GPU-backed 2D Canvas with magnetic
- * cursor constellation, glowing grid intersections, and click shockwaves.
+ * 🔥 120 FPS INTERACTIVE WORLD BACKGROUND (PORTAL) 🔥
+ * Uses createPortal to escape any parent containers/margins and cover the ENTIRE
+ * viewport (100vw/100vh) to hide global dark layouts.
  */
-const InteractiveBlueCanvas = React.memo(() => {
+const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: React.RefObject<HTMLDivElement | null> }) => {
+  const [mounted, setMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -71,15 +78,15 @@ const InteractiveBlueCanvas = React.memo(() => {
     }
 
     const palette = ["#2563eb", "#1d4ed8", "#0284c7", "#3b82f6", "#60a5fa"];
-    const particleCount = Math.min(55, Math.floor((width * height) / 26000));
+    const particleCount = Math.min(65, Math.floor((width * height) / 22000));
     const particles: Particle[] = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.65,
-      vy: (Math.random() - 0.5) * 0.65,
+      vx: (Math.random() - 0.5) * 0.75,
+      vy: (Math.random() - 0.5) * 0.75,
       radius: Math.random() * 2.2 + 1.2,
       color: palette[Math.floor(Math.random() * palette.length)],
-      alpha: Math.random() * 0.45 + 0.25
+      alpha: Math.random() * 0.5 + 0.25
     }));
 
     const shockwaves: Shockwave[] = [];
@@ -101,7 +108,7 @@ const InteractiveBlueCanvas = React.memo(() => {
         x: e.clientX,
         y: e.clientY,
         radius: 4,
-        maxRadius: 220,
+        maxRadius: 240,
         alpha: 0.45
       });
     };
@@ -113,54 +120,46 @@ const InteractiveBlueCanvas = React.memo(() => {
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Smooth lerp cursor position
       mouse.x += (mouse.targetX - mouse.x) * 0.12;
       mouse.y += (mouse.targetY - mouse.y) * 0.12;
 
-      // 1. Ambient Cursor Spotlight (Soft 30% Blue Glow on 70% White Canvas)
-      const spotlight = ctx.createRadialGradient(
-        mouse.x,
-        mouse.y,
-        10,
-        mouse.x,
-        mouse.y,
-        420
-      );
-      spotlight.addColorStop(0, "rgba(37, 99, 235, 0.10)");
-      spotlight.addColorStop(0.45, "rgba(2, 132, 199, 0.04)");
+      // 1. Ambient Cursor Spotlight
+      const spotlight = ctx.createRadialGradient(mouse.x, mouse.y, 10, mouse.x, mouse.y, 450);
+      spotlight.addColorStop(0, "rgba(37, 99, 235, 0.12)");
+      spotlight.addColorStop(0.45, "rgba(2, 132, 199, 0.05)");
       spotlight.addColorStop(1, "rgba(255, 255, 255, 0)");
       ctx.fillStyle = spotlight;
       ctx.fillRect(0, 0, width, height);
 
-      // 2. Interactive Architectural Dot Matrix near Cursor
+      // 2. Interactive Dot Matrix
       const gridSpacing = 48;
-      const startX = Math.max(0, Math.floor((mouse.x - 260) / gridSpacing) * gridSpacing);
-      const endX = Math.min(width, Math.ceil((mouse.x + 260) / gridSpacing) * gridSpacing);
-      const startY = Math.max(0, Math.floor((mouse.y - 260) / gridSpacing) * gridSpacing);
-      const endY = Math.min(height, Math.ceil((mouse.y + 260) / gridSpacing) * gridSpacing);
+      const startX = Math.max(0, Math.floor((mouse.x - 280) / gridSpacing) * gridSpacing);
+      const endX = Math.min(width, Math.ceil((mouse.x + 280) / gridSpacing) * gridSpacing);
+      const startY = Math.max(0, Math.floor((mouse.y - 280) / gridSpacing) * gridSpacing);
+      const endY = Math.min(height, Math.ceil((mouse.y + 280) / gridSpacing) * gridSpacing);
 
       for (let gx = startX; gx <= endX; gx += gridSpacing) {
         for (let gy = startY; gy <= endY; gy += gridSpacing) {
           const dx = gx - mouse.x;
           const dy = gy - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 240) {
-            const intensity = (1 - dist / 240) * 0.45;
+          if (dist < 260) {
+            const intensity = (1 - dist / 260) * 0.45;
             ctx.fillStyle = `rgba(37, 99, 235, ${intensity})`;
             ctx.beginPath();
-            ctx.arc(gx, gy, 1.6, 0, Math.PI * 2);
+            ctx.arc(gx, gy, 1.8, 0, Math.PI * 2);
             ctx.fill();
           }
         }
       }
 
-      // 3. Update & Draw Click Shockwaves
+      // 3. Shockwaves
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
-        sw.radius += 5.5;
-        sw.alpha *= 0.94;
+        sw.radius += 6.5;
+        sw.alpha *= 0.93;
         ctx.strokeStyle = `rgba(37, 99, 235, ${sw.alpha})`;
-        ctx.lineWidth = 1.8;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
         ctx.stroke();
@@ -169,7 +168,7 @@ const InteractiveBlueCanvas = React.memo(() => {
         }
       }
 
-      // 4. Update & Draw Constellation Nodes
+      // 4. Constellation Nodes
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         p.x += p.vx;
@@ -178,31 +177,29 @@ const InteractiveBlueCanvas = React.memo(() => {
         if (p.x < 0 || p.x > width) p.vx *= -1;
         if (p.y < 0 || p.y > height) p.vy *= -1;
 
-        // Subtle magnetic pull/orbit toward mouse
         const dxMouse = mouse.x - p.x;
         const dyMouse = mouse.y - p.y;
         const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
 
-        if (distMouse < 210 && distMouse > 5) {
-          const force = (210 - distMouse) / 210;
-          ctx.strokeStyle = `rgba(37, 99, 235, ${force * 0.28})`;
-          ctx.lineWidth = 1;
+        if (distMouse < 220 && distMouse > 5) {
+          const force = (220 - distMouse) / 220;
+          ctx.strokeStyle = `rgba(37, 99, 235, ${force * 0.32})`;
+          ctx.lineWidth = 1.2;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(mouse.x, mouse.y);
           ctx.stroke();
         }
 
-        // Connect neighboring particles
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const dx = p.x - p2.x;
           const dy = p.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 135) {
-            const lineAlpha = (1 - dist / 135) * 0.16;
+          if (dist < 140) {
+            const lineAlpha = (1 - dist / 140) * 0.18;
             ctx.strokeStyle = `rgba(37, 99, 235, ${lineAlpha})`;
-            ctx.lineWidth = 0.9;
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
@@ -229,24 +226,68 @@ const InteractiveBlueCanvas = React.memo(() => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
     };
-  }, []);
+  }, [mounted]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: "fixed",
-        inset: 0,
-        width: "100vw",
-        height: "100vh",
-        pointerEvents: "none",
-        zIndex: 1
+  if (!mounted) return null;
+
+  return createPortal(
+    <div 
+      style={{ 
+        position: "fixed", 
+        top: 0, 
+        left: 0, 
+        width: "100vw", 
+        height: "100vh", 
+        zIndex: -9999, 
+        pointerEvents: "none", 
+        overflow: "hidden",
+        backgroundColor: "#f8fafc" // 🔥 HADA LI KI GHATTI L'K7OULIYA DYAL L'PARENT
       }}
-    />
+    >
+      {/* Base Architectural Gradient & Grid Layer */}
+      <div 
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: `
+            radial-gradient(at 10% 0%, rgba(37, 99, 235, 0.09) 0px, transparent 55%),
+            radial-gradient(at 90% 10%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
+            radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.07) 0px, transparent 55%),
+            linear-gradient(to right, rgba(219, 234, 254, 0.65) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(219, 234, 254, 0.65) 1px, transparent 1px)
+          `,
+          backgroundSize: "100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px",
+          zIndex: 1
+        }}
+      />
+      {/* Dynamic Hover Tint Layer */}
+      <div 
+        ref={overlayRef} 
+        style={{ 
+          position: "absolute", 
+          inset: 0, 
+          backgroundColor: "transparent", 
+          transition: "background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
+          zIndex: 2
+        }} 
+      />
+      {/* 120 FPS Interactive Canvas */}
+      <canvas 
+        ref={canvasRef} 
+        style={{ 
+          position: "absolute", 
+          inset: 0, 
+          width: "100%", 
+          height: "100%",
+          zIndex: 3 
+        }} 
+      />
+    </div>,
+    document.body
   );
 });
 
-InteractiveBlueCanvas.displayName = "InteractiveBlueCanvas";
+InteractiveWorldBackground.displayName = "InteractiveWorldBackground";
 
 export default function PilotRecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -641,56 +682,17 @@ export default function PilotRecordsPage() {
         padding: "1.75rem 2rem", 
         minHeight: "100vh", 
         position: "relative", 
-        overflowX: "hidden",
-        backgroundColor: "#f8fafc",
         color: "#0f172a",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
       }}
     >
-      {/* Base Architectural Gradient & Grid Layer */}
-      <div 
-        style={{ 
-          position: "fixed", 
-          inset: 0, 
-          zIndex: 0, 
-          pointerEvents: "none",
-          backgroundImage: `
-            radial-gradient(at 10% 0%, rgba(37, 99, 235, 0.09) 0px, transparent 55%),
-            radial-gradient(at 90% 10%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
-            radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.07) 0px, transparent 55%),
-            linear-gradient(to right, rgba(219, 234, 254, 0.65) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(219, 234, 254, 0.65) 1px, transparent 1px)
-          `,
-          backgroundSize: "100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px"
-        }} 
-      />
-
-      {/* Dynamic Hover Tint Layer */}
-      <div 
-        ref={bgOverlayRef} 
-        style={{ 
-          position: "fixed", 
-          inset: 0, 
-          backgroundColor: "transparent", 
-          transition: "background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1)", 
-          zIndex: 0, 
-          pointerEvents: "none" 
-        }} 
-      />
-
-      {/* Interactive 120 FPS Blue Constellation & Cursor Ripple Canvas */}
-      <InteractiveBlueCanvas />
+      {/* 🔥 THE PORTAL BACKGROUND THAT OVERRIDES GLOBAL CSS 🔥 */}
+      <InteractiveWorldBackground overlayRef={bgOverlayRef} />
 
       <style>{`
         @keyframes pageEntrance {
-          0% {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          0% { opacity: 0; transform: translateY(14px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes modalBackdropIn {
@@ -699,14 +701,8 @@ export default function PilotRecordsPage() {
         }
 
         @keyframes modalSpringPop {
-          0% {
-            opacity: 0;
-            transform: scale(0.94) translateY(16px);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
+          0% { opacity: 0; transform: scale(0.94) translateY(16px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .nexus-stage {
@@ -772,12 +768,7 @@ export default function PilotRecordsPage() {
           left: -120%;
           width: 65%;
           height: 100%;
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.55),
-            transparent
-          );
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
           transform: skewX(-20deg);
           transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1);
           pointer-events: none;
@@ -800,7 +791,6 @@ export default function PilotRecordsPage() {
           cursor: not-allowed;
         }
 
-        /* Primary Royal Blue Button (30% Blue Hero Accent) */
         .btn-primary-blue {
           background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
           color: #ffffff;
@@ -812,7 +802,6 @@ export default function PilotRecordsPage() {
           box-shadow: 0 8px 22px rgba(37, 99, 235, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
-        /* Soft Blue Outline Button */
         .btn-soft-blue {
           background-color: #eff6ff;
           border-color: #bfdbfe;
@@ -825,7 +814,6 @@ export default function PilotRecordsPage() {
           box-shadow: 0 6px 16px rgba(37, 99, 235, 0.14);
         }
 
-        /* Sky / Omni Blue Button */
         .btn-sky-blue {
           background-color: #f0f9ff;
           border-color: #bae6fd;
@@ -838,7 +826,6 @@ export default function PilotRecordsPage() {
           box-shadow: 0 6px 16px rgba(2, 132, 199, 0.16);
         }
 
-        /* Danger Subtle Button */
         .btn-danger-clean {
           background-color: #ffffff;
           border-color: #fecaca;
@@ -896,28 +883,13 @@ export default function PilotRecordsPage() {
           box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
         }
 
-        .clean-scroll::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        .clean-scroll::-webkit-scrollbar-track {
-          background-color: #f1f5f9;
-          border-radius: 6px;
-        }
-        .clean-scroll::-webkit-scrollbar-thumb {
-          background-color: #93c5fd;
-          border-radius: 6px;
-        }
-        .clean-scroll::-webkit-scrollbar-thumb:hover {
-          background-color: #2563eb;
-        }
+        .clean-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .clean-scroll::-webkit-scrollbar-track { background-color: #f1f5f9; border-radius: 6px; }
+        .clean-scroll::-webkit-scrollbar-thumb { background-color: #93c5fd; border-radius: 6px; }
+        .clean-scroll::-webkit-scrollbar-thumb:hover { background-color: #2563eb; }
 
-        .modal-backdrop-anim {
-          animation: modalBackdropIn 0.22s ease forwards;
-        }
-        .modal-panel-anim {
-          animation: modalSpringPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        .modal-backdrop-anim { animation: modalBackdropIn 0.22s ease forwards; }
+        .modal-panel-anim { animation: modalSpringPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         @keyframes pulse-subtle {
           0%, 100% { opacity: 1; }
@@ -1096,7 +1068,7 @@ export default function PilotRecordsPage() {
           </div>
         </header>
 
-        {/* FILTER & SEARCH BAR (Bento Split Layout) */}
+        {/* FILTER & SEARCH BAR */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "1.25rem", alignItems: "stretch", flexWrap: "wrap" }}>
           <div 
             className="nexus-card" 
