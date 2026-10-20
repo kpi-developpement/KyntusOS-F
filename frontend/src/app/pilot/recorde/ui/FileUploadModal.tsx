@@ -2,9 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, UploadCloud, Database, CheckCircle, Terminal, MoveDown, ShieldAlert, Layers, Trash2, Activity, GripVertical, Save, AlertTriangle } from 'lucide-react';
 
 const API_BASE = "";
-// 🔥 LE CERVEAU: Bypassing l-Proxy ghir f l-Upload bach n-herbou mn limite 10MB 🔥
-const IS_DEV = process.env.NODE_ENV === 'development';
-const UPLOAD_API_URL = IS_DEV ? 'http://localhost:8082' : 'http://kyntusos.kyntus.fr:8082';
 
 export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSecurityAlert, defaultCategory, defaultYear, defaultMonth, onFileDeleted }: any) {
   const [files, setFiles] = useState<File[]>([]);
@@ -13,7 +10,6 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
   const [year, setYear] = useState<number>(defaultYear || new Date().getFullYear());
   const [month, setMonth] = useState<number>(defaultMonth || new Date().getMonth() + 1);
 
-  // Fichiers déjà importés (Homa li ghan-dirou lihom Drag & Drop)
   const [importedFiles, setImportedFiles] = useState<string[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
 
@@ -22,10 +18,17 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
 
   const [uploadStats, setUploadStats] = useState({ current: 0, total: 0, percentage: 0 });
 
-  // States pour le Drag & Drop Post-Import
   const [draggedImportedIndex, setDraggedImportedIndex] = useState<number | null>(null);
   const [isOrderModified, setIsOrderModified] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+  // 🔥 THE FIX: Dynamic Backend URL 🔥
+  const getUploadApiUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `http://${window.location.hostname}:8082`;
+    }
+    return 'http://localhost:8082';
+  };
 
   const fetchImportedFiles = useCallback(() => {
     setLoadingFiles(true);
@@ -33,7 +36,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
       .then(res => res.json())
       .then(data => {
         setImportedFiles(data || []);
-        setIsOrderModified(false); // Reset modif state
+        setIsOrderModified(false); 
       })
       .catch(() => setImportedFiles([]))
       .finally(() => setLoadingFiles(false));
@@ -77,7 +80,6 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
     e.stopPropagation(); setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // 🚀 1. L'EXECUTION SECURISEE DE L'UPLOAD 🚀
   const executeBatchUpload = async () => {
     if (!files || files.length === 0) return;
     
@@ -85,7 +87,6 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
     let currentErrors: string[] = [];
     let uploadHasErrors = false;
     
-    // Tri intelligent initial
     const getFileRank = (filename: string) => {
         const pMatch = filename.match(/^(\d+)-/); if (pMatch) return parseInt(pMatch[1], 10);
         const dMatch = filename.match(/(\d{2})(\d{2})(\d{4})/); if (dMatch) return parseInt(`${dMatch[3]}${dMatch[2]}${dMatch[1]}`, 10);
@@ -94,6 +95,8 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
     const sortedNewFiles = [...files].sort((a, b) => getFileRank(a.name) - getFileRank(b.name));
 
     try {
+      const UPLOAD_API_URL = getUploadApiUrl();
+
       for (let i = 0; i < sortedNewFiles.length; i++) {
         const file = sortedNewFiles[i];
         setUploadStats({ current: i + 1, total: sortedNewFiles.length, percentage: Math.round(((i) / sortedNewFiles.length) * 100) });
@@ -101,18 +104,16 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
         const formData = new FormData(); 
         formData.append("file", file); 
         
-        // 🔥 L'URL DYNAMIQUE BLA PROXY BACH T-DOWEZ DEFC7A KBIRA 🔥
         const res = await fetch(`${UPLOAD_API_URL}/api/secure-upload/import/1?year=${year}&month=${month}&category=${category}&fileRank=${importedFiles.length + i + 1}`, { 
             method: "POST", body: formData 
         });
 
         if (!res.ok) {
-            const errorData = await res.json();
+            const errorData = await res.json().catch(() => ({ error: "Erreur serveur inconnue" }));
             currentErrors.push(`[${file.name}] : ${errorData.error || "Erreur inconnue"}`);
             uploadHasErrors = true;
         }
 
-        // 🛡️ TACTIQUE DE RESPIRATION : On attend 1.5s pour laisser la RAM de Tomcat se vider (Garbage Collector)
         if (i < sortedNewFiles.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 1500));
         }
@@ -120,16 +121,15 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
 
       setUploadStats({ current: sortedNewFiles.length, total: sortedNewFiles.length, percentage: 100 });
       
-      // S'il y a des erreurs, on les envoie à page.tsx
       if (uploadHasErrors) {
           onSecurityAlert(currentErrors);
       }
 
       setTimeout(() => {
-        onUploadSuccess(); // Rafraichir le tableau principal
-        fetchImportedFiles(); // Rafraichir la liste du terminal
-        setFiles([]); // Vider la file d'attente
-        if (uploadHasErrors) onClose(); // Fermer le modal si erreur pour voir l'alerte sur la page principale !
+        onUploadSuccess(); 
+        fetchImportedFiles(); 
+        setFiles([]); 
+        if (uploadHasErrors) onClose(); 
       }, 1000);
 
     } catch (error) { console.error("BATCH UPLOAD ERROR:", error); }
@@ -143,7 +143,6 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
     } catch (error) { console.error("Error deleting file", error); }
   };
 
-  // 🚀 2. LE SYSTEME DE DRAG & DROP DES FICHIERS IMPORTÉS (POST-IMPORT) 🚀
   const handleDragStartImported = (index: number) => { setDraggedImportedIndex(index); };
   
   const handleDragOverImported = (e: React.DragEvent<HTMLLIElement>, index: number) => {
@@ -157,12 +156,11 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
     
     setDraggedImportedIndex(index);
     setImportedFiles(newFiles);
-    setIsOrderModified(true); // Active le bouton "SAVE ORDER"
+    setIsOrderModified(true); 
   };
   
   const handleDragEndImported = () => { setDraggedImportedIndex(null); };
 
-  // 🚀 3. SAUVEGARDER LE NOUVEL ORDRE 🚀
   const saveNewOrder = async () => {
       setIsSavingOrder(true);
       try {
@@ -173,7 +171,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
           });
           if (res.ok) {
               setIsOrderModified(false);
-              onUploadSuccess(); // Refresh le tableau principal pour afficher le nouvel ordre !
+              onUploadSuccess(); 
           }
       } catch (error) {
           console.error(error);
@@ -204,14 +202,12 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
                <span style={{ color: "#a855f7", fontFamily: "monospace", fontSize: "1.1rem", fontWeight: "bold", letterSpacing: "1px", textShadow: "0 0 8px rgba(168,85,247,0.6)" }}>CYCLE: <span style={{ color: "#fff" }}>{String(month).padStart(2, '0')}/{year}</span></span>
             </div>
 
-            {/* 🗄️ TERMINAL DE L'HISTORIQUE (AVEC DRAG & DROP) 🔥 */}
             <div style={{ marginBottom: "2rem", padding: "1.2rem", background: "rgba(10, 15, 30, 0.6)", borderRadius: "8px", border: "1px solid rgba(168, 85, 247, 0.5)", borderLeft: "4px solid #a855f7", boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                   <h3 style={{ color: "#d8b4fe", fontSize: "0.95rem", fontFamily: "monospace", display: "flex", alignItems: "center", gap: "10px", margin: 0, textShadow: "0 0 8px rgba(168, 85, 247, 0.8)", fontWeight: "bold" }}>
                     <Terminal size={18} /> NEON LOG: INTEGRATED PAYLOADS
                   </h3>
                   
-                  {/* BOUTON SAVE ORDER APPEARAIT SI MODIFICATION */}
                   {isOrderModified && (
                       <button onClick={saveNewOrder} disabled={isSavingOrder} className="mecha-btn btn-success" style={{ padding: "0.3rem 0.8rem", fontSize: "0.75rem", display: "flex", gap: "5px", alignItems: "center" }}>
                           <Save size={14} /> {isSavingOrder ? "SAVING..." : "SAVE NEW ORDER"}
@@ -228,7 +224,7 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
                     {importedFiles.map((f, idx) => (
                       <li 
                         key={f} 
-                        draggable // 🔥 ACTIVE LE DRAG & DROP POST-IMPORT
+                        draggable 
                         onDragStart={() => handleDragStartImported(idx)}
                         onDragOver={(e) => handleDragOverImported(e, idx)}
                         onDragEnd={handleDragEndImported}
@@ -259,7 +255,6 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
               )}
             </div>
 
-            {/* ZONE UPLOAD */}
             {uploadStats.total === 0 && (
               <div 
                 onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
@@ -302,7 +297,6 @@ export default function FileUploadModal({ isOpen, onClose, onUploadSuccess, onSe
               </div>
             )}
 
-            {/* 🔥 PROGRESS BAR 🔥 */}
             {uploadStats.total > 0 && (
               <div style={{ marginTop: "20px", padding: "1.5rem", background: "rgba(0, 240, 255, 0.05)", border: "1px solid rgba(0, 240, 255, 0.3)", borderRadius: "8px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "*") // 🔥 THE FIX: Y-qbel les requêtes direct mn l-Frontend
 @RestController
 @RequestMapping("/api/pilot-records")
 public class PilotRecordController {
@@ -205,7 +206,6 @@ public class PilotRecordController {
         }
     }
 
-    // 🔥 L'OMNI SEARCH (ZERO RAM - STREAMING HTTP DIRECT) 🔥
     @PostMapping("/export-global-search")
     public void exportGlobalSearch(@RequestBody List<String> epsList, HttpServletResponse response) {
         System.out.println("🌐 [CONTROLLER] OMNI SEARCH TRIGGERED ! EPS Count: " + (epsList != null ? epsList.size() : "NULL"));
