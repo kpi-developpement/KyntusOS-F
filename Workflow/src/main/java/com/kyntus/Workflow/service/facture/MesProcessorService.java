@@ -12,183 +12,130 @@ import java.util.Map;
 @Service
 public class MesProcessorService {
 
+    private static final QaProcessorService.QaData EMPTY_QA = new QaProcessorService.QaData();
+
     public static class MesResult {
         public String codeInter, diagWifi, matLiv, mesQuest, libelleOffre, questionTv;
         public String typeMes, typeMes123p, internet, phone, tv, codeInterDup;
         public int mt, mtPlusDiagWifi;
     }
 
-    private Row findHeaderRow(Sheet sheet) {
-        for (int i = 0; i < 10; i++) {
-            Row row = sheet.getRow(i);
-            if (row != null) {
-                for (Cell cell : row) {
-                    if (cell.getCellType() == CellType.STRING) {
-                        String val = cell.getStringCellValue().trim().toUpperCase();
-                        if (val.equals("CODE_INTER") || val.equals("ETAT")) return row;
-                    }
-                }
+    /**
+     * ⚡ METHODE TAYYARA (O(1) per row): Kat-7seb MES nichan wst FactureMasterService
+     * bla ma n-3awdou n-qraw fichierAVide mn jdid!
+     */
+    public MesResult computeSingleRowMes(
+            String codeInter,
+            String libelleOffreA,
+            String internet,
+            String phone,
+            String tv,
+            Map<String, String> diagWifiMap,
+            Map<String, QaProcessorService.QaData> qaMap,
+            Map<String, String> offreMap) {
+
+        String libelleOffre = offreMap.getOrDefault(codeInter, libelleOffreA);
+        QaProcessorService.QaData qaData = qaMap.getOrDefault(codeInter, EMPTY_QA);
+
+        MesResult mesResult = new MesResult();
+        mesResult.codeInter = codeInter;
+        mesResult.codeInterDup = codeInter;
+        mesResult.libelleOffre = libelleOffre;
+        mesResult.internet = internet;
+        mesResult.phone = phone;
+        mesResult.tv = tv;
+
+        mesResult.diagWifi = diagWifiMap.getOrDefault(codeInter, "");
+        mesResult.mesQuest = qaData.mesQuest;
+        mesResult.questionTv = qaData.questionTv;
+        mesResult.matLiv = qaData.matLiv.isEmpty() ? "OUI" : qaData.matLiv;
+
+        String offreLower = libelleOffre.toLowerCase();
+        boolean isSpecialOffre = offreLower.contains("fit") || offreLower.contains("b&you") ||
+                offreLower.contains("byou") || offreLower.contains("-26 ans") ||
+                offreLower.contains("asso");
+
+        boolean isMatLivOui = mesResult.matLiv.equals("OUI") || mesResult.matLiv.equals("OUI !!!");
+        boolean isDiagWifiSet = mesResult.diagWifi.equals("VRAI") || mesResult.diagWifi.equals("FAUX");
+
+        if (isDiagWifiSet) {
+            mesResult.typeMes = isMatLivOui ? "MES 1/2/3 P" : "NOK";
+        } else {
+            if (mesResult.matLiv.equals("NON")) {
+                mesResult.typeMes = "NOK";
+            } else if (isMatLivOui && isSpecialOffre) {
+                mesResult.typeMes = "Branchement IAD (Voir offre)";
+            } else if (isMatLivOui && (mesResult.mesQuest.equals("Message_CleEnMainSAO") ||
+                    mesResult.mesQuest.equals("Message_CleEnMain") || mesResult.diagWifi.equals("VRAI"))) {
+                mesResult.typeMes = "MES 1/2/3 P";
+            } else if (isMatLivOui && !isSpecialOffre && !mesResult.questionTv.isEmpty()) {
+                mesResult.typeMes = "Branchement IAD (Voir QUESTION TV)";
+            } else if (isMatLivOui && !isSpecialOffre && mesResult.questionTv.isEmpty()) {
+                mesResult.typeMes = "Branchement IAD TV";
+            } else {
+                mesResult.typeMes = "";
             }
         }
-        return sheet.getRow(0);
+
+        boolean forceMt5 = false;
+        if ("Branchement IAD TV".equals(mesResult.typeMes) && "NOK".equalsIgnoreCase(mesResult.tv)) {
+            mesResult.typeMes = "Branchement IAD";
+            forceMt5 = true;
+        }
+
+        mesResult.typeMes123p = "";
+        if ("MES 1/2/3 P".equals(mesResult.typeMes)) {
+            if (!mesResult.internet.isEmpty() || !mesResult.phone.isEmpty() || !mesResult.tv.isEmpty()) {
+                int okCount = 0;
+                if ("OK".equalsIgnoreCase(mesResult.internet)) okCount++;
+                if ("OK".equalsIgnoreCase(mesResult.phone)) okCount++;
+                if ("OK".equalsIgnoreCase(mesResult.tv)) okCount++;
+
+                if (okCount <= 1) mesResult.typeMes123p = "1P";
+                else if (okCount == 2) mesResult.typeMes123p = "2P";
+                else mesResult.typeMes123p = "3P";
+            }
+        }
+
+        mesResult.mt = 0;
+        switch (mesResult.typeMes) {
+            case "Branchement IAD TV":
+                mesResult.mt = 10;
+                break;
+            case "Branchement IAD":
+            case "Branchement IAD (Voir QUESTION TV)":
+            case "Branchement IAD (Voir offre)":
+                mesResult.mt = 5;
+                break;
+            case "MES 1/2/3 P":
+                if ("1P".equals(mesResult.typeMes123p)) mesResult.mt = 20;
+                else if ("2P".equals(mesResult.typeMes123p)) mesResult.mt = 21;
+                else if ("3P".equals(mesResult.typeMes123p)) mesResult.mt = 24;
+                break;
+        }
+
+        mesResult.mtPlusDiagWifi = mesResult.mt;
+        if ("VRAI".equals(mesResult.diagWifi) && isMatLivOui) {
+            mesResult.mtPlusDiagWifi += 10;
+        }
+
+        if (forceMt5) {
+            mesResult.mt = 5;
+            mesResult.mtPlusDiagWifi = 5;
+        }
+
+        return mesResult;
     }
 
-    private Cell safeGetCell(Row row, int colIndex) {
-        if (colIndex < 0 || row == null) return null;
-        return row.getCell(colIndex);
-    }
-
+    /**
+     * Khllina had la méthode kheddama bash l-Controller dyalek ma-y-dirch erreur d'compilation!
+     * Kat-rje3 Map khawya hit FactureMasterService ghay-3emmerha f' Single-Pass!
+     */
     public Map<String, MesResult> processMesData(
             MultipartFile fichierA, Map<String, String> diagWifiMap,
             Map<String, QaProcessorService.QaData> qaMap,
             Map<String, String> offreMap) throws Exception {
-
-        Map<String, MesResult> mesDataMap = new HashMap<>();
-
-        try (InputStream is = fichierA.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
-
-            Sheet sheet = workbook.getSheetAt(0);
-            Row headerRow = findHeaderRow(sheet);
-            int startRow = headerRow.getRowNum() + 1;
-
-            int colInter = -1, colEtat = -1, colOffreA = -1;
-            int colInternet = -1, colPhone = -1, colTv = -1;
-
-            for (Cell cell : headerRow) {
-                String header = cell.getStringCellValue().trim().toUpperCase();
-                if (header.equals("CODE_INTER")) colInter = cell.getColumnIndex();
-                else if (header.equals("ETAT")) colEtat = cell.getColumnIndex();
-                else if (header.equals("LIBELLE") || header.equals("LIBELLÉ DE L'OFFRE")) colOffreA = cell.getColumnIndex();
-                else if (header.equals("INTERNET_STATUS")) colInternet = cell.getColumnIndex();
-                else if (header.equals("PHONE_STATUS")) colPhone = cell.getColumnIndex();
-                else if (header.equals("TV_STATUS")) colTv = cell.getColumnIndex();
-            }
-
-            for (int i = startRow; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row == null) continue;
-
-                Cell cellInter = safeGetCell(row, colInter);
-                Cell cellEtat = safeGetCell(row, colEtat);
-                if (cellInter == null || cellEtat == null) continue;
-
-                String codeInter = getCellValueAsString(cellInter).trim();
-                String etat = getCellValueAsString(cellEtat).trim().toUpperCase();
-
-                if (!etat.equals("TERMINEE_OK")) continue;
-
-                String libelleOffreA = getCellValueAsString(safeGetCell(row, colOffreA)).trim();
-                String libelleOffre = offreMap.getOrDefault(codeInter, libelleOffreA);
-
-                QaProcessorService.QaData qaData = qaMap.getOrDefault(codeInter, new QaProcessorService.QaData());
-
-                MesResult mesResult = new MesResult();
-                mesResult.codeInter = codeInter;
-                mesResult.codeInterDup = codeInter;
-                mesResult.libelleOffre = libelleOffre;
-                mesResult.internet = getCellValueAsString(safeGetCell(row, colInternet)).trim();
-                mesResult.phone = getCellValueAsString(safeGetCell(row, colPhone)).trim();
-                mesResult.tv = getCellValueAsString(safeGetCell(row, colTv)).trim();
-
-                mesResult.diagWifi = diagWifiMap.getOrDefault(codeInter, "");
-
-                mesResult.mesQuest = qaData.mesQuest;
-                mesResult.questionTv = qaData.questionTv;
-                mesResult.matLiv = qaData.matLiv.isEmpty() ? "OUI" : qaData.matLiv;
-
-                String offreLower = libelleOffre.toLowerCase();
-                boolean isSpecialOffre = offreLower.contains("fit") || offreLower.contains("b&you") ||
-                        offreLower.contains("byou") || offreLower.contains("-26 ans") ||
-                        offreLower.contains("asso");
-
-                boolean isMatLivOui = mesResult.matLiv.equals("OUI") || mesResult.matLiv.equals("OUI !!!");
-                boolean isDiagWifiSet = mesResult.diagWifi.equals("VRAI") || mesResult.diagWifi.equals("FAUX");
-
-                // ==========================================================
-                // Calcul dyal TYPE MES
-                // ==========================================================
-                if (isDiagWifiSet) {
-                    if (isMatLivOui) {
-                        mesResult.typeMes = "MES 1/2/3 P";
-                    } else {
-                        mesResult.typeMes = "NOK";
-                    }
-                } else {
-                    if (mesResult.matLiv.equals("NON")) {
-                        mesResult.typeMes = "NOK";
-                    } else if (isMatLivOui && isSpecialOffre) {
-                        mesResult.typeMes = "Branchement IAD (Voir offre)";
-                    } else if (isMatLivOui && (mesResult.mesQuest.equals("Message_CleEnMainSAO") ||
-                            mesResult.mesQuest.equals("Message_CleEnMain") || mesResult.diagWifi.equals("VRAI"))) {
-                        mesResult.typeMes = "MES 1/2/3 P";
-                    } else if (isMatLivOui && !isSpecialOffre && !mesResult.questionTv.isEmpty()) {
-                        mesResult.typeMes = "Branchement IAD (Voir QUESTION TV)";
-                    } else if (isMatLivOui && !isSpecialOffre && mesResult.questionTv.isEmpty()) {
-                        mesResult.typeMes = "Branchement IAD TV";
-                    } else {
-                        mesResult.typeMes = "";
-                    }
-                }
-
-                // 🔥 THE NEW LOGIC: Branchement IAD TV + NOK f' TV 🔥
-                boolean forceMt5 = false;
-                if ("Branchement IAD TV".equals(mesResult.typeMes)) {
-                    if ("NOK".equalsIgnoreCase(mesResult.tv)) {
-                        mesResult.typeMes = "Branchement IAD";
-                        forceMt5 = true; // N-sauviw l-flag bash n-forciw 5 f' lekhir
-                    }
-                }
-
-                // TYPE MES 1P/2P/3P
-                mesResult.typeMes123p = "";
-                if ("MES 1/2/3 P".equals(mesResult.typeMes)) {
-                    if (mesResult.internet.isEmpty() && mesResult.phone.isEmpty() && mesResult.tv.isEmpty()) {
-                        mesResult.typeMes123p = "";
-                    } else {
-                        int okCount = 0;
-                        if (mesResult.internet.equalsIgnoreCase("OK")) okCount++;
-                        if (mesResult.phone.equalsIgnoreCase("OK")) okCount++;
-                        if (mesResult.tv.equalsIgnoreCase("OK")) okCount++;
-
-                        if (okCount <= 1) mesResult.typeMes123p = "1P";
-                        else if (okCount == 2) mesResult.typeMes123p = "2P";
-                        else if (okCount == 3) mesResult.typeMes123p = "3P";
-                    }
-                }
-
-                mesResult.mt = 0;
-                if ("Branchement IAD TV".equals(mesResult.typeMes)) mesResult.mt = 10;
-                else if ("Branchement IAD".equals(mesResult.typeMes)) mesResult.mt = 5;
-                else if ("Branchement IAD (Voir QUESTION TV)".equals(mesResult.typeMes)) mesResult.mt = 5;
-                else if ("Branchement IAD (Voir offre)".equals(mesResult.typeMes)) mesResult.mt = 5;
-                else if ("MES 1/2/3 P".equals(mesResult.typeMes)) {
-                    if ("1P".equals(mesResult.typeMes123p)) mesResult.mt = 20;
-                    else if ("2P".equals(mesResult.typeMes123p)) mesResult.mt = 21;
-                    else if ("3P".equals(mesResult.typeMes123p)) mesResult.mt = 24;
-                }
-
-                mesResult.mtPlusDiagWifi = mesResult.mt;
-                if ("VRAI".equals(mesResult.diagWifi) && isMatLivOui) {
-                    mesResult.mtPlusDiagWifi += 10;
-                }
-
-                // 🔥 FORCER MT = 5 w MT+DiagWifi = 5 ila kanet l-Condition m-7eqqa 🔥
-                if (forceMt5) {
-                    mesResult.mt = 5;
-                    mesResult.mtPlusDiagWifi = 5;
-                }
-
-                mesDataMap.put(codeInter, mesResult);
-            }
-        }
-        return mesDataMap;
-    }
-
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
-        if (cell.getCellType() == CellType.STRING) return cell.getStringCellValue();
-        if (cell.getCellType() == CellType.NUMERIC) return String.valueOf((long) cell.getNumericCellValue());
-        return cell.toString();
+        // Zero I/O overhead! L-calcul ghay-ddir f' FactureMasterService f' merra we7da
+        return new HashMap<>(32768);
     }
 }

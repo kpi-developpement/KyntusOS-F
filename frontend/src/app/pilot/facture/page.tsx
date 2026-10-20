@@ -23,11 +23,11 @@ import HoloSpreadsheet from './components/HoloSpreadsheet';
 
 export default function FacturePage() {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [statusText, setStatusText] = useState("FUSION QUANTIQUE EN COURS...");
   const [sheetsData, setSheetsData] = useState<Record<string, any[]> | null>(null);
   const [finalExcelBlob, setFinalExcelBlob] = useState<Blob | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 📂 STATE DYAL LES FICHIERS
   const [filesMap, setFilesMap] = useState<{
     vide: File | null;
     tvc: File | null;
@@ -44,12 +44,10 @@ export default function FacturePage() {
     intervention: null
   });
 
-  // 💰 STATE DYAL DEVIS OVERRIDE
   const [devisMap, setDevisMap] = useState<Record<string, number>>({});
   const [epsInput, setEpsInput] = useState('');
   const [valInput, setValInput] = useState('');
 
-  // --- 1. SELECTION DYAL LES FICHIERS ---
   const handleFilesSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -70,7 +68,6 @@ export default function FacturePage() {
     setFilesMap(newMap);
   };
 
-  // --- 2. GESTION DYAL DEVIS ---
   const handleAddDevis = () => {
     if (!epsInput.trim() || !valInput.trim()) return;
     const value = parseFloat(valInput);
@@ -87,7 +84,6 @@ export default function FacturePage() {
     setDevisMap(newMap);
   };
 
-  // --- 3. LANCEMENT DYAL T-TRAITEMENT L-BACKEND ---
   const handleGenerate = async () => {
     if (!filesMap.vide || !filesMap.tvc || !filesMap.rep || !filesMap.diag || !filesMap.qa) {
       setErrorMessage("⚠️ PROTOCOLE REFUSÉ : Fichiers vitaux manquants (A VIDE, TVC, Repeteur, Diag Wifi, QA).");
@@ -95,6 +91,7 @@ export default function FacturePage() {
     }
 
     setIsProcessing(true);
+    setStatusText("CALCUL BACKEND ULTRA-RAPIDE EN COURS...");
     setErrorMessage(null);
     const formData = new FormData();
 
@@ -109,14 +106,11 @@ export default function FacturePage() {
       formData.append("devisData", JSON.stringify(devisMap));
     }
 
-    // 🛡️ ANTI-CRASH TIMEOUT (5 Minutes)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 300000);
 
     try {
       const directBackendUrl = `http://10.10.10.25:8082/api/facture/generate`;
-      console.log("🚀 Envoi direct vers le Backend :", directBackendUrl);
-
       const response = await fetch(directBackendUrl, {
         method: "POST",
         body: formData,
@@ -133,13 +127,25 @@ export default function FacturePage() {
       const blob = await response.blob();
       setFinalExcelBlob(blob);
 
+      setStatusText("DÉCODAGE DE LA MATRICE (25K+ LIGNES)...");
+      // N-khlliw l-UI t-respirer qbel ma n-parsiw l-Excel
+      await new Promise((r) => setTimeout(r, 30));
+
       const arrayBuffer = await blob.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      // dense: true kay-serre3 XLSX.read b' 3x w kay-nqes l-RAM b' 50%
+      const workbook = XLSX.read(arrayBuffer, {
+        type: 'array',
+        dense: true,
+        cellFormula: false,
+        cellHTML: false
+      });
 
       const parsedSheets: Record<string, any[]> = {};
-      workbook.SheetNames.forEach((sheetName) => {
+      for (const sheetName of workbook.SheetNames) {
+        // Yield l-main thread bin kol feuille bash l-animation mat-t-bloquach
+        await new Promise((r) => setTimeout(r, 10));
         parsedSheets[sheetName] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
-      });
+      }
 
       setSheetsData(parsedSheets);
     } catch (err: any) {
@@ -195,8 +201,8 @@ export default function FacturePage() {
           z-index: 10;
         }
         .lux-card {
-          background: rgba(255, 255, 255, 0.82);
-          backdrop-filter: blur(28px) saturate(190%);
+          background: rgba(255, 255, 255, 0.86);
+          backdrop-filter: blur(20px);
           border: 1px solid rgba(0, 82, 255, 0.14);
           border-radius: 28px;
           padding: 2.2rem;
@@ -244,11 +250,9 @@ export default function FacturePage() {
         }
       `}</style>
 
-      {/* 3D LUXURY WHITE & SAPPHIRE BACKGROUND */}
       <QuantumDataGrid />
 
       <div className="nexus-container">
-        {/* TOP NAVIGATION / EXECUTIVE HEADER */}
         <motion.header
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -259,8 +263,8 @@ export default function FacturePage() {
             alignItems: 'center',
             flexWrap: 'wrap',
             gap: '20px',
-            background: 'rgba(255, 255, 255, 0.85)',
-            backdropFilter: 'blur(24px)',
+            background: 'rgba(255, 255, 255, 0.88)',
+            backdropFilter: 'blur(20px)',
             border: '1px solid rgba(0, 82, 255, 0.14)',
             borderRadius: '26px',
             padding: '1.5rem 2.2rem',
@@ -314,7 +318,6 @@ export default function FacturePage() {
             </div>
           </div>
 
-          {/* STATUS TELEMETRY PILLS */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
             <div
               style={{
@@ -354,7 +357,6 @@ export default function FacturePage() {
           </div>
         </motion.header>
 
-        {/* SYSTEM ERROR ALERT */}
         <AnimatePresence>
           {errorMessage && (
             <motion.div
@@ -385,7 +387,6 @@ export default function FacturePage() {
           )}
         </AnimatePresence>
 
-        {/* 2-COLUMN LUXURY BENTO GRID */}
         <div
           style={{
             display: 'grid',
@@ -394,7 +395,6 @@ export default function FacturePage() {
             marginBottom: '2.2rem'
           }}
         >
-          {/* PANEL 1: ALIMENTATION DES DONNÉES */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -518,7 +518,6 @@ export default function FacturePage() {
             </div>
           </motion.div>
 
-          {/* PANEL 2: MANUAL OVERRIDE PROTOCOL (DEVIS) */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -692,7 +691,6 @@ export default function FacturePage() {
           </motion.div>
         </div>
 
-        {/* MASTER CTA BUTTON */}
         <motion.button
           onClick={handleGenerate}
           disabled={isProcessing}
@@ -728,7 +726,7 @@ export default function FacturePage() {
               >
                 <Zap size={24} />
               </motion.div>
-              FUSION QUANTIQUE EN COURS...
+              {statusText}
             </>
           ) : (
             <>
@@ -737,13 +735,12 @@ export default function FacturePage() {
           )}
         </motion.button>
 
-        {/* SPREADSHEET RESULTS */}
         <AnimatePresence>
           {sheetsData && (
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', damping: 22 }}
+              transition={{ duration: 0.3 }}
             >
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px' }}>
                 <div

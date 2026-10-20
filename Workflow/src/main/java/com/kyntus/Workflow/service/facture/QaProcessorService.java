@@ -19,7 +19,7 @@ public class QaProcessorService {
     }
 
     public Map<String, QaData> processQaFile(MultipartFile file) throws Exception {
-        Map<String, QaData> qaDataMap = new HashMap<>();
+        Map<String, QaData> qaDataMap = new HashMap<>(32768);
 
         try (InputStream is = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
@@ -38,55 +38,37 @@ public class QaProcessorService {
                 else if (headerName.contains("RÉPONSE") || headerName.contains("REPONSE")) colReponse = cell.getColumnIndex();
             }
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            int lastRow = sheet.getLastRowNum();
+            for (int i = 1; i <= lastRow; i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 Cell cellInter = safeGetCell(row, colInter);
                 Cell cellQuestionName = safeGetCell(row, colQuestionName);
-                Cell cellReponse = safeGetCell(row, colReponse);
-
                 if (cellInter == null || cellQuestionName == null) continue;
 
                 String intervention = getCellValueAsString(cellInter).trim();
                 String questionName = getCellValueAsString(cellQuestionName).trim();
-                String reponse = getCellValueAsString(cellReponse).trim();
-
                 if (intervention.isEmpty() || questionName.isEmpty()) continue;
 
-                QaData qaData = qaDataMap.getOrDefault(intervention, new QaData());
+                String reponse = getCellValueAsString(safeGetCell(row, colReponse)).trim();
+                QaData qaData = qaDataMap.computeIfAbsent(intervention, k -> new QaData());
 
-                // 🧠 L-MANTIQ DYAL QA (M-nqqi mn l-Jder) 🧠
-                if (questionName.equalsIgnoreCase("Message_Mise_en_service")) {
+                if ("Message_Mise_en_service".equalsIgnoreCase(questionName)) {
                     qaData.mesQuest = "Message_Mise_en_service";
-
-                } else if (questionName.equalsIgnoreCase("Q_Client_Recuperation_Equipement")) {
-                    // 🔥 NETTOYAGE DYAL MAT LIV 🔥
-                    String cleanedMatLiv = reponse;
-
-                    if (cleanedMatLiv.contains("{") && cleanedMatLiv.contains("error_message")) {
-                        cleanedMatLiv = "OUI !!!";
-                    } else if (cleanedMatLiv.equalsIgnoreCase("n/a") || cleanedMatLiv.isEmpty()) {
-                        cleanedMatLiv = "OUI";
-                    } else {
-                        cleanedMatLiv = cleanedMatLiv.toUpperCase();
-                    }
-
-                    // Priorité l' OUI w OUI !!! (May-t-ecrasach b' NON)
+                } else if ("Q_Client_Recuperation_Equipement".equalsIgnoreCase(questionName)) {
                     if (!qaData.matLiv.startsWith("OUI")) {
-                        qaData.matLiv = cleanedMatLiv;
+                        if (reponse.contains("{") && reponse.contains("error_message")) {
+                            qaData.matLiv = "OUI !!!";
+                        } else if (reponse.isEmpty() || "n/a".equalsIgnoreCase(reponse)) {
+                            qaData.matLiv = "OUI";
+                        } else {
+                            qaData.matLiv = reponse.toUpperCase();
+                        }
                     }
-
                 } else {
-                    // 🔥 NETTOYAGE DYAL LES AUTRES (TV) 🔥
-                    if (reponse.equalsIgnoreCase("n/a")) {
-                        qaData.questionTv = "";
-                    } else {
-                        qaData.questionTv = reponse;
-                    }
+                    qaData.questionTv = "n/a".equalsIgnoreCase(reponse) ? "" : reponse;
                 }
-
-                qaDataMap.put(intervention, qaData);
             }
         }
         return qaDataMap;
@@ -99,9 +81,10 @@ public class QaProcessorService {
 
     private String getCellValueAsString(Cell cell) {
         if (cell == null) return "";
-        if (cell.getCellType() == CellType.STRING) return cell.getStringCellValue();
-        if (cell.getCellType() == CellType.NUMERIC) return String.valueOf((long) cell.getNumericCellValue());
-        if (cell.getCellType() == CellType.BOOLEAN) return String.valueOf(cell.getBooleanCellValue());
+        CellType type = cell.getCellType();
+        if (type == CellType.STRING) return cell.getStringCellValue();
+        if (type == CellType.NUMERIC) return String.valueOf((long) cell.getNumericCellValue());
+        if (type == CellType.BOOLEAN) return String.valueOf(cell.getBooleanCellValue());
         return cell.toString();
     }
 }

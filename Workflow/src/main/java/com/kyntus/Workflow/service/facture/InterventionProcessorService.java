@@ -13,7 +13,7 @@ import java.util.Map;
 public class InterventionProcessorService {
 
     public Map<String, String> processInterventionFile(MultipartFile file) throws Exception {
-        Map<String, String> offreMap = new HashMap<>();
+        Map<String, String> offreMap = new HashMap<>(32768);
 
         if (file == null || file.isEmpty()) return offreMap;
 
@@ -22,44 +22,35 @@ public class InterventionProcessorService {
 
             Sheet sheet = workbook.getSheetAt(0);
             Row headerRow = sheet.getRow(0);
-
             if (headerRow == null) return offreMap;
 
             int colInter = -1, colOffre = -1;
 
             for (Cell cell : headerRow) {
                 String header = cell.getStringCellValue().trim().toUpperCase();
-                // 🔥 HNA ZEDNA "ID RDV" BASH Y-T3RREF 3LA L-COLONNE 🔥
                 if (header.contains("INTERVENTION") || header.equals("NOM") || header.equals("NUMBER") || header.equals("ID RDV") || header.contains("RDV")) {
                     colInter = cell.getColumnIndex();
-                }
-                else if (header.contains("LIBELLÉ DE L'OFFRE") || header.contains("LIBELLE OFFRE") || header.contains("LIBELLE DE L'OFFRE") || header.equals("LIBELLE") || header.contains("OFFRE")) {
+                } else if (header.contains("LIBELLÉ DE L'OFFRE") || header.contains("LIBELLE OFFRE") || header.contains("LIBELLE DE L'OFFRE") || header.equals("LIBELLE") || header.contains("OFFRE")) {
                     colOffre = cell.getColumnIndex();
                 }
             }
 
-            // Ila malqa 7etta we7da, y-rje3 Map khawya
             if (colInter == -1 || colOffre == -1) {
-                System.err.println("⚠️ [ATTENTION] Colonnes 'Id RDV' ou 'Libellé de l'offre' introuvables dans le fichier Intervention !");
                 return offreMap;
             }
 
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            int lastRow = sheet.getLastRowNum();
+            for (int i = 1; i <= lastRow; i++) {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
                 Cell cellInter = safeGetCell(row, colInter);
-                Cell cellOffre = safeGetCell(row, colOffre);
-
-                // L'Intervention darori tkon, mais l'Offre 3adi tkon nulle
                 if (cellInter == null) continue;
 
                 String intervention = getCellValueAsString(cellInter).trim();
-                // Extraction sécurisée : ila kant la cellule khawya (null), n-stockiw "" (vide)
-                String offre = (cellOffre == null) ? "" : getCellValueAsString(cellOffre).trim();
-
-                // 🔥 L-FIX HNA : N-sauviw f l'Map wakha tkon l'Offre khawya bach t-écraser les autres données 🔥
                 if (!intervention.isEmpty()) {
+                    Cell cellOffre = safeGetCell(row, colOffre);
+                    String offre = (cellOffre == null) ? "" : getCellValueAsString(cellOffre).trim();
                     offreMap.put(intervention, offre);
                 }
             }
@@ -67,7 +58,6 @@ public class InterventionProcessorService {
         return offreMap;
     }
 
-    // 🛡️ Safe Get Cell (Anti-Crash)
     private Cell safeGetCell(Row row, int colIndex) {
         if (colIndex < 0 || row == null) return null;
         return row.getCell(colIndex);
