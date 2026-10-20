@@ -49,25 +49,32 @@ const CyberSelect = React.memo(({
     [options, value]
   );
 
-  // Palette 70% White / 30% Blue
+  // Palette Dark Mode adapted for #02040a background
   const theme = useMemo(() => {
-    if (variant === "green" || variant === "matrix" || variant === "sky") {
+    if (variant === "green" || variant === "matrix") {
       return {
-        accent: "#0284c7",
-        accentDark: "#0369a1",
-        bgActive: "#f0f9ff",
-        borderActive: "#38bdf8",
-        ring: "rgba(2, 132, 199, 0.18)",
-        badgeBg: "#e0f2fe"
+        accent: "#10b981",
+        accentDark: "#34d399",
+        bgActive: "rgba(16, 185, 129, 0.15)",
+        borderActive: "#10b981",
+        ring: "rgba(16, 185, 129, 0.2)"
+      };
+    }
+    if (variant === "purple") {
+      return {
+        accent: "#a855f7",
+        accentDark: "#c084fc",
+        bgActive: "rgba(168, 85, 247, 0.15)",
+        borderActive: "#a855f7",
+        ring: "rgba(168, 85, 247, 0.2)"
       };
     }
     return {
-      accent: "#2563eb",
-      accentDark: "#1d4ed8",
-      bgActive: "#eff6ff",
-      borderActive: "#3b82f6",
-      ring: "rgba(37, 99, 235, 0.18)",
-      badgeBg: "#dbeafe"
+      accent: "#38bdf8",
+      accentDark: "#7dd3fc",
+      bgActive: "rgba(56, 189, 248, 0.15)",
+      borderActive: "#38bdf8",
+      ring: "rgba(56, 189, 248, 0.2)"
     };
   }, [variant]);
 
@@ -150,7 +157,7 @@ const CyberSelect = React.memo(({
               bottom: coords.openUpward ? `${window.innerHeight - coords.top}px` : "auto",
               left: `${coords.left}px`,
               width: `${coords.width}px`,
-              backgroundColor: "rgba(255, 255, 255, 0.98)",
+              backgroundColor: "rgba(11, 15, 25, 0.98)", // Deep dark
               backdropFilter: "blur(20px)",
               WebkitBackdropFilter: "blur(20px)",
               border: `1px solid ${theme.borderActive}`,
@@ -159,7 +166,7 @@ const CyberSelect = React.memo(({
               overflowY: "auto",
               padding: "6px",
               boxShadow:
-                "0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 8px 20px -6px rgba(37, 99, 235, 0.14), 0 0 0 1px rgba(37, 99, 235, 0.08)",
+                "0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)",
               zIndex: 2147483647,
               transformOrigin: coords.openUpward ? "bottom center" : "top center",
               animation: "cyberDropdownPortalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards"
@@ -180,15 +187,15 @@ const CyberSelect = React.memo(({
                 width: 5px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-track {
-                background: #f1f5f9;
+                background: rgba(15, 23, 42, 0.5);
                 border-radius: 8px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-thumb {
-                background: #93c5fd;
+                background: rgba(56, 189, 248, 0.3);
                 border-radius: 8px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-thumb:hover {
-                background: #2563eb;
+                background: #38bdf8;
               }
               .cyber-select-option {
                 display: flex;
@@ -207,8 +214,8 @@ const CyberSelect = React.memo(({
                 margin-bottom: 0;
               }
               .cyber-select-option:hover {
-                background-color: #eff6ff;
-                color: #1d4ed8;
+                background-color: rgba(56, 189, 248, 0.15);
+                color: #e0f2fe;
                 transform: translateX(3px);
               }
             `}</style>
@@ -224,7 +231,7 @@ const CyberSelect = React.memo(({
                   }}
                   style={{
                     backgroundColor: isSelected ? theme.bgActive : "transparent",
-                    color: isSelected ? theme.accentDark : "#334155",
+                    color: isSelected ? theme.accentDark : "#94a3b8",
                     fontWeight: isSelected ? 700 : 500
                   }}
                 >
@@ -258,11 +265,11 @@ const CyberSelect = React.memo(({
       <div
         onClick={toggleOpen}
         style={{
-          backgroundColor: disabled ? "#f1f5f9" : isOpen ? theme.bgActive : "#ffffff",
-          border: `1px solid ${isOpen ? theme.borderActive : "#cbd5e1"}`,
+          backgroundColor: disabled ? "rgba(15, 23, 42, 0.4)" : isOpen ? "rgba(15, 23, 42, 0.9)" : "rgba(15, 23, 42, 0.6)",
+          border: `1px solid ${isOpen ? theme.borderActive : "rgba(148, 163, 184, 0.3)"}`,
           padding: "0.52rem 0.8rem",
           borderRadius: "10px",
-          color: disabled ? "#94a3b8" : isOpen ? theme.accentDark : "#0f172a",
+          color: disabled ? "#475569" : isOpen ? theme.accentDark : "#f8fafc",
           cursor: disabled ? "not-allowed" : "pointer",
           display: "flex",
           justifyContent: "space-between",
@@ -272,22 +279,22 @@ const CyberSelect = React.memo(({
           fontWeight: 600,
           transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
           boxShadow: isOpen
-            ? `0 0 0 3.5px ${theme.ring}, 0 4px 12px rgba(37, 99, 235, 0.08)`
-            : "0 1px 2px rgba(15, 23, 42, 0.04)",
+            ? `0 0 0 3.5px ${theme.ring}, 0 4px 12px rgba(0, 0, 0, 0.3)`
+            : "0 1px 2px rgba(0, 0, 0, 0.2)",
           opacity: disabled ? 0.6 : 1,
           userSelect: "none"
         }}
         onMouseEnter={(e) => {
           if (!disabled && !isOpen) {
-            e.currentTarget.style.borderColor = "#60a5fa";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(37, 99, 235, 0.08)";
+            e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.4)";
+            e.currentTarget.style.backgroundColor = "rgba(15, 23, 42, 0.8)";
             e.currentTarget.style.transform = "translateY(-1px)";
           }
         }}
         onMouseLeave={(e) => {
           if (!disabled && !isOpen) {
-            e.currentTarget.style.borderColor = "#cbd5e1";
-            e.currentTarget.style.boxShadow = "0 1px 2px rgba(15, 23, 42, 0.04)";
+            e.currentTarget.style.borderColor = "rgba(148, 163, 184, 0.3)";
+            e.currentTarget.style.backgroundColor = "rgba(15, 23, 42, 0.6)";
             e.currentTarget.style.transform = "translateY(0)";
           }
         }}

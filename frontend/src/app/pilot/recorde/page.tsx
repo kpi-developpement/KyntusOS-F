@@ -28,11 +28,11 @@ import {
 const API_BASE = "";
 
 /**
- * 🔥 120 FPS INTERACTIVE WORLD BACKGROUND (PORTAL) 🔥
- * Uses createPortal to escape any parent containers/margins and cover the ENTIRE
- * viewport (100vw/100vh) to hide global dark layouts.
+ * 🔥 120 FPS INTERACTIVE DARK-MODE CANVAS 🔥
+ * Specifically tuned to blend with the parent's `#02040a` deep black background.
+ * Uses a deep Midnight Blue gradient and Electric Cyan interactive nodes.
  */
-const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: React.RefObject<HTMLDivElement | null> }) => {
+const InteractiveDarkCanvas = React.memo(({ overlayRef }: { overlayRef: React.RefObject<HTMLDivElement | null> }) => {
   const [mounted, setMounted] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -77,7 +77,8 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
       alpha: number;
     }
 
-    const palette = ["#2563eb", "#1d4ed8", "#0284c7", "#3b82f6", "#60a5fa"];
+    // High-contrast neon palette for dark mode
+    const palette = ["#0ea5e9", "#0284c7", "#38bdf8", "#7dd3fc", "#0369a1"];
     const particleCount = Math.min(65, Math.floor((width * height) / 22000));
     const particles: Particle[] = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
@@ -86,7 +87,7 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
       vy: (Math.random() - 0.5) * 0.75,
       radius: Math.random() * 2.2 + 1.2,
       color: palette[Math.floor(Math.random() * palette.length)],
-      alpha: Math.random() * 0.5 + 0.25
+      alpha: Math.random() * 0.6 + 0.3
     }));
 
     const shockwaves: Shockwave[] = [];
@@ -109,7 +110,7 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
         y: e.clientY,
         radius: 4,
         maxRadius: 240,
-        alpha: 0.45
+        alpha: 0.55
       });
     };
 
@@ -123,11 +124,11 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
       mouse.x += (mouse.targetX - mouse.x) * 0.12;
       mouse.y += (mouse.targetY - mouse.y) * 0.12;
 
-      // 1. Ambient Cursor Spotlight
+      // 1. Ambient Cursor Spotlight (Electric Blue Glow on Deep Black)
       const spotlight = ctx.createRadialGradient(mouse.x, mouse.y, 10, mouse.x, mouse.y, 450);
-      spotlight.addColorStop(0, "rgba(37, 99, 235, 0.12)");
-      spotlight.addColorStop(0.45, "rgba(2, 132, 199, 0.05)");
-      spotlight.addColorStop(1, "rgba(255, 255, 255, 0)");
+      spotlight.addColorStop(0, "rgba(2, 132, 199, 0.15)");
+      spotlight.addColorStop(0.45, "rgba(14, 165, 233, 0.05)");
+      spotlight.addColorStop(1, "rgba(2, 4, 10, 0)"); // Matches your PilotLayout background
       ctx.fillStyle = spotlight;
       ctx.fillRect(0, 0, width, height);
 
@@ -144,10 +145,10 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
           const dy = gy - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 260) {
-            const intensity = (1 - dist / 260) * 0.45;
-            ctx.fillStyle = `rgba(37, 99, 235, ${intensity})`;
+            const intensity = (1 - dist / 260) * 0.55;
+            ctx.fillStyle = `rgba(56, 189, 248, ${intensity})`;
             ctx.beginPath();
-            ctx.arc(gx, gy, 1.8, 0, Math.PI * 2);
+            ctx.arc(gx, gy, 1.5, 0, Math.PI * 2);
             ctx.fill();
           }
         }
@@ -158,7 +159,7 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
         const sw = shockwaves[i];
         sw.radius += 6.5;
         sw.alpha *= 0.93;
-        ctx.strokeStyle = `rgba(37, 99, 235, ${sw.alpha})`;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${sw.alpha})`;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
@@ -183,7 +184,7 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
 
         if (distMouse < 220 && distMouse > 5) {
           const force = (220 - distMouse) / 220;
-          ctx.strokeStyle = `rgba(37, 99, 235, ${force * 0.32})`;
+          ctx.strokeStyle = `rgba(14, 165, 233, ${force * 0.4})`;
           ctx.lineWidth = 1.2;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
@@ -197,8 +198,8 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
           const dy = p.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 140) {
-            const lineAlpha = (1 - dist / 140) * 0.18;
-            ctx.strokeStyle = `rgba(37, 99, 235, ${lineAlpha})`;
+            const lineAlpha = (1 - dist / 140) * 0.25;
+            ctx.strokeStyle = `rgba(2, 132, 199, ${lineAlpha})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -230,37 +231,32 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
 
   if (!mounted) return null;
 
-  return createPortal(
+  // Render directly into the page layer (not via portal) to respect the layout bounds
+  return (
     <div 
       style={{ 
         position: "fixed", 
-        top: 0, 
-        left: 0, 
-        width: "100vw", 
-        height: "100vh", 
-        zIndex: -9999, 
+        inset: 0, 
+        zIndex: -1, 
         pointerEvents: "none", 
-        overflow: "hidden",
-        backgroundColor: "#f8fafc" // 🔥 HADA LI KI GHATTI L'K7OULIYA DYAL L'PARENT
+        overflow: "hidden"
       }}
     >
-      {/* Base Architectural Gradient & Grid Layer */}
+      {/* Base Architectural Gradient matching parent #02040a */}
       <div 
         style={{
           position: "absolute",
           inset: 0,
           backgroundImage: `
-            radial-gradient(at 10% 0%, rgba(37, 99, 235, 0.09) 0px, transparent 55%),
-            radial-gradient(at 90% 10%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
-            radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.07) 0px, transparent 55%),
-            linear-gradient(to right, rgba(219, 234, 254, 0.65) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(219, 234, 254, 0.65) 1px, transparent 1px)
+            radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.08) 0px, transparent 60%),
+            radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.06) 0px, transparent 60%),
+            linear-gradient(to right, rgba(15, 23, 42, 0.8) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(15, 23, 42, 0.8) 1px, transparent 1px)
           `,
-          backgroundSize: "100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px",
+          backgroundSize: "100% 100%, 100% 100%, 48px 48px, 48px 48px",
           zIndex: 1
         }}
       />
-      {/* Dynamic Hover Tint Layer */}
       <div 
         ref={overlayRef} 
         style={{ 
@@ -271,7 +267,6 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
           zIndex: 2
         }} 
       />
-      {/* 120 FPS Interactive Canvas */}
       <canvas 
         ref={canvasRef} 
         style={{ 
@@ -282,12 +277,11 @@ const InteractiveWorldBackground = React.memo(({ overlayRef }: { overlayRef: Rea
           zIndex: 3 
         }} 
       />
-    </div>,
-    document.body
+    </div>
   );
 });
 
-InteractiveWorldBackground.displayName = "InteractiveWorldBackground";
+InteractiveDarkCanvas.displayName = "InteractiveDarkCanvas";
 
 export default function PilotRecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -680,14 +674,13 @@ export default function PilotRecordsPage() {
       ref={mainRef} 
       style={{ 
         padding: "1.75rem 2rem", 
-        minHeight: "100vh", 
+        minHeight: "100%", 
         position: "relative", 
-        color: "#0f172a",
+        color: "#f8fafc",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
       }}
     >
-      {/* 🔥 THE PORTAL BACKGROUND THAT OVERRIDES GLOBAL CSS 🔥 */}
-      <InteractiveWorldBackground overlayRef={bgOverlayRef} />
+      <InteractiveDarkCanvas overlayRef={bgOverlayRef} />
 
       <style>{`
         @keyframes pageEntrance {
@@ -709,17 +702,22 @@ export default function PilotRecordsPage() {
           animation: pageEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* 
+          Dark Theme Cards: Deep dark surface with slight blue tint,
+          blends perfectly into the #02040a background while maintaining
+          the high-end stripe/linear glass feel.
+        */
         .nexus-card {
           position: relative;
-          background: rgba(255, 255, 255, 0.88);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid #dbeafe;
+          background: rgba(11, 15, 25, 0.85);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(56, 189, 248, 0.15);
           border-radius: 16px;
           box-shadow: 
-            0 1px 3px rgba(15, 23, 42, 0.03),
-            0 10px 30px -6px rgba(37, 99, 235, 0.07),
-            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            0 1px 3px rgba(0, 0, 0, 0.2),
+            0 10px 30px -6px rgba(2, 132, 199, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
           transition: 
             transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
             border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
@@ -727,13 +725,14 @@ export default function PilotRecordsPage() {
         }
 
         .nexus-card:hover {
-          border-color: #93c5fd;
+          border-color: rgba(56, 189, 248, 0.35);
           box-shadow: 
-            0 8px 24px -4px rgba(15, 23, 42, 0.05),
-            0 16px 40px -8px rgba(37, 99, 235, 0.12),
-            inset 0 1px 0 rgba(255, 255, 255, 1);
+            0 8px 24px -4px rgba(0, 0, 0, 0.3),
+            0 16px 40px -8px rgba(2, 132, 199, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
+        /* Buttons tuned for dark mode */
         .nexus-btn {
           position: relative;
           overflow: hidden;
@@ -741,9 +740,9 @@ export default function PilotRecordsPage() {
           align-items: center;
           gap: 8px;
           padding: 0.58rem 1.08rem;
-          background-color: #ffffff;
-          color: #1e293b;
-          border: 1px solid #cbd5e1;
+          background-color: rgba(15, 23, 42, 0.6);
+          color: #f1f5f9;
+          border: 1px solid rgba(148, 163, 184, 0.3);
           font-family: 'Inter', -apple-system, sans-serif;
           font-size: 0.8rem;
           font-weight: 600;
@@ -756,11 +755,10 @@ export default function PilotRecordsPage() {
             border-color 0.2s ease,
             box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
             color 0.2s ease;
-          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
           user-select: none;
         }
 
-        /* Light-beam Shimmer Transition on Hover */
         .nexus-btn::before {
           content: '';
           position: absolute;
@@ -768,7 +766,7 @@ export default function PilotRecordsPage() {
           left: -120%;
           width: 65%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
           transform: skewX(-20deg);
           transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1);
           pointer-events: none;
@@ -780,6 +778,8 @@ export default function PilotRecordsPage() {
 
         .nexus-btn:hover:not(:disabled) {
           transform: translateY(-2px);
+          background-color: rgba(30, 41, 59, 0.8);
+          border-color: rgba(148, 163, 184, 0.5);
         }
 
         .nexus-btn:active:not(:disabled) {
@@ -787,61 +787,62 @@ export default function PilotRecordsPage() {
         }
 
         .nexus-btn:disabled {
-          opacity: 0.55;
+          opacity: 0.4;
           cursor: not-allowed;
         }
 
         .btn-primary-blue {
-          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
           color: #ffffff;
-          border-color: #1d4ed8;
-          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+          border-color: #0369a1;
+          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
         .btn-primary-blue:hover:not(:disabled) {
-          background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-          box-shadow: 0 8px 22px rgba(37, 99, 235, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+          border-color: #0ea5e9;
+          box-shadow: 0 8px 22px rgba(14, 165, 233, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .btn-soft-blue {
-          background-color: #eff6ff;
-          border-color: #bfdbfe;
-          color: #1d4ed8;
+          background-color: rgba(2, 132, 199, 0.15);
+          border-color: rgba(2, 132, 199, 0.4);
+          color: #38bdf8;
         }
         .btn-soft-blue:hover:not(:disabled) {
-          background-color: #dbeafe;
-          border-color: #60a5fa;
-          color: #1e3a8a;
-          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.14);
+          background-color: rgba(2, 132, 199, 0.25);
+          border-color: #38bdf8;
+          color: #bae6fd;
+          box-shadow: 0 6px 16px rgba(2, 132, 199, 0.25);
         }
 
         .btn-sky-blue {
-          background-color: #f0f9ff;
-          border-color: #bae6fd;
-          color: #0369a1;
+          background-color: rgba(56, 189, 248, 0.1);
+          border-color: rgba(56, 189, 248, 0.3);
+          color: #7dd3fc;
         }
         .btn-sky-blue:hover:not(:disabled) {
-          background-color: #e0f2fe;
-          border-color: #38bdf8;
-          color: #075985;
-          box-shadow: 0 6px 16px rgba(2, 132, 199, 0.16);
+          background-color: rgba(56, 189, 248, 0.2);
+          border-color: #7dd3fc;
+          color: #e0f2fe;
+          box-shadow: 0 6px 16px rgba(56, 189, 248, 0.25);
         }
 
         .btn-danger-clean {
-          background-color: #ffffff;
-          border-color: #fecaca;
-          color: #dc2626;
+          background-color: rgba(220, 38, 38, 0.1);
+          border-color: rgba(220, 38, 38, 0.3);
+          color: #f87171;
         }
         .btn-danger-clean:hover:not(:disabled) {
-          background-color: #fef2f2;
+          background-color: rgba(220, 38, 38, 0.2);
           border-color: #f87171;
-          color: #b91c1c;
-          box-shadow: 0 6px 16px rgba(220, 38, 38, 0.12);
+          color: #fca5a5;
+          box-shadow: 0 6px 16px rgba(220, 38, 38, 0.25);
         }
 
         .clean-input {
-          background-color: #f8fafc;
-          border: 1px solid #cbd5e1;
-          color: #0f172a;
+          background-color: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(148, 163, 184, 0.3);
+          color: #f8fafc;
           padding: 0.55rem 0.85rem;
           border-radius: 10px;
           font-family: 'Inter', -apple-system, sans-serif;
@@ -851,22 +852,22 @@ export default function PilotRecordsPage() {
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .clean-input::placeholder {
-          color: #94a3b8;
+          color: #64748b;
         }
         .clean-input:hover {
-          border-color: #93c5fd;
-          background-color: #ffffff;
+          border-color: rgba(56, 189, 248, 0.4);
+          background-color: rgba(15, 23, 42, 0.8);
         }
         .clean-input:focus {
-          background-color: #ffffff;
-          border-color: #2563eb;
-          box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15), 0 4px 12px rgba(37, 99, 235, 0.06);
+          background-color: rgba(15, 23, 42, 0.9);
+          border-color: #38bdf8;
+          box-shadow: 0 0 0 3.5px rgba(56, 189, 248, 0.15), 0 4px 12px rgba(2, 132, 199, 0.2);
         }
 
         .clean-textarea {
-          background-color: #f8fafc;
-          border: 1px solid #cbd5e1;
-          color: #0f172a;
+          background-color: rgba(15, 23, 42, 0.6);
+          border: 1px solid rgba(148, 163, 184, 0.3);
+          color: #f8fafc;
           padding: 0.9rem 1rem;
           border-radius: 12px;
           font-family: 'JetBrains Mono', 'Fira Code', monospace;
@@ -878,15 +879,15 @@ export default function PilotRecordsPage() {
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .clean-textarea:focus {
-          background-color: #ffffff;
-          border-color: #2563eb;
-          box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
+          background-color: rgba(15, 23, 42, 0.9);
+          border-color: #38bdf8;
+          box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
         }
 
         .clean-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .clean-scroll::-webkit-scrollbar-track { background-color: #f1f5f9; border-radius: 6px; }
-        .clean-scroll::-webkit-scrollbar-thumb { background-color: #93c5fd; border-radius: 6px; }
-        .clean-scroll::-webkit-scrollbar-thumb:hover { background-color: #2563eb; }
+        .clean-scroll::-webkit-scrollbar-track { background-color: rgba(15, 23, 42, 0.5); border-radius: 6px; }
+        .clean-scroll::-webkit-scrollbar-thumb { background-color: rgba(56, 189, 248, 0.3); border-radius: 6px; }
+        .clean-scroll::-webkit-scrollbar-thumb:hover { background-color: #38bdf8; }
 
         .modal-backdrop-anim { animation: modalBackdropIn 0.22s ease forwards; }
         .modal-panel-anim { animation: modalSpringPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -904,18 +905,18 @@ export default function PilotRecordsPage() {
           <div 
             className="modal-panel-anim" 
             style={{ 
-              backgroundColor: "rgba(255, 255, 255, 0.95)", 
+              backgroundColor: "rgba(15, 23, 42, 0.9)", 
               backdropFilter: "blur(12px)",
-              border: "1px solid #fecaca", 
-              borderLeft: "5px solid #dc2626",
+              border: "1px solid rgba(239, 68, 68, 0.3)", 
+              borderLeft: "5px solid #ef4444",
               borderRadius: "14px", 
               padding: "1.25rem 1.5rem", 
               marginBottom: "1.25rem", 
-              boxShadow: "0 12px 28px -6px rgba(220, 38, 38, 0.1)" 
+              boxShadow: "0 12px 28px -6px rgba(220, 38, 38, 0.15)" 
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-              <h2 style={{ color: "#dc2626", margin: 0, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px", fontWeight: 800, letterSpacing: "0.03em" }}>
+              <h2 style={{ color: "#ef4444", margin: 0, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px", fontWeight: 800, letterSpacing: "0.03em" }}>
                 <ShieldAlert size={20} /> SECURITY BREACH LOGS ({securityLogs.length})
               </h2>
               <div style={{ display: "flex", gap: "8px" }}>
@@ -923,9 +924,9 @@ export default function PilotRecordsPage() {
                 <button onClick={handleClearSecurityLogs} className="nexus-btn btn-danger-clean" style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Clear Logs</button>
               </div>
             </div>
-            <ul className="clean-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#991b1b", fontFamily: "monospace", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
+            <ul className="clean-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#fca5a5", fontFamily: "monospace", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
               {securityLogs.map((err, i) => (
-                <li key={i} style={{ marginBottom: "6px", paddingBottom: "6px", borderBottom: "1px dashed #fee2e2" }}>{err}</li>
+                <li key={i} style={{ marginBottom: "6px", paddingBottom: "6px", borderBottom: "1px dashed rgba(239, 68, 68, 0.2)" }}>{err}</li>
               ))}
             </ul>
           </div>
@@ -936,9 +937,9 @@ export default function PilotRecordsPage() {
             onClick={() => setShowSecurityLogs(true)} 
             style={{ 
               width: "100%", 
-              backgroundColor: "#fef2f2", 
-              border: "1px solid #fecaca", 
-              color: "#dc2626", 
+              backgroundColor: "rgba(220, 38, 38, 0.1)", 
+              border: "1px solid rgba(220, 38, 38, 0.3)", 
+              color: "#f87171", 
               padding: "0.75rem", 
               borderRadius: "10px", 
               fontWeight: 700, 
@@ -963,9 +964,7 @@ export default function PilotRecordsPage() {
             justifyContent: "space-between", 
             alignItems: "center", 
             flexWrap: "wrap", 
-            gap: "16px",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,251,255,0.92) 100%)",
-            borderBottom: "2px solid #bfdbfe"
+            gap: "16px"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
@@ -974,25 +973,25 @@ export default function PilotRecordsPage() {
                 width: "46px", 
                 height: "46px", 
                 borderRadius: "13px", 
-                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 55%, #0284c7 100%)", 
+                background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)", 
                 display: "flex", 
                 alignItems: "center", 
                 justifyContent: "center",
-                boxShadow: "0 8px 20px -4px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35)"
+                boxShadow: "0 8px 20px -4px rgba(2, 132, 199, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2)"
               }}
             >
               <LayoutDashboard size={22} color="#ffffff" />
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <h1 style={{ color: "#0f172a", margin: 0, fontSize: "1.38rem", fontWeight: 800, letterSpacing: "-0.025em" }}>
-                  KYNTUS <span style={{ color: "#2563eb" }}>NEXUS</span>
+                <h1 style={{ color: "#f8fafc", margin: 0, fontSize: "1.38rem", fontWeight: 800, letterSpacing: "-0.025em" }}>
+                  KYNTUS <span style={{ color: "#38bdf8" }}>NEXUS</span>
                 </h1>
                 <span 
                   style={{ 
-                    backgroundColor: "#eff6ff", 
-                    color: "#2563eb", 
-                    border: "1px solid #bfdbfe", 
+                    backgroundColor: "rgba(2, 132, 199, 0.2)", 
+                    color: "#7dd3fc", 
+                    border: "1px solid rgba(56, 189, 248, 0.3)", 
                     fontSize: "0.68rem", 
                     fontWeight: 700, 
                     padding: "2px 9px", 
@@ -1003,8 +1002,8 @@ export default function PilotRecordsPage() {
                   PRO MATRIX
                 </span>
               </div>
-              <div style={{ color: "#64748b", fontSize: "0.76rem", fontWeight: 500, marginTop: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#2563eb", display: "inline-block", boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.18)" }} />
+              <div style={{ color: "#94a3b8", fontSize: "0.76rem", fontWeight: 500, marginTop: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#38bdf8", display: "inline-block", boxShadow: "0 0 0 3px rgba(56, 189, 248, 0.2)" }} />
                 Interactive 120FPS Telemetry & Version Synchronization
               </div>
             </div>
@@ -1014,7 +1013,7 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-danger-clean" 
               onClick={handleClearDB} 
-              onMouseEnter={() => changeBgTheme("rgba(239, 68, 68, 0.03)")} 
+              onMouseEnter={() => changeBgTheme("rgba(239, 68, 68, 0.05)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <ShieldAlert size={15} /> Purge DB
@@ -1024,7 +1023,7 @@ export default function PilotRecordsPage() {
               className="nexus-btn btn-soft-blue" 
               onClick={handleExport} 
               disabled={isExporting} 
-              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.04)")} 
+              onMouseEnter={() => changeBgTheme("rgba(2, 132, 199, 0.05)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <DownloadCloud size={15} /> {isExporting ? "Exporting..." : "Extract Excel"}
@@ -1033,7 +1032,7 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-soft-blue" 
               onClick={() => setIsTrackModalOpen(true)}
-              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.04)")} 
+              onMouseEnter={() => changeBgTheme("rgba(2, 132, 199, 0.05)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <Crosshair size={15} /> Global Track
@@ -1042,7 +1041,7 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-soft-blue" 
               onClick={() => setIsTeamModalOpen(true)}
-              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.04)")} 
+              onMouseEnter={() => changeBgTheme("rgba(2, 132, 199, 0.05)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <Users size={15} /> Team Export
@@ -1051,7 +1050,7 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-sky-blue" 
               onClick={() => setIsOmniSearchModalOpen(true)}
-              onMouseEnter={() => changeBgTheme("rgba(2, 132, 199, 0.04)")} 
+              onMouseEnter={() => changeBgTheme("rgba(56, 189, 248, 0.05)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <Globe size={15} /> Omni Search
@@ -1060,7 +1059,7 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-primary-blue" 
               onClick={() => setIsModalOpen(true)}
-              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.05)")} 
+              onMouseEnter={() => changeBgTheme("rgba(2, 132, 199, 0.08)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <UploadCloud size={15} /> Inject Batch
@@ -1079,20 +1078,20 @@ export default function PilotRecordsPage() {
               padding: "0.75rem 1.15rem"
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#2563eb", fontWeight: 700, fontSize: "0.78rem" }}>
-              <Folder size={17} color="#2563eb" />
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#38bdf8", fontWeight: 700, fontSize: "0.78rem" }}>
+              <Folder size={17} />
               <span>SECTOR</span>
             </div>
-            <CyberSelect width="135px" value={globalCategory} options={categoryOptions} onChange={(val: string) => setGlobalCategory(val)} variant="purple" />
+            <CyberSelect width="135px" value={globalCategory} options={categoryOptions} onChange={(val: string) => setGlobalCategory(val)} variant="sky" />
             
-            <div style={{ width: "1px", height: "22px", backgroundColor: "#e2e8f0", margin: "0 4px" }} />
+            <div style={{ width: "1px", height: "22px", backgroundColor: "rgba(148, 163, 184, 0.2)", margin: "0 4px" }} />
             
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#0284c7", fontWeight: 700, fontSize: "0.78rem" }}>
-              <Calendar size={17} color="#0284c7" />
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#7dd3fc", fontWeight: 700, fontSize: "0.78rem" }}>
+              <Calendar size={17} />
               <span>CYCLE</span>
             </div>
-            <CyberSelect width="95px" value={globalYear} options={yearOptions} onChange={setGlobalYear} variant="green" />
-            <CyberSelect width="95px" value={globalMonth} options={monthOptions} onChange={setGlobalMonth} variant="green" />
+            <CyberSelect width="95px" value={globalYear} options={yearOptions} onChange={setGlobalYear} variant="matrix" />
+            <CyberSelect width="95px" value={globalMonth} options={monthOptions} onChange={setGlobalMonth} variant="matrix" />
           </div>
 
           <div 
@@ -1107,7 +1106,7 @@ export default function PilotRecordsPage() {
             }}
           >
             <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
-              <Search size={17} color="#2563eb" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
+              <Search size={17} color="#38bdf8" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
               <input 
                 type="text" 
                 placeholder="Search by EPS Reference ID..." 
@@ -1118,7 +1117,7 @@ export default function PilotRecordsPage() {
               />
             </div>
 
-            <CyberSelect width="165px" value={serverVersion} options={versionOptions} onChange={(val: string) => { setServerVersion(val); setPage(0); }} />
+            <CyberSelect width="165px" value={serverVersion} options={versionOptions} onChange={(val: string) => { setServerVersion(val); setPage(0); }} variant="sky" />
             
             {(serverVersion || epsInputValue) && ( 
               <button 
@@ -1139,15 +1138,14 @@ export default function PilotRecordsPage() {
             style={{ 
               marginBottom: "1.25rem", 
               padding: "0.9rem 1.25rem", 
-              backgroundColor: "rgba(239, 246, 255, 0.9)", 
-              borderColor: "#bfdbfe", 
+              backgroundColor: "rgba(2, 132, 199, 0.1)", 
               display: "flex", 
               alignItems: "center", 
               gap: "12px" 
             }}
           >
-            <Activity size={20} color="#2563eb" style={{ animation: "pulse-subtle 1.2s infinite" }} />
-            <span style={{ color: "#1d4ed8", fontSize: "0.85rem", fontWeight: 600 }}>
+            <Activity size={20} color="#38bdf8" style={{ animation: "pulse-subtle 1.2s infinite" }} />
+            <span style={{ color: "#7dd3fc", fontSize: "0.85rem", fontWeight: 600 }}>
               Scanning active matrix for status and comment anomalies...
             </span>
           </div>
@@ -1160,26 +1158,26 @@ export default function PilotRecordsPage() {
                 style={{ 
                   marginBottom: "1rem", 
                   cursor: "pointer", 
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  backgroundColor: "rgba(15, 23, 42, 0.9)",
                   backdropFilter: "blur(12px)",
-                  border: "1px solid #fecaca", 
-                  borderLeft: "5px solid #dc2626", 
+                  border: "1px solid rgba(239, 68, 68, 0.3)", 
+                  borderLeft: "5px solid #ef4444", 
                   padding: "1rem 1.25rem", 
                   borderRadius: "14px",
-                  boxShadow: "0 8px 24px -4px rgba(220, 38, 38, 0.08)",
+                  boxShadow: "0 8px 24px -4px rgba(220, 38, 38, 0.15)",
                   transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ backgroundColor: "#fef2f2", padding: "8px", borderRadius: "10px", border: "1px solid #fecaca" }}>
-                      <AlertTriangle size={22} color="#dc2626" />
+                    <div style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", padding: "8px", borderRadius: "10px", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
+                      <AlertTriangle size={22} color="#f87171" />
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#991b1b" }}>
+                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#fca5a5" }}>
                         CRITICAL STATUS ALERT
                       </h3>
-                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#dc2626" }}>
+                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#f87171" }}>
                         <strong>{validationAlerts.length} EPS</strong> stuck in &quot;EN_ATTENTE_VALIDATION&quot;.
                       </p>
                     </div>
@@ -1188,27 +1186,27 @@ export default function PilotRecordsPage() {
                     <button onClick={handleExportValidationAlerts} disabled={isExportingAlerts} className="nexus-btn btn-danger-clean">
                       <DownloadCloud size={15} /> {isExportingAlerts ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#f87171", backgroundColor: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
                       {showValidationDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
                 </div>
                 {showValidationDetails && (
-                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #fee2e2", backgroundColor: "#fffafa", padding: "12px", borderRadius: "10px" }}>
+                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(239, 68, 68, 0.2)", backgroundColor: "rgba(0, 0, 0, 0.2)", padding: "12px", borderRadius: "10px" }}>
                     <div className="clean-scroll" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "140px", overflowY: "auto" }}>
                       {validationAlerts.map((eps, idx) => (
                         <span 
                           key={idx} 
                           onClick={(e) => { e.stopPropagation(); setEpsInputValue(eps); }} 
                           style={{ 
-                            backgroundColor: "#ffffff", 
-                            border: "1px solid #fca5a5", 
+                            backgroundColor: "rgba(239, 68, 68, 0.1)", 
+                            border: "1px solid rgba(239, 68, 68, 0.3)", 
                             padding: "4px 10px", 
                             borderRadius: "6px", 
                             fontSize: "0.78rem", 
                             fontFamily: "monospace",
                             fontWeight: 700,
-                            color: "#b91c1c", 
+                            color: "#fca5a5", 
                             cursor: "pointer",
                             transition: "all 0.15s ease"
                           }}
@@ -1229,55 +1227,55 @@ export default function PilotRecordsPage() {
                 style={{ 
                   marginBottom: "1rem", 
                   cursor: "pointer", 
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  backgroundColor: "rgba(15, 23, 42, 0.9)",
                   backdropFilter: "blur(12px)",
-                  border: "1px solid #fde68a", 
-                  borderLeft: "5px solid #d97706", 
+                  border: "1px solid rgba(245, 158, 11, 0.3)", 
+                  borderLeft: "5px solid #f59e0b", 
                   padding: "1rem 1.25rem", 
                   borderRadius: "14px",
-                  boxShadow: "0 8px 24px -4px rgba(217, 119, 6, 0.08)",
+                  boxShadow: "0 8px 24px -4px rgba(245, 158, 11, 0.15)",
                   transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{ backgroundColor: "#fffbeb", padding: "8px", borderRadius: "10px", border: "1px solid #fde68a" }}>
-                      <MessageSquare size={22} color="#d97706" />
+                    <div style={{ backgroundColor: "rgba(245, 158, 11, 0.1)", padding: "8px", borderRadius: "10px", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                      <MessageSquare size={22} color="#fbbf24" />
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#92400e" }}>
+                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#fcd34d" }}>
                         STALE COMMENTS DETECTED
                       </h3>
-                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#b45309" }}>
+                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#fbbf24" }}>
                         <strong>{commentAlerts.length} EPS</strong> have duplicated or unchanged pilot comments across versions.
                       </p>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    <button onClick={handleExportCommentAlerts} disabled={isExportingComments} className="nexus-btn" style={{ borderColor: "#fcd34d", color: "#b45309", backgroundColor: "#fffbeb" }}>
+                    <button onClick={handleExportCommentAlerts} disabled={isExportingComments} className="nexus-btn" style={{ borderColor: "rgba(245, 158, 11, 0.4)", color: "#fcd34d", backgroundColor: "rgba(245, 158, 11, 0.1)" }}>
                       <DownloadCloud size={15} /> {isExportingComments ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#b45309", backgroundColor: "#fffbeb", border: "1px solid #fde68a", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#fbbf24", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
                       {showCommentDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
                 </div>
                 {showCommentDetails && (
-                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #fef3c7", backgroundColor: "#fffdf5", padding: "12px", borderRadius: "10px" }}>
+                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(245, 158, 11, 0.2)", backgroundColor: "rgba(0, 0, 0, 0.2)", padding: "12px", borderRadius: "10px" }}>
                     <div className="clean-scroll" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "140px", overflowY: "auto" }}>
                       {commentAlerts.map((eps, idx) => (
                         <span 
                           key={idx} 
                           onClick={(e) => { e.stopPropagation(); setEpsInputValue(eps); }} 
                           style={{ 
-                            backgroundColor: "#ffffff", 
-                            border: "1px solid #fcd34d", 
+                            backgroundColor: "rgba(245, 158, 11, 0.1)", 
+                            border: "1px solid rgba(245, 158, 11, 0.3)", 
                             padding: "4px 10px", 
                             borderRadius: "6px", 
                             fontSize: "0.78rem", 
                             fontFamily: "monospace",
                             fontWeight: 700,
-                            color: "#92400e", 
+                            color: "#fcd34d", 
                             cursor: "pointer",
                             transition: "all 0.15s ease"
                           }}
@@ -1297,18 +1295,18 @@ export default function PilotRecordsPage() {
                 style={{ 
                   marginBottom: "1.25rem", 
                   padding: "0.85rem 1.25rem", 
-                  backgroundColor: "rgba(239, 246, 255, 0.9)", 
+                  backgroundColor: "rgba(16, 185, 129, 0.1)", 
                   backdropFilter: "blur(8px)",
-                  border: "1px solid #bfdbfe", 
-                  borderLeft: "4px solid #2563eb", 
+                  border: "1px solid rgba(16, 185, 129, 0.3)", 
+                  borderLeft: "4px solid #10b981", 
                   display: "flex", 
                   alignItems: "center", 
                   gap: "10px", 
                   borderRadius: "12px" 
                 }}
               >
-                <ShieldCheck size={20} color="#2563eb" />
-                <span style={{ color: "#1e40af", fontSize: "0.84rem", fontWeight: 700, letterSpacing: "0.02em" }}>
+                <ShieldCheck size={20} color="#34d399" />
+                <span style={{ color: "#6ee7b7", fontSize: "0.84rem", fontWeight: 700, letterSpacing: "0.02em" }}>
                   SECTOR VERIFIED SECURE — 0 STATUS OR COMMENT ANOMALIES DETECTED
                 </span>
               </div>
@@ -1322,19 +1320,19 @@ export default function PilotRecordsPage() {
             className="modal-panel-anim"
             style={{ 
               marginBottom: "1.25rem", 
-              color: "#1e40af", 
+              color: "#7dd3fc", 
               display: "flex", 
               alignItems: "center", 
               gap: "10px", 
               padding: "0.95rem 1.25rem", 
-              backgroundColor: "#eff6ff", 
-              border: "1px solid #93c5fd",
-              borderLeft: "4px solid #2563eb", 
+              backgroundColor: "rgba(2, 132, 199, 0.15)", 
+              border: "1px solid rgba(56, 189, 248, 0.3)",
+              borderLeft: "4px solid #0284c7", 
               borderRadius: "12px", 
-              boxShadow: "0 8px 20px -4px rgba(37, 99, 235, 0.15)" 
+              boxShadow: "0 8px 20px -4px rgba(2, 132, 199, 0.25)" 
             }}
           >
-            <CheckCircle size={20} color="#2563eb" />
+            <CheckCircle size={20} color="#38bdf8" />
             <span style={{ fontSize: "0.88rem", fontWeight: 700 }}>{successMsg}</span>
           </div>
         )}
@@ -1378,41 +1376,41 @@ export default function PilotRecordsPage() {
           style={{ 
             position: "fixed", 
             inset: 0, 
-            backgroundColor: "rgba(15, 23, 42, 0.45)", 
+            backgroundColor: "rgba(2, 4, 10, 0.65)", 
             display: "flex", 
             justifyContent: "center", 
             alignItems: "center", 
             zIndex: 99999, 
-            backdropFilter: "blur(8px)" 
+            backdropFilter: "blur(12px)" 
           }}
         >
           <div 
             className="modal-panel-anim" 
             style={{ 
-              backgroundColor: "#ffffff", 
-              border: "1px solid #bfdbfe", 
+              backgroundColor: "rgba(11, 15, 25, 0.95)", 
+              border: "1px solid rgba(56, 189, 248, 0.3)", 
               borderRadius: "18px", 
               width: "700px", 
               maxWidth: "95%", 
               maxHeight: "85vh", 
               display: "flex", 
               flexDirection: "column", 
-              boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(37, 99, 235, 0.1)",
+              boxShadow: "0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(2, 132, 199, 0.2)",
               overflow: "hidden"
             }}
           >
             <div 
               style={{ 
                 padding: "1.25rem 1.5rem", 
-                borderBottom: "1px solid #e2e8f0", 
+                borderBottom: "1px solid rgba(148, 163, 184, 0.15)", 
                 display: "flex", 
                 justifyContent: "space-between", 
                 alignItems: "center", 
-                background: "linear-gradient(90deg, #eff6ff 0%, #ffffff 100%)" 
+                background: "linear-gradient(90deg, rgba(2, 132, 199, 0.15) 0%, rgba(11, 15, 25, 0) 100%)" 
               }}
             >
-              <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-                <Crosshair color="#2563eb" size={22} /> EPS VERSION TIMELINE
+              <h2 style={{ color: "#f8fafc", margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+                <Crosshair color="#38bdf8" size={22} /> EPS VERSION TIMELINE
               </h2>
               <button 
                 onClick={() => { setIsHistoryModalOpen(false); setEpsHistoryData([]); setHistoryEpsInput(""); }} 
@@ -1423,7 +1421,7 @@ export default function PilotRecordsPage() {
               </button>
             </div>
             
-            <div style={{ padding: "1rem 1.5rem", display: "flex", gap: "10px", backgroundColor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+            <div style={{ padding: "1rem 1.5rem", display: "flex", gap: "10px", backgroundColor: "rgba(15, 23, 42, 0.4)", borderBottom: "1px solid rgba(148, 163, 184, 0.15)" }}>
               <input 
                 type="text" 
                 placeholder="Enter EPS Reference ID..." 
@@ -1431,7 +1429,7 @@ export default function PilotRecordsPage() {
                 onChange={(e) => setHistoryEpsInput(e.target.value)} 
                 onKeyDown={(e) => e.key === 'Enter' && fetchEpsHistory()} 
                 className="clean-input" 
-                style={{ flex: 1, backgroundColor: "#ffffff" }} 
+                style={{ flex: 1 }} 
                 autoFocus
               />
               <button className="nexus-btn btn-primary-blue" style={{ padding: "0 1.4rem" }} onClick={() => fetchEpsHistory()}>
@@ -1439,25 +1437,25 @@ export default function PilotRecordsPage() {
               </button>
             </div>
 
-            <div className="clean-scroll" style={{ padding: "1.75rem", overflowY: "auto", flex: 1, backgroundColor: "#ffffff" }}>
+            <div className="clean-scroll" style={{ padding: "1.75rem", overflowY: "auto", flex: 1, backgroundColor: "transparent" }}>
               {loadingHistory && (
                 <div style={{ textAlign: "center", padding: "3rem 0" }}>
-                  <Activity size={36} color="#2563eb" style={{ margin: "0 auto 1rem", animation: "pulse-subtle 1s infinite" }} />
-                  <p style={{ color: "#2563eb", fontSize: "0.9rem", fontWeight: 600 }}>Retrieving version history...</p>
+                  <Activity size={36} color="#38bdf8" style={{ margin: "0 auto 1rem", animation: "pulse-subtle 1s infinite" }} />
+                  <p style={{ color: "#7dd3fc", fontSize: "0.9rem", fontWeight: 600 }}>Retrieving version history...</p>
                 </div>
               )}
               
               {!loadingHistory && epsHistoryData.length === 0 && historyEpsInput && (
-                <div style={{ textAlign: "center", padding: "3rem", border: "1px dashed #cbd5e1", backgroundColor: "#f8fafc", borderRadius: "12px" }}>
+                <div style={{ textAlign: "center", padding: "3rem", border: "1px dashed rgba(148, 163, 184, 0.3)", backgroundColor: "rgba(15, 23, 42, 0.4)", borderRadius: "12px" }}>
                   <ShieldAlert size={42} color="#64748b" style={{ margin: "0 auto 0.75rem" }} />
-                  <p style={{ color: "#0f172a", fontSize: "1rem", fontWeight: 700, margin: 0 }}>No Version History Found</p>
-                  <p style={{ color: "#64748b", fontSize: "0.82rem", marginTop: "4px" }}>Verify the EPS identifier or active sector cycle.</p>
+                  <p style={{ color: "#f8fafc", fontSize: "1rem", fontWeight: 700, margin: 0 }}>No Version History Found</p>
+                  <p style={{ color: "#94a3b8", fontSize: "0.82rem", marginTop: "4px" }}>Verify the EPS identifier or active sector cycle.</p>
                 </div>
               )}
 
               {!loadingHistory && epsHistoryData.length > 0 && (
                 <div style={{ position: "relative", paddingLeft: "32px", marginLeft: "10px" }}>
-                  <div style={{ position: "absolute", left: "7px", top: "10px", bottom: "10px", width: "2px", background: "linear-gradient(to bottom, #93c5fd, #2563eb)" }} />
+                  <div style={{ position: "absolute", left: "7px", top: "10px", bottom: "10px", width: "2px", background: "linear-gradient(to bottom, #0284c7, #38bdf8)" }} />
                   {epsHistoryData.map((item, index) => {
                     const isLatest = index === epsHistoryData.length - 1;
                     return (
@@ -1467,8 +1465,8 @@ export default function PilotRecordsPage() {
                           marginBottom: "1.25rem", 
                           position: "relative", 
                           padding: "1.1rem 1.25rem", 
-                          backgroundColor: isLatest ? "#eff6ff" : "#f8fafc", 
-                          border: `1px solid ${isLatest ? "#93c5fd" : "#e2e8f0"}`, 
+                          backgroundColor: isLatest ? "rgba(2, 132, 199, 0.15)" : "rgba(15, 23, 42, 0.4)", 
+                          border: `1px solid ${isLatest ? "rgba(56, 189, 248, 0.4)" : "rgba(148, 163, 184, 0.2)"}`, 
                           borderRadius: "12px",
                           transition: "transform 0.2s ease, box-shadow 0.2s ease"
                         }}
@@ -1481,16 +1479,16 @@ export default function PilotRecordsPage() {
                             width: "14px", 
                             height: "14px", 
                             borderRadius: "50%", 
-                            backgroundColor: isLatest ? "#2563eb" : "#93c5fd", 
-                            border: "3px solid #ffffff", 
-                            boxShadow: "0 0 0 2px #bfdbfe" 
+                            backgroundColor: isLatest ? "#38bdf8" : "#0284c7", 
+                            border: "3px solid #0f172a", 
+                            boxShadow: "0 0 0 2px rgba(56, 189, 248, 0.3)" 
                           }} 
                         />
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}>
                           <span 
                             style={{ 
-                              backgroundColor: isLatest ? "#2563eb" : "#dbeafe", 
-                              color: isLatest ? "#ffffff" : "#1e40af", 
+                              backgroundColor: isLatest ? "#0284c7" : "rgba(2, 132, 199, 0.2)", 
+                              color: isLatest ? "#ffffff" : "#7dd3fc", 
                               padding: "4px 12px", 
                               borderRadius: "6px", 
                               fontSize: "0.78rem", 
@@ -1499,23 +1497,23 @@ export default function PilotRecordsPage() {
                           >
                             {item.version} {isLatest ? "• LATEST" : ""}
                           </span>
-                          <span style={{ color: "#64748b", fontSize: "0.78rem", fontFamily: "monospace", fontWeight: 600 }}>
+                          <span style={{ color: "#94a3b8", fontSize: "0.78rem", fontFamily: "monospace", fontWeight: 600 }}>
                             {new Date(item.importedAt).toLocaleString()}
                           </span>
                         </div>
                         <div 
                           style={{ 
-                            backgroundColor: "#ffffff", 
+                            backgroundColor: "rgba(15, 23, 42, 0.6)", 
                             padding: "12px", 
                             borderRadius: "8px", 
-                            color: "#1e293b", 
+                            color: "#f8fafc", 
                             fontSize: "0.86rem", 
-                            border: "1px solid #e2e8f0",
-                            borderLeft: `3px solid ${isLatest ? "#2563eb" : "#94a3b8"}`,
+                            border: "1px solid rgba(148, 163, 184, 0.2)",
+                            borderLeft: `3px solid ${isLatest ? "#38bdf8" : "#475569"}`,
                             fontFamily: "'Inter', sans-serif" 
                           }}
                         >
-                          {item.commentaire || <span style={{ color: "#94a3b8", fontStyle: "italic" }}>No comment recorded for this version.</span>}
+                          {item.commentaire || <span style={{ color: "#64748b", fontStyle: "italic" }}>No comment recorded for this version.</span>}
                         </div>
                       </div>
                     );
@@ -1529,28 +1527,28 @@ export default function PilotRecordsPage() {
 
       {/* MODAL 2: GLOBAL TRACK */}
       {isTrackModalOpen && (
-        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(8px)" }}>
-          <div className="modal-panel-anim" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "14px" }}>
-              <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-                <Layers color="#2563eb" size={24} /> Global Tracking Protocol
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(2, 4, 10, 0.65)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(12px)" }}>
+          <div className="modal-panel-anim" style={{ backgroundColor: "rgba(11, 15, 25, 0.95)", border: "1px solid rgba(56, 189, 248, 0.3)", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(0, 0, 0, 0.5)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(148, 163, 184, 0.15)", paddingBottom: "14px" }}>
+              <h2 style={{ color: "#f8fafc", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+                <Layers color="#38bdf8" size={24} /> Global Tracking Protocol
               </h2>
               <button onClick={() => setIsTrackModalOpen(false)} disabled={isTrackingGlobal} className="nexus-btn" style={{ padding: "6px" }}>
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "#f8fafc", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid #e2e8f0", flexWrap: "wrap" }}>
-              <span style={{ color: "#2563eb", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "#eff6ff", padding: "5px 10px", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
+            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(15, 23, 42, 0.4)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(148, 163, 184, 0.15)", flexWrap: "wrap" }}>
+              <span style={{ color: "#7dd3fc", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(2, 132, 199, 0.2)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
                 SECTOR: {globalCategory}
               </span>
-              <CyberSelect width="145px" value={trackYear} options={trackYearOptions} onChange={setTrackYear} variant="purple" />
-              <CyberSelect width="145px" value={trackMonth} options={trackMonthOptions} onChange={setTrackMonth} variant="purple" />
-              <CyberSelect width="220px" value={trackEtat} options={etatOptions} onChange={setTrackEtat} variant="purple" />
+              <CyberSelect width="145px" value={trackYear} options={trackYearOptions} onChange={setTrackYear} variant="sky" />
+              <CyberSelect width="145px" value={trackMonth} options={trackMonthOptions} onChange={setTrackMonth} variant="sky" />
+              <CyberSelect width="220px" value={trackEtat} options={etatOptions} onChange={setTrackEtat} variant="sky" />
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#334155", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
+              <label style={{ display: "block", color: "#94a3b8", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
                 EPS Reference List (One per line or comma-separated)
               </label>
               <textarea 
@@ -1577,19 +1575,19 @@ export default function PilotRecordsPage() {
 
       {/* MODAL 3: TEAM EXPORT PROTOCOL */}
       {isTeamModalOpen && (
-        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(8px)" }}>
-          <div className="modal-panel-anim" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "14px" }}>
-              <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-                <Users color="#2563eb" size={24} /> Team Export Protocol
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(2, 4, 10, 0.65)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(12px)" }}>
+          <div className="modal-panel-anim" style={{ backgroundColor: "rgba(11, 15, 25, 0.95)", border: "1px solid rgba(56, 189, 248, 0.3)", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(0, 0, 0, 0.5)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(148, 163, 184, 0.15)", paddingBottom: "14px" }}>
+              <h2 style={{ color: "#f8fafc", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+                <Users color="#38bdf8" size={24} /> Team Export Protocol
               </h2>
               <button onClick={() => setIsTeamModalOpen(false)} disabled={isExportingTeam} className="nexus-btn" style={{ padding: "6px" }}>
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "#f8fafc", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid #e2e8f0", flexWrap: "wrap" }}>
-              <span style={{ color: "#2563eb", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "#eff6ff", padding: "5px 10px", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
+            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(15, 23, 42, 0.4)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(148, 163, 184, 0.15)", flexWrap: "wrap" }}>
+              <span style={{ color: "#7dd3fc", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(2, 132, 199, 0.2)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
                 SECTOR: {globalCategory}
               </span>
               <CyberSelect width="160px" value={teamYear} options={trackYearOptions} onChange={setTeamYear} variant="matrix" />
@@ -1597,7 +1595,7 @@ export default function PilotRecordsPage() {
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#334155", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
+              <label style={{ display: "block", color: "#94a3b8", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
                 Team EPS Payload
               </label>
               <textarea 
@@ -1624,25 +1622,25 @@ export default function PilotRecordsPage() {
 
       {/* MODAL 4: OMNI SEARCH PROTOCOL */}
       {isOmniSearchModalOpen && (
-        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(8px)" }}>
-          <div className="modal-panel-anim" style={{ backgroundColor: "#ffffff", border: "1px solid #bae6fd", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(2, 132, 199, 0.2)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "14px" }}>
-              <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-                <Globe color="#0284c7" size={24} /> Omni Search Protocol
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(2, 4, 10, 0.65)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(12px)" }}>
+          <div className="modal-panel-anim" style={{ backgroundColor: "rgba(11, 15, 25, 0.95)", border: "1px solid rgba(56, 189, 248, 0.3)", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(0, 0, 0, 0.5)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(148, 163, 184, 0.15)", paddingBottom: "14px" }}>
+              <h2 style={{ color: "#f8fafc", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+                <Globe color="#38bdf8" size={24} /> Omni Search Protocol
               </h2>
               <button onClick={() => setIsOmniSearchModalOpen(false)} disabled={isExportingOmniSearch} className="nexus-btn" style={{ padding: "6px" }}>
                 <X size={20} />
               </button>
             </div>
 
-            <div style={{ marginBottom: "1.25rem", background: "#f0f9ff", padding: "0.9rem 1.1rem", borderRadius: "12px", border: "1px solid #bae6fd" }}>
-              <p style={{ color: "#0369a1", margin: 0, fontSize: "0.84rem", lineHeight: 1.5, fontWeight: 500 }}>
-                <strong style={{ color: "#075985" }}>CROSS-SECTOR SEARCH:</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire database</span> and extract every version of the requested EPS IDs.
+            <div style={{ marginBottom: "1.25rem", background: "rgba(2, 132, 199, 0.1)", padding: "0.9rem 1.1rem", borderRadius: "12px", border: "1px solid rgba(56, 189, 248, 0.2)" }}>
+              <p style={{ color: "#7dd3fc", margin: 0, fontSize: "0.84rem", lineHeight: 1.5, fontWeight: 500 }}>
+                <strong style={{ color: "#38bdf8" }}>CROSS-SECTOR SEARCH:</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire database</span> and extract every version of the requested EPS IDs.
               </p>
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#334155", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
+              <label style={{ display: "block", color: "#94a3b8", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
                 Global EPS Payload
               </label>
               <textarea 
