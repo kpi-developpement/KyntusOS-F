@@ -6,15 +6,17 @@ interface CyberProgressBarProps {
 }
 
 export default function CyberProgressBar({ progress, statusText }: CyberProgressBarProps) {
+  const isComplete = progress === 100;
+
   return (
     <div style={{ 
       width: "100%", 
-      padding: "1.5rem", 
-      backgroundColor: "rgba(15, 23, 42, 0.8)", 
-      border: "1px solid #0ff", 
-      borderRadius: "8px",
-      boxShadow: "0 0 15px rgba(0, 255, 255, 0.2) inset",
-      marginTop: "1.5rem",
+      padding: "1.25rem 1.5rem", 
+      backgroundColor: "#ffffff", 
+      border: "1px solid #bfdbfe", 
+      borderRadius: "12px",
+      boxShadow: "0 8px 24px -4px rgba(37, 99, 235, 0.08)",
+      marginTop: "1.25rem",
       display: "flex",
       flexDirection: "column",
       gap: "10px"
@@ -22,76 +24,73 @@ export default function CyberProgressBar({ progress, statusText }: CyberProgress
       {/* HEADER: TITRE ET POURCENTAGE */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
         <span style={{ 
-          color: "#0ff", 
-          fontFamily: "monospace", 
-          fontSize: "0.9rem",
+          color: "#1e40af", 
+          fontFamily: "'Inter', -apple-system, sans-serif", 
+          fontSize: "0.82rem",
+          fontWeight: 700,
           textTransform: "uppercase",
-          letterSpacing: "1px",
-          textShadow: "0 0 5px #0ff"
+          letterSpacing: "0.05em"
         }}>
           {statusText}
         </span>
         <span style={{ 
-          color: progress === 100 ? "#39ff14" : "#0ff", 
-          fontFamily: "monospace", 
-          fontSize: "2rem", 
-          fontWeight: "bold",
-          textShadow: progress === 100 ? "0 0 10px #39ff14" : "0 0 10px #0ff"
+          color: isComplete ? "#059669" : "#2563eb", 
+          fontFamily: "'Inter', -apple-system, sans-serif", 
+          fontSize: "1.65rem", 
+          fontWeight: 800,
+          fontVariantNumeric: "tabular-nums"
         }}>
           {Math.round(progress)}%
         </span>
       </div>
 
-      {/* LA BARRE DE PROGRESSION HBIILA */}
+      {/* BARRE DE PROGRESSION HAUTE PERFORMANCE */}
       <div style={{ 
         width: "100%", 
-        height: "20px", 
-        backgroundColor: "#020617", 
-        borderRadius: "10px", 
+        height: "12px", 
+        backgroundColor: "#eff6ff", 
+        borderRadius: "999px", 
         overflow: "hidden",
-        border: "1px solid #334155",
+        border: "1px solid #dbeafe",
         position: "relative"
       }}>
-        {/* L'EFFET DE CHARGEMENT (SAIYAN KI / NEON) */}
         <div style={{
           width: `${progress}%`,
           height: "100%",
-          background: progress === 100 
-            ? "linear-gradient(90deg, #10b981, #39ff14)" 
-            : "linear-gradient(90deg, #3b82f6, #0ff)",
-          boxShadow: progress === 100 
-            ? "0 0 10px #39ff14, 0 0 20px #39ff14" 
-            : "0 0 10px #0ff, 0 0 20px #0ff",
-          transition: "width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease",
+          background: isComplete 
+            ? "linear-gradient(90deg, #10b981, #059669)" 
+            : "linear-gradient(90deg, #3b82f6, #2563eb, #0284c7)",
+          borderRadius: "999px",
+          transition: "width 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease",
           position: "relative"
         }}>
-          {/* LIGNES DE VITESSE (SPEED LINES EFFECT) */}
           <div style={{
-            content: '""',
             position: "absolute",
             top: 0, left: 0, right: 0, bottom: 0,
-            backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)",
+            backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.25) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.25) 75%, transparent 75%, transparent)",
             backgroundSize: "1rem 1rem",
-            animation: "move-stripes 1s linear infinite",
-            opacity: progress === 100 ? 0 : 1
-          }}></div>
+            animation: "move-stripes 0.8s linear infinite",
+            opacity: isComplete ? 0 : 1
+          }} />
         </div>
       </div>
 
-      {/* LIGNE DE CODE STYLE "MATRIX" */}
+      {/* METADATA FOOTER */}
       <div style={{
         color: "#64748b",
         fontFamily: "monospace",
-        fontSize: "0.75rem",
-        marginTop: "5px",
+        fontSize: "0.72rem",
+        fontWeight: 600,
+        marginTop: "2px",
         display: "flex",
         justifyContent: "space-between"
       }}>
         <span>SYS.UPLOAD.PROTOCOL_V2</span>
-        <span>{progress === 100 ? "PROCESS_COMPLETE" : "WAITING_RESPONSE..."}</span>
+        <span style={{ color: isComplete ? "#059669" : "#2563eb" }}>
+          {isComplete ? "PROCESS_COMPLETE" : "SYNCHRONIZING_STREAM..."}
+        </span>
       </div>
 
-      {/* ANIMATION INLINE (Pour les rayures qui bougent) */}
       <style>{`
         @keyframes move-stripes {
           from { background-position: 1rem 0; }

@@ -6,17 +6,23 @@ import styles from '../recorde.module.css';
 
 export default function RecordDashboard() {
   const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const PILOT_ID = 1; 
 
   const fetchRecords = async () => {
+    setLoading(true);
     try {
       const res = await fetch(`/api/pilot-records/${PILOT_ID}`);
       const data = await res.json();
-      setRecords(data);
+      setRecords(Array.isArray(data) ? data : (data.content || []));
     } catch (error) {
       console.error("Erreur fetching data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,7 +35,6 @@ export default function RecordDashboard() {
     formData.append('file', file);
 
     try {
-      // 🔥 THE FIX: Dynamic Backend URL 🔥
       const getUploadApiUrl = () => {
         if (typeof window !== 'undefined') {
           return `http://${window.location.hostname}:8082`;
@@ -69,13 +74,26 @@ export default function RecordDashboard() {
       </div>
 
       <div className={styles.tableCard}>
-        <SmartTable data={records} />
+        <SmartTable 
+          data={records} 
+          loading={loading}
+          page={page}
+          setPage={setPage}
+          pageSize={pageSize}
+          setPageSize={setPageSize}
+          totalPages={1}
+          totalItems={records.length}
+        />
       </div>
 
       <FileUploadModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onUpload={handleUpload} 
+        onUpload={handleUpload}
+        onUploadSuccess={() => {
+          setIsModalOpen(false);
+          fetchRecords();
+        }}
       />
     </div>
   );

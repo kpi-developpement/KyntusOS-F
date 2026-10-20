@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Loader2, Database, Clock, Activity, CheckCircle2, XCircle, AlertCircle, Crosshair } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Database, Clock, CheckCircle2, XCircle, AlertCircle, Crosshair } from 'lucide-react';
 import styles from './SmartTable.module.css';
 
 interface SmartTableProps {
@@ -25,7 +25,6 @@ const getVersionBadgeStyle = (version: string) => {
 };
 
 const TableRow = React.memo(({ row, dynamicColumns, getSpecialField, getExactValue, getStatusBadge, onEpsClick }: any) => {
-  
   const epsValue = row.epsReference || row.eps_reference || getSpecialField(row, 'eps') || getSpecialField(row, 'idintervention') || "UNKNOWN";
   const verValue = row.version || row.ver || getSpecialField(row, 'version') || getSpecialField(row, 'ver') || "V1";
   const statusValue = getSpecialField(row, 'etat') || getSpecialField(row, 'statut') || "-";
@@ -38,7 +37,7 @@ const TableRow = React.memo(({ row, dynamicColumns, getSpecialField, getExactVal
           className={styles.epsInteractive} 
           onClick={() => { if (onEpsClick) onEpsClick(epsValue); }}
         >
-          <Crosshair size={14} className={styles.epsIcon} />
+          <Crosshair size={13} className={styles.epsIcon} />
           <span className={styles.epsText}>{epsValue}</span>
         </div>
       </td>
@@ -71,7 +70,17 @@ const TableRow = React.memo(({ row, dynamicColumns, getSpecialField, getExactVal
   );
 });
 
-export default function SmartTable({ data, loading, page, setPage, pageSize, setPageSize, totalPages, totalItems, onEpsClick }: SmartTableProps) {
+export default function SmartTable({
+  data,
+  loading,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  onEpsClick
+}: SmartTableProps) {
   
   const dynamicColumns = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -81,7 +90,16 @@ export default function SmartTable({ data, loading, page, setPage, pageSize, set
       if (row.dynamicData) {
         Object.keys(row.dynamicData).forEach(key => {
           const lower = key.toLowerCase();
-          if (lower !== 'etat' && lower !== 'statut' && lower !== 'commentaire' && lower !== 'comment' && lower !== 'idintervention' && lower !== 'eps' && lower !== 'version' && lower !== 'ver') {
+          if (
+            lower !== 'etat' &&
+            lower !== 'statut' &&
+            lower !== 'commentaire' &&
+            lower !== 'comment' &&
+            lower !== 'idintervention' &&
+            lower !== 'eps' &&
+            lower !== 'version' &&
+            lower !== 'ver'
+          ) {
             keys.add(key);
           }
         });
@@ -91,9 +109,9 @@ export default function SmartTable({ data, loading, page, setPage, pageSize, set
   }, [data]);
 
   const getExactValue = useCallback((row: any, exactKey: string) => {
-    if (!row.dynamicData) return <span className={styles.emptyDash}>-</span>;
+    if (!row.dynamicData) return <span className={styles.emptyDash}>—</span>;
     const val = row.dynamicData[exactKey];
-    return (val !== null && val !== undefined && val !== "") ? val : <span className={styles.emptyDash}>-</span>;
+    return (val !== null && val !== undefined && val !== "") ? val : <span className={styles.emptyDash}>—</span>;
   }, []);
 
   const getSpecialField = useCallback((row: any, fieldName: string) => {
@@ -122,17 +140,19 @@ export default function SmartTable({ data, loading, page, setPage, pageSize, set
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.headerTitle}>
-          <div className={styles.headerIconBox}><Database size={18} color="#00f0ff" /></div>
-          MATRIX DATAGRID
+          <div className={styles.headerIconBox}>
+            <Database size={17} color="#ffffff" />
+          </div>
+          <span>MATRIX DATAGRID</span>
         </div>
-        <div style={{display: 'flex', gap: '20px', alignItems: 'center'}}>
-            <div className={styles.statusDotWrapper}>
-                <div className={styles.dot}></div>
-                <span>LIVE LINK</span>
-            </div>
-            <div className={styles.totalBadge}>
-               <span className={styles.badgeHighlight}>{totalItems.toLocaleString()}</span> ENTRIES
-            </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className={styles.statusDotWrapper}>
+            <div className={styles.dot}></div>
+            <span>LIVE SYNC</span>
+          </div>
+          <div className={styles.totalBadge}>
+            <span className={styles.badgeHighlight}>{(totalItems || 0).toLocaleString()}</span> RECORDS
+          </div>
         </div>
       </div>
 
@@ -154,8 +174,8 @@ export default function SmartTable({ data, loading, page, setPage, pageSize, set
                 <td colSpan={100} style={{ padding: 0 }}>
                   <div className={styles.loadingContainer}>
                     <div className={styles.loaderWrapper}>
-                        <div className={styles.hexCenter}></div>
-                        <Loader2 size={50} className={styles.spinner} />
+                      <div className={styles.hexCenter}></div>
+                      <Loader2 size={48} className={styles.spinner} />
                     </div>
                     <div className={styles.loadingText}>SYNCHRONIZING DATAMATRIX...</div>
                   </div>
@@ -164,18 +184,17 @@ export default function SmartTable({ data, loading, page, setPage, pageSize, set
             ) : (!data || data.length === 0) ? (
               <tr>
                 <td colSpan={100} style={{ padding: 0 }}>
-                  {/* 🔥 L'EMPTY STATE DYAL LES PROS 🔥 */}
                   <div className={styles.emptyContainer}>
-                    <Database size={60} className={styles.emptyIcon} />
-                    <div className={styles.emptyTitle}>VOID SECTOR</div>
-                    <div className={styles.emptySub}>NO PAYLOADS DETECTED FOR THIS TIMELINE CYCLE.</div>
+                    <Database size={48} className={styles.emptyIcon} />
+                    <div className={styles.emptyTitle}>No Records Found in This Sector</div>
+                    <div className={styles.emptySub}>Try adjusting your filters or inject a new Excel batch payload.</div>
                   </div>
                 </td>
               </tr>
             ) : (
-              data.map((row) => (
+              data.map((row, idx) => (
                 <TableRow 
-                  key={row.id} 
+                  key={row.id || idx} 
                   row={row} 
                   dynamicColumns={dynamicColumns} 
                   getSpecialField={getSpecialField} 
@@ -191,23 +210,31 @@ export default function SmartTable({ data, loading, page, setPage, pageSize, set
 
       {(!loading && data && data.length > 0) && (
         <div className={styles.pagination}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span className={styles.pageLabel}>ROWS/PAGE:</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span className={styles.pageLabel}>ROWS PER PAGE</span>
             <div className={styles.selectWrapper}>
-              <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }} className={styles.select}>
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+                className={styles.select}
+              >
                 {[50, 100, 200, 500].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
 
           <div className={styles.pageControls}>
-            <button className={styles.pageBtn} disabled={page === 0} onClick={() => setPage(page - 1)}><ChevronLeft size={18} /></button>
+            <button className={styles.pageBtn} disabled={page === 0} onClick={() => setPage(page - 1)}>
+              <ChevronLeft size={17} />
+            </button>
             <div className={styles.pageTextWrapper}>
-              <span className={styles.pageText}>BLOCK</span>
+              <span className={styles.pageText}>PAGE</span>
               <span className={styles.pageHighlight}>{page + 1}</span>
               <span className={styles.pageText}>OF {totalPages === 0 ? 1 : totalPages}</span>
             </div>
-            <button className={styles.pageBtn} disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}><ChevronRight size={18} /></button>
+            <button className={styles.pageBtn} disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
+              <ChevronRight size={17} />
+            </button>
           </div>
         </div>
       )}
