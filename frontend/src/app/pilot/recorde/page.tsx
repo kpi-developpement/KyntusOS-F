@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import SmartTable from "./components/SmartTable";
-import FileUploadModal from "./ui/FileUploadModal"; 
+import FileUploadModal from "./ui/FileUploadModal";
+import CyberSelect from "./CyberSelect";
 import {
   UploadCloud,
   CheckCircle,
@@ -20,127 +21,232 @@ import {
   MessageSquare,
   Layers,
   Users,
-  Globe,
-  ChevronDown,
-  Sparkles
+  Globe
 } from "lucide-react";
 
-const API_BASE = ""; 
+const API_BASE = "";
 
-const CyberSelect = React.memo(({ value, options, onChange, disabled, width = "130px", variant = "default" }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+/**
+ * 🔥 120 FPS INTERACTIVE ARCHITECTURAL BLUE/WHITE CANVAS BACKGROUND 🔥
+ * Zero React re-renders: runs purely on GPU-backed 2D Canvas with magnetic
+ * cursor constellation, glowing grid intersections, and click shockwaves.
+ */
+const InteractiveBlueCanvas = React.memo(() => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const mouse = {
+      x: width / 2,
+      y: height / 2,
+      targetX: width / 2,
+      targetY: height / 2,
+      active: false
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    interface Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      radius: number;
+      color: string;
+      alpha: number;
+    }
+
+    interface Shockwave {
+      x: number;
+      y: number;
+      radius: number;
+      maxRadius: number;
+      alpha: number;
+    }
+
+    const palette = ["#2563eb", "#1d4ed8", "#0284c7", "#3b82f6", "#60a5fa"];
+    const particleCount = Math.min(55, Math.floor((width * height) / 26000));
+    const particles: Particle[] = Array.from({ length: particleCount }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.65,
+      vy: (Math.random() - 0.5) * 0.65,
+      radius: Math.random() * 2.2 + 1.2,
+      color: palette[Math.floor(Math.random() * palette.length)],
+      alpha: Math.random() * 0.45 + 0.25
+    }));
+
+    const shockwaves: Shockwave[] = [];
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.targetX = e.clientX;
+      mouse.targetY = e.clientY;
+      mouse.active = true;
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      shockwaves.push({
+        x: e.clientX,
+        y: e.clientY,
+        radius: 4,
+        maxRadius: 220,
+        alpha: 0.45
+      });
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("mousedown", handleMouseDown, { passive: true });
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      // Smooth lerp cursor position
+      mouse.x += (mouse.targetX - mouse.x) * 0.12;
+      mouse.y += (mouse.targetY - mouse.y) * 0.12;
+
+      // 1. Ambient Cursor Spotlight (Soft 30% Blue Glow on 70% White Canvas)
+      const spotlight = ctx.createRadialGradient(
+        mouse.x,
+        mouse.y,
+        10,
+        mouse.x,
+        mouse.y,
+        420
+      );
+      spotlight.addColorStop(0, "rgba(37, 99, 235, 0.10)");
+      spotlight.addColorStop(0.45, "rgba(2, 132, 199, 0.04)");
+      spotlight.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = spotlight;
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Interactive Architectural Dot Matrix near Cursor
+      const gridSpacing = 48;
+      const startX = Math.max(0, Math.floor((mouse.x - 260) / gridSpacing) * gridSpacing);
+      const endX = Math.min(width, Math.ceil((mouse.x + 260) / gridSpacing) * gridSpacing);
+      const startY = Math.max(0, Math.floor((mouse.y - 260) / gridSpacing) * gridSpacing);
+      const endY = Math.min(height, Math.ceil((mouse.y + 260) / gridSpacing) * gridSpacing);
+
+      for (let gx = startX; gx <= endX; gx += gridSpacing) {
+        for (let gy = startY; gy <= endY; gy += gridSpacing) {
+          const dx = gx - mouse.x;
+          const dy = gy - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 240) {
+            const intensity = (1 - dist / 240) * 0.45;
+            ctx.fillStyle = `rgba(37, 99, 235, ${intensity})`;
+            ctx.beginPath();
+            ctx.arc(gx, gy, 1.6, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // 3. Update & Draw Click Shockwaves
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.radius += 5.5;
+        sw.alpha *= 0.94;
+        ctx.strokeStyle = `rgba(37, 99, 235, ${sw.alpha})`;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        if (sw.radius >= sw.maxRadius || sw.alpha < 0.01) {
+          shockwaves.splice(i, 1);
+        }
+      }
+
+      // 4. Update & Draw Constellation Nodes
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        // Subtle magnetic pull/orbit toward mouse
+        const dxMouse = mouse.x - p.x;
+        const dyMouse = mouse.y - p.y;
+        const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+
+        if (distMouse < 210 && distMouse > 5) {
+          const force = (210 - distMouse) / 210;
+          ctx.strokeStyle = `rgba(37, 99, 235, ${force * 0.28})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(mouse.x, mouse.y);
+          ctx.stroke();
+        }
+
+        // Connect neighboring particles
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 135) {
+            const lineAlpha = (1 - dist / 135) * 0.16;
+            ctx.strokeStyle = `rgba(37, 99, 235, ${lineAlpha})`;
+            ctx.lineWidth = 0.9;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    animationFrameId = requestAnimationFrame(render);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousedown", handleMouseDown);
+    };
   }, []);
 
-  const displayLabel = useMemo(() => options.find((o: any) => o.value === value)?.label || value, [options, value]);
-
-  const isPrimaryBlue = variant === "purple" || variant === "default";
-  const accentColor = isPrimaryBlue ? "#2563eb" : "#0284c7";
-  const activeBg = isPrimaryBlue ? "#eff6ff" : "#f0f9ff";
-  const activeBorder = isPrimaryBlue ? "#3b82f6" : "#38bdf8";
-
   return (
-    <div ref={ref} style={{ position: "relative", width }}>
-      <div 
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        style={{ 
-          backgroundColor: disabled ? "#f1f5f9" : (isOpen ? activeBg : "#ffffff"),
-          border: `1px solid ${isOpen ? activeBorder : "#cbd5e1"}`, 
-          padding: "0.5rem 0.75rem",
-          borderRadius: "8px",
-          color: disabled ? "#94a3b8" : (isOpen ? accentColor : "#0f172a"), 
-          cursor: disabled ? "not-allowed" : "pointer",
-          display: "flex",
-          justifyContent: "space-between", 
-          alignItems: "center",
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-          fontSize: "0.82rem",
-          fontWeight: 600,
-          transition: "border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease", 
-          boxShadow: isOpen ? `0 0 0 3px rgba(37, 99, 235, 0.12)` : "0 1px 2px rgba(15, 23, 42, 0.04)",
-          opacity: disabled ? 0.6 : 1,
-          userSelect: "none"
-        }}
-      >
-        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", letterSpacing: "0.01em" }}>
-          {displayLabel || "SELECT..."}
-        </span>
-        <ChevronDown 
-          size={15} 
-          style={{ 
-            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", 
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)", 
-            color: isOpen ? accentColor : "#64748b", 
-            marginLeft: "6px",
-            flexShrink: 0
-          }} 
-        />
-      </div>
-      
-      {isOpen && !disabled && (
-        <div 
-          className="clean-scroll" 
-          style={{ 
-            position: "absolute", 
-            top: "calc(100% + 6px)", 
-            left: 0, 
-            right: 0, 
-            backgroundColor: "#ffffff", 
-            border: "1px solid #bfdbfe", 
-            borderRadius: "10px", 
-            maxHeight: "240px", 
-            overflowY: "auto", 
-            boxShadow: "0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(37, 99, 235, 0.08)", 
-            zIndex: 999999,
-            padding: "4px"
-          }}
-        >
-          {options.map((opt: any) => {
-            const isSelected = opt.value === value;
-            return (
-              <div 
-                key={opt.value} 
-                onClick={() => { onChange(opt.value); setIsOpen(false); }} 
-                style={{ 
-                  padding: "0.5rem 0.7rem", 
-                  color: isSelected ? "#1d4ed8" : "#334155", 
-                  backgroundColor: isSelected ? "#eff6ff" : "transparent",
-                  fontFamily: "'Inter', -apple-system, sans-serif", 
-                  fontSize: "0.82rem", 
-                  fontWeight: isSelected ? 700 : 500,
-                  cursor: "pointer", 
-                  borderRadius: "6px",
-                  transition: "background-color 0.12s ease, color 0.12s ease" 
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = "#f8fafc";
-                    e.currentTarget.style.color = "#2563eb";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#334155";
-                  }
-                }}
-              >
-                {opt.label}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100vw",
+        height: "100vh",
+        pointerEvents: "none",
+        zIndex: 1
+      }}
+    />
   );
 });
+
+InteractiveBlueCanvas.displayName = "InteractiveBlueCanvas";
 
 export default function PilotRecordsPage() {
   const [records, setRecords] = useState<any[]>([]);
@@ -541,18 +647,7 @@ export default function PilotRecordsPage() {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
       }}
     >
-      {/* Static Zero-Repaint Architectural Background (70% White / 30% Soft Blue Ambient) */}
-      <div 
-        ref={bgOverlayRef} 
-        style={{ 
-          position: "fixed", 
-          inset: 0, 
-          backgroundColor: "transparent", 
-          transition: "background-color 0.35s ease", 
-          zIndex: 0, 
-          pointerEvents: "none" 
-        }} 
-      />
+      {/* Base Architectural Gradient & Grid Layer */}
       <div 
         style={{ 
           position: "fixed", 
@@ -560,40 +655,96 @@ export default function PilotRecordsPage() {
           zIndex: 0, 
           pointerEvents: "none",
           backgroundImage: `
-            radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
-            radial-gradient(at 100% 0%, rgba(2, 132, 199, 0.07) 0px, transparent 50%),
-            radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
-            linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px)
+            radial-gradient(at 10% 0%, rgba(37, 99, 235, 0.09) 0px, transparent 55%),
+            radial-gradient(at 90% 10%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
+            radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.07) 0px, transparent 55%),
+            linear-gradient(to right, rgba(219, 234, 254, 0.65) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(219, 234, 254, 0.65) 1px, transparent 1px)
           `,
-          backgroundSize: "100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px"
+          backgroundSize: "100% 100%, 100% 100%, 100% 100%, 48px 48px, 48px 48px"
         }} 
       />
 
+      {/* Dynamic Hover Tint Layer */}
+      <div 
+        ref={bgOverlayRef} 
+        style={{ 
+          position: "fixed", 
+          inset: 0, 
+          backgroundColor: "transparent", 
+          transition: "background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1)", 
+          zIndex: 0, 
+          pointerEvents: "none" 
+        }} 
+      />
+
+      {/* Interactive 120 FPS Blue Constellation & Cursor Ripple Canvas */}
+      <InteractiveBlueCanvas />
+
       <style>{`
-        .hardware-accelerated {
-          transform: translate3d(0, 0, 0);
-          backface-visibility: hidden;
+        @keyframes pageEntrance {
+          0% {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes modalBackdropIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
+        }
+
+        @keyframes modalSpringPop {
+          0% {
+            opacity: 0;
+            transform: scale(0.94) translateY(16px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .nexus-stage {
+          animation: pageEntrance 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .nexus-card {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 14px;
-          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03), 0 8px 24px -4px rgba(37, 99, 235, 0.05);
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          position: relative;
+          background: rgba(255, 255, 255, 0.88);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid #dbeafe;
+          border-radius: 16px;
+          box-shadow: 
+            0 1px 3px rgba(15, 23, 42, 0.03),
+            0 10px 30px -6px rgba(37, 99, 235, 0.07),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          transition: 
+            transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .nexus-card:hover {
-          border-color: #bfdbfe;
-          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04), 0 12px 32px -4px rgba(37, 99, 235, 0.08);
+          border-color: #93c5fd;
+          box-shadow: 
+            0 8px 24px -4px rgba(15, 23, 42, 0.05),
+            0 16px 40px -8px rgba(37, 99, 235, 0.12),
+            inset 0 1px 0 rgba(255, 255, 255, 1);
         }
 
         .nexus-btn {
           position: relative;
+          overflow: hidden;
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          padding: 0.55rem 1rem;
+          padding: 0.58rem 1.08rem;
           background-color: #ffffff;
           color: #1e293b;
           border: 1px solid #cbd5e1;
@@ -602,17 +753,48 @@ export default function PilotRecordsPage() {
           font-weight: 600;
           cursor: pointer;
           letter-spacing: 0.01em;
-          border-radius: 9px;
-          transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+          border-radius: 10px;
+          transition: 
+            transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+            color 0.2s ease;
           box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
           user-select: none;
         }
+
+        /* Light-beam Shimmer Transition on Hover */
+        .nexus-btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -120%;
+          width: 65%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.55),
+            transparent
+          );
+          transform: skewX(-20deg);
+          transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+          pointer-events: none;
+        }
+
+        .nexus-btn:hover:not(:disabled)::before {
+          left: 140%;
+        }
+
         .nexus-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
+          transform: translateY(-2px);
         }
+
         .nexus-btn:active:not(:disabled) {
-          transform: translateY(0) scale(0.98);
+          transform: translateY(0) scale(0.97);
         }
+
         .nexus-btn:disabled {
           opacity: 0.55;
           cursor: not-allowed;
@@ -620,14 +802,14 @@ export default function PilotRecordsPage() {
 
         /* Primary Royal Blue Button (30% Blue Hero Accent) */
         .btn-primary-blue {
-          background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
           color: #ffffff;
           border-color: #1d4ed8;
-          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
         .btn-primary-blue:hover:not(:disabled) {
-          background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%);
-          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+          box-shadow: 0 8px 22px rgba(37, 99, 235, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         /* Soft Blue Outline Button */
@@ -640,7 +822,7 @@ export default function PilotRecordsPage() {
           background-color: #dbeafe;
           border-color: #60a5fa;
           color: #1e3a8a;
-          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.14);
         }
 
         /* Sky / Omni Blue Button */
@@ -653,7 +835,7 @@ export default function PilotRecordsPage() {
           background-color: #e0f2fe;
           border-color: #38bdf8;
           color: #075985;
-          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.14);
+          box-shadow: 0 6px 16px rgba(2, 132, 199, 0.16);
         }
 
         /* Danger Subtle Button */
@@ -666,7 +848,7 @@ export default function PilotRecordsPage() {
           background-color: #fef2f2;
           border-color: #f87171;
           color: #b91c1c;
-          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+          box-shadow: 0 6px 16px rgba(220, 38, 38, 0.12);
         }
 
         .clean-input {
@@ -674,20 +856,24 @@ export default function PilotRecordsPage() {
           border: 1px solid #cbd5e1;
           color: #0f172a;
           padding: 0.55rem 0.85rem;
-          border-radius: 8px;
+          border-radius: 10px;
           font-family: 'Inter', -apple-system, sans-serif;
           font-size: 0.875rem;
           font-weight: 500;
           outline: none;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .clean-input::placeholder {
           color: #94a3b8;
         }
+        .clean-input:hover {
+          border-color: #93c5fd;
+          background-color: #ffffff;
+        }
         .clean-input:focus {
           background-color: #ffffff;
           border-color: #2563eb;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+          box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.15), 0 4px 12px rgba(37, 99, 235, 0.06);
         }
 
         .clean-textarea {
@@ -695,19 +881,19 @@ export default function PilotRecordsPage() {
           border: 1px solid #cbd5e1;
           color: #0f172a;
           padding: 0.9rem 1rem;
-          border-radius: 10px;
+          border-radius: 12px;
           font-family: 'JetBrains Mono', 'Fira Code', monospace;
           font-size: 0.85rem;
           line-height: 1.5;
           outline: none;
           resize: vertical;
           width: 100%;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .clean-textarea:focus {
           background-color: #ffffff;
           border-color: #2563eb;
-          box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+          box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.14);
         }
 
         .clean-scroll::-webkit-scrollbar {
@@ -726,26 +912,34 @@ export default function PilotRecordsPage() {
           background-color: #2563eb;
         }
 
+        .modal-backdrop-anim {
+          animation: modalBackdropIn 0.22s ease forwards;
+        }
+        .modal-panel-anim {
+          animation: modalSpringPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
         @keyframes pulse-subtle {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.55; }
         }
       `}</style>
 
-      <div style={{ position: "relative", zIndex: 20, maxWidth: "1480px", margin: "0 auto" }}>
+      <div className="nexus-stage" style={{ position: "relative", zIndex: 10, maxWidth: "1480px", margin: "0 auto" }}>
         
         {/* SECURITY BREACH LOGS */}
         {securityLogs.length > 0 && showSecurityLogs && (
           <div 
-            className="hardware-accelerated" 
+            className="modal-panel-anim" 
             style={{ 
-              backgroundColor: "#ffffff", 
+              backgroundColor: "rgba(255, 255, 255, 0.95)", 
+              backdropFilter: "blur(12px)",
               border: "1px solid #fecaca", 
               borderLeft: "5px solid #dc2626",
-              borderRadius: "12px", 
+              borderRadius: "14px", 
               padding: "1.25rem 1.5rem", 
               marginBottom: "1.25rem", 
-              boxShadow: "0 10px 25px -5px rgba(220, 38, 38, 0.08)" 
+              boxShadow: "0 12px 28px -6px rgba(220, 38, 38, 0.1)" 
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
@@ -779,46 +973,47 @@ export default function PilotRecordsPage() {
               fontSize: "0.82rem",
               letterSpacing: "0.03em", 
               marginBottom: "1.25rem", 
-              cursor: "pointer" 
+              cursor: "pointer",
+              transition: "all 0.2s ease"
             }}
           >
             ⚠️ {securityLogs.length} SECURITY BREACHES DETECTED — CLICK TO EXPAND
           </button>
         )}
 
-        {/* TOP ENTERPRISE NAVIGATION BAR (White Surface + Blue Identity) */}
+        {/* TOP ENTERPRISE NAVIGATION BAR */}
         <header 
-          className="nexus-card hardware-accelerated" 
+          className="nexus-card" 
           style={{ 
-            padding: "1.1rem 1.5rem", 
+            padding: "1.15rem 1.5rem", 
             marginBottom: "1rem", 
             display: "flex", 
             justifyContent: "space-between", 
             alignItems: "center", 
             flexWrap: "wrap", 
             gap: "16px",
-            background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
-            borderBottom: "2px solid #dbeafe"
+            background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,251,255,0.92) 100%)",
+            borderBottom: "2px solid #bfdbfe"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
             <div 
               style={{ 
-                width: "44px", 
-                height: "44px", 
-                borderRadius: "12px", 
-                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)", 
+                width: "46px", 
+                height: "46px", 
+                borderRadius: "13px", 
+                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 55%, #0284c7 100%)", 
                 display: "flex", 
                 alignItems: "center", 
                 justifyContent: "center",
-                boxShadow: "0 6px 16px rgba(37, 99, 235, 0.28)"
+                boxShadow: "0 8px 20px -4px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35)"
               }}
             >
               <LayoutDashboard size={22} color="#ffffff" />
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <h1 style={{ color: "#0f172a", margin: 0, fontSize: "1.35rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
+                <h1 style={{ color: "#0f172a", margin: 0, fontSize: "1.38rem", fontWeight: 800, letterSpacing: "-0.025em" }}>
                   KYNTUS <span style={{ color: "#2563eb" }}>NEXUS</span>
                 </h1>
                 <span 
@@ -828,17 +1023,17 @@ export default function PilotRecordsPage() {
                     border: "1px solid #bfdbfe", 
                     fontSize: "0.68rem", 
                     fontWeight: 700, 
-                    padding: "2px 8px", 
+                    padding: "2px 9px", 
                     borderRadius: "999px",
                     letterSpacing: "0.04em"
                   }}
                 >
-                  ENTERPRISE V2.6
+                  PRO MATRIX
                 </span>
               </div>
-              <div style={{ color: "#64748b", fontSize: "0.76rem", fontWeight: 500, marginTop: "2px", display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#2563eb", display: "inline-block" }} />
-                High-Frequency Pilot Operations & Matrix Intelligence
+              <div style={{ color: "#64748b", fontSize: "0.76rem", fontWeight: 500, marginTop: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#2563eb", display: "inline-block", boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.18)" }} />
+                Interactive 120FPS Telemetry & Version Synchronization
               </div>
             </div>
           </div>
@@ -857,7 +1052,7 @@ export default function PilotRecordsPage() {
               className="nexus-btn btn-soft-blue" 
               onClick={handleExport} 
               disabled={isExporting} 
-              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.03)")} 
+              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.04)")} 
               onMouseLeave={() => changeBgTheme("transparent")}
             >
               <DownloadCloud size={15} /> {isExporting ? "Exporting..." : "Extract Excel"}
@@ -866,6 +1061,8 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-soft-blue" 
               onClick={() => setIsTrackModalOpen(true)}
+              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.04)")} 
+              onMouseLeave={() => changeBgTheme("transparent")}
             >
               <Crosshair size={15} /> Global Track
             </button>
@@ -873,6 +1070,8 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-soft-blue" 
               onClick={() => setIsTeamModalOpen(true)}
+              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.04)")} 
+              onMouseLeave={() => changeBgTheme("transparent")}
             >
               <Users size={15} /> Team Export
             </button>
@@ -880,6 +1079,8 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-sky-blue" 
               onClick={() => setIsOmniSearchModalOpen(true)}
+              onMouseEnter={() => changeBgTheme("rgba(2, 132, 199, 0.04)")} 
+              onMouseLeave={() => changeBgTheme("transparent")}
             >
               <Globe size={15} /> Omni Search
             </button>
@@ -887,6 +1088,8 @@ export default function PilotRecordsPage() {
             <button 
               className="nexus-btn btn-primary-blue" 
               onClick={() => setIsModalOpen(true)}
+              onMouseEnter={() => changeBgTheme("rgba(37, 99, 235, 0.05)")} 
+              onMouseLeave={() => changeBgTheme("transparent")}
             >
               <UploadCloud size={15} /> Inject Batch
             </button>
@@ -896,13 +1099,12 @@ export default function PilotRecordsPage() {
         {/* FILTER & SEARCH BAR (Bento Split Layout) */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "1.25rem", alignItems: "stretch", flexWrap: "wrap" }}>
           <div 
-            className="nexus-card hardware-accelerated" 
+            className="nexus-card" 
             style={{ 
               display: "flex", 
               alignItems: "center", 
               gap: "10px", 
-              padding: "0.75rem 1.1rem",
-              background: "#ffffff"
+              padding: "0.75rem 1.15rem"
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#2563eb", fontWeight: 700, fontSize: "0.78rem" }}>
@@ -922,15 +1124,14 @@ export default function PilotRecordsPage() {
           </div>
 
           <div 
-            className="nexus-card hardware-accelerated" 
+            className="nexus-card" 
             style={{ 
               display: "flex", 
               gap: "10px", 
-              padding: "0.75rem 1.1rem", 
+              padding: "0.75rem 1.15rem", 
               alignItems: "center", 
               flex: 1, 
-              minWidth: "300px",
-              background: "#ffffff"
+              minWidth: "300px"
             }}
           >
             <div style={{ position: "relative", flex: 1, display: "flex", alignItems: "center" }}>
@@ -945,12 +1146,12 @@ export default function PilotRecordsPage() {
               />
             </div>
 
-            <CyberSelect width="160px" value={serverVersion} options={versionOptions} onChange={(val: string) => { setServerVersion(val); setPage(0); }} />
+            <CyberSelect width="165px" value={serverVersion} options={versionOptions} onChange={(val: string) => { setServerVersion(val); setPage(0); }} />
             
             {(serverVersion || epsInputValue) && ( 
               <button 
                 className="nexus-btn btn-danger-clean" 
-                style={{ padding: "0.5rem 0.75rem", fontSize: "0.75rem" }} 
+                style={{ padding: "0.52rem 0.8rem", fontSize: "0.75rem" }} 
                 onClick={clearFilters}
               >
                 <X size={14} /> Reset
@@ -966,7 +1167,7 @@ export default function PilotRecordsPage() {
             style={{ 
               marginBottom: "1.25rem", 
               padding: "0.9rem 1.25rem", 
-              backgroundColor: "#eff6ff", 
+              backgroundColor: "rgba(239, 246, 255, 0.9)", 
               borderColor: "#bfdbfe", 
               display: "flex", 
               alignItems: "center", 
@@ -983,16 +1184,18 @@ export default function PilotRecordsPage() {
             {!isScanningAlerts && validationAlerts.length > 0 && (
               <div 
                 onClick={() => setShowValidationDetails(!showValidationDetails)} 
-                className="hardware-accelerated" 
+                className="modal-panel-anim" 
                 style={{ 
                   marginBottom: "1rem", 
                   cursor: "pointer", 
-                  backgroundColor: "#ffffff",
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(12px)",
                   border: "1px solid #fecaca", 
                   borderLeft: "5px solid #dc2626", 
                   padding: "1rem 1.25rem", 
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 16px -2px rgba(220, 38, 38, 0.08)"
+                  borderRadius: "14px",
+                  boxShadow: "0 8px 24px -4px rgba(220, 38, 38, 0.08)",
+                  transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
@@ -1019,7 +1222,7 @@ export default function PilotRecordsPage() {
                   </div>
                 </div>
                 {showValidationDetails && (
-                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #fee2e2", backgroundColor: "#fffafa", padding: "12px", borderRadius: "8px" }}>
+                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #fee2e2", backgroundColor: "#fffafa", padding: "12px", borderRadius: "10px" }}>
                     <div className="clean-scroll" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "140px", overflowY: "auto" }}>
                       {validationAlerts.map((eps, idx) => (
                         <span 
@@ -1034,7 +1237,8 @@ export default function PilotRecordsPage() {
                             fontFamily: "monospace",
                             fontWeight: 700,
                             color: "#b91c1c", 
-                            cursor: "pointer" 
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
                           }}
                         >
                           {eps}
@@ -1049,16 +1253,18 @@ export default function PilotRecordsPage() {
             {!isScanningAlerts && commentAlerts.length > 0 && (
               <div 
                 onClick={() => setShowCommentDetails(!showCommentDetails)} 
-                className="hardware-accelerated" 
+                className="modal-panel-anim" 
                 style={{ 
                   marginBottom: "1rem", 
                   cursor: "pointer", 
-                  backgroundColor: "#ffffff",
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(12px)",
                   border: "1px solid #fde68a", 
                   borderLeft: "5px solid #d97706", 
                   padding: "1rem 1.25rem", 
-                  borderRadius: "12px",
-                  boxShadow: "0 4px 16px -2px rgba(217, 119, 6, 0.08)"
+                  borderRadius: "14px",
+                  boxShadow: "0 8px 24px -4px rgba(217, 119, 6, 0.08)",
+                  transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
@@ -1085,7 +1291,7 @@ export default function PilotRecordsPage() {
                   </div>
                 </div>
                 {showCommentDetails && (
-                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #fef3c7", backgroundColor: "#fffdf5", padding: "12px", borderRadius: "8px" }}>
+                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #fef3c7", backgroundColor: "#fffdf5", padding: "12px", borderRadius: "10px" }}>
                     <div className="clean-scroll" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "140px", overflowY: "auto" }}>
                       {commentAlerts.map((eps, idx) => (
                         <span 
@@ -1100,7 +1306,8 @@ export default function PilotRecordsPage() {
                             fontFamily: "monospace",
                             fontWeight: 700,
                             color: "#92400e", 
-                            cursor: "pointer" 
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
                           }}
                         >
                           {eps}
@@ -1114,17 +1321,18 @@ export default function PilotRecordsPage() {
 
             {!isScanningAlerts && !loading && records.length > 0 && validationAlerts.length === 0 && commentAlerts.length === 0 && (
               <div 
-                className="hardware-accelerated" 
+                className="modal-panel-anim" 
                 style={{ 
                   marginBottom: "1.25rem", 
                   padding: "0.85rem 1.25rem", 
-                  backgroundColor: "#eff6ff", 
+                  backgroundColor: "rgba(239, 246, 255, 0.9)", 
+                  backdropFilter: "blur(8px)",
                   border: "1px solid #bfdbfe", 
                   borderLeft: "4px solid #2563eb", 
                   display: "flex", 
                   alignItems: "center", 
                   gap: "10px", 
-                  borderRadius: "10px" 
+                  borderRadius: "12px" 
                 }}
               >
                 <ShieldCheck size={20} color="#2563eb" />
@@ -1139,6 +1347,7 @@ export default function PilotRecordsPage() {
         {/* SUCCESS TOAST BANNER */}
         {successMsg && (
           <div 
+            className="modal-panel-anim"
             style={{ 
               marginBottom: "1.25rem", 
               color: "#1e40af", 
@@ -1149,8 +1358,8 @@ export default function PilotRecordsPage() {
               backgroundColor: "#eff6ff", 
               border: "1px solid #93c5fd",
               borderLeft: "4px solid #2563eb", 
-              borderRadius: "10px", 
-              boxShadow: "0 4px 12px rgba(37, 99, 235, 0.1)" 
+              borderRadius: "12px", 
+              boxShadow: "0 8px 20px -4px rgba(37, 99, 235, 0.15)" 
             }}
           >
             <CheckCircle size={20} color="#2563eb" />
@@ -1193,6 +1402,7 @@ export default function PilotRecordsPage() {
       {/* MODAL 1: SINGLE EPS QUANTUM TIMELINE */}
       {isHistoryModalOpen && (
         <div 
+          className="modal-backdrop-anim"
           style={{ 
             position: "fixed", 
             inset: 0, 
@@ -1200,22 +1410,22 @@ export default function PilotRecordsPage() {
             display: "flex", 
             justifyContent: "center", 
             alignItems: "center", 
-            zIndex: 9999999, 
-            backdropFilter: "blur(6px)" 
+            zIndex: 99999, 
+            backdropFilter: "blur(8px)" 
           }}
         >
           <div 
-            className="hardware-accelerated" 
+            className="modal-panel-anim" 
             style={{ 
               backgroundColor: "#ffffff", 
               border: "1px solid #bfdbfe", 
-              borderRadius: "16px", 
+              borderRadius: "18px", 
               width: "700px", 
               maxWidth: "95%", 
               maxHeight: "85vh", 
               display: "flex", 
               flexDirection: "column", 
-              boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(37, 99, 235, 0.08)",
+              boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(37, 99, 235, 0.1)",
               overflow: "hidden"
             }}
           >
@@ -1287,7 +1497,8 @@ export default function PilotRecordsPage() {
                           padding: "1.1rem 1.25rem", 
                           backgroundColor: isLatest ? "#eff6ff" : "#f8fafc", 
                           border: `1px solid ${isLatest ? "#93c5fd" : "#e2e8f0"}`, 
-                          borderRadius: "12px" 
+                          borderRadius: "12px",
+                          transition: "transform 0.2s ease, box-shadow 0.2s ease"
                         }}
                       >
                         <div 
@@ -1346,8 +1557,8 @@ export default function PilotRecordsPage() {
 
       {/* MODAL 2: GLOBAL TRACK */}
       {isTrackModalOpen && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(6px)" }}>
-          <div className="hardware-accelerated" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "16px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.18)" }}>
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(8px)" }}>
+          <div className="modal-panel-anim" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "14px" }}>
               <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Layers color="#2563eb" size={24} /> Global Tracking Protocol
@@ -1357,8 +1568,8 @@ export default function PilotRecordsPage() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "#f8fafc", padding: "0.85rem 1rem", borderRadius: "10px", border: "1px solid #e2e8f0", flexWrap: "wrap" }}>
-              <span style={{ color: "#2563eb", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "#eff6ff", padding: "4px 10px", borderRadius: "6px", border: "1px solid #bfdbfe" }}>
+            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "#f8fafc", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid #e2e8f0", flexWrap: "wrap" }}>
+              <span style={{ color: "#2563eb", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "#eff6ff", padding: "5px 10px", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
                 SECTOR: {globalCategory}
               </span>
               <CyberSelect width="145px" value={trackYear} options={trackYearOptions} onChange={setTrackYear} variant="purple" />
@@ -1384,7 +1595,7 @@ export default function PilotRecordsPage() {
               onClick={executeGlobalTrack} 
               disabled={isTrackingGlobal || (trackEpsList.trim() === "" && trackEtat === "ALL")} 
               className="nexus-btn btn-primary-blue" 
-              style={{ width: "100%", justifyContent: "center", padding: "0.9rem", fontSize: "0.92rem", fontWeight: 700 }}
+              style={{ width: "100%", justifyContent: "center", padding: "0.95rem", fontSize: "0.92rem", fontWeight: 700 }}
             >
               {isTrackingGlobal ? "Extracting Global Timeline..." : "Generate Global Timeline Excel"}
             </button>
@@ -1394,8 +1605,8 @@ export default function PilotRecordsPage() {
 
       {/* MODAL 3: TEAM EXPORT PROTOCOL */}
       {isTeamModalOpen && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(6px)" }}>
-          <div className="hardware-accelerated" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "16px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.18)" }}>
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(8px)" }}>
+          <div className="modal-panel-anim" style={{ backgroundColor: "#ffffff", border: "1px solid #bfdbfe", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "14px" }}>
               <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Users color="#2563eb" size={24} /> Team Export Protocol
@@ -1405,8 +1616,8 @@ export default function PilotRecordsPage() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "#f8fafc", padding: "0.85rem 1rem", borderRadius: "10px", border: "1px solid #e2e8f0", flexWrap: "wrap" }}>
-              <span style={{ color: "#2563eb", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "#eff6ff", padding: "4px 10px", borderRadius: "6px", border: "1px solid #bfdbfe" }}>
+            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "#f8fafc", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid #e2e8f0", flexWrap: "wrap" }}>
+              <span style={{ color: "#2563eb", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "#eff6ff", padding: "5px 10px", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
                 SECTOR: {globalCategory}
               </span>
               <CyberSelect width="160px" value={teamYear} options={trackYearOptions} onChange={setTeamYear} variant="matrix" />
@@ -1431,7 +1642,7 @@ export default function PilotRecordsPage() {
               onClick={executeTeamExport} 
               disabled={isExportingTeam || teamEpsList.trim() === ""} 
               className="nexus-btn btn-primary-blue" 
-              style={{ width: "100%", justifyContent: "center", padding: "0.9rem", fontSize: "0.92rem", fontWeight: 700 }}
+              style={{ width: "100%", justifyContent: "center", padding: "0.95rem", fontSize: "0.92rem", fontWeight: 700 }}
             >
               {isExportingTeam ? "Extracting Team Timelines..." : "Generate Team Export Excel"}
             </button>
@@ -1441,8 +1652,8 @@ export default function PilotRecordsPage() {
 
       {/* MODAL 4: OMNI SEARCH PROTOCOL */}
       {isOmniSearchModalOpen && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(6px)" }}>
-          <div className="hardware-accelerated" style={{ backgroundColor: "#ffffff", border: "1px solid #bae6fd", borderRadius: "16px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(2, 132, 199, 0.18)" }}>
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15, 23, 42, 0.45)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(8px)" }}>
+          <div className="modal-panel-anim" style={{ backgroundColor: "#ffffff", border: "1px solid #bae6fd", borderRadius: "18px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 24px 48px -12px rgba(2, 132, 199, 0.2)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "14px" }}>
               <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Globe color="#0284c7" size={24} /> Omni Search Protocol
@@ -1452,7 +1663,7 @@ export default function PilotRecordsPage() {
               </button>
             </div>
 
-            <div style={{ marginBottom: "1.25rem", background: "#f0f9ff", padding: "0.9rem 1.1rem", borderRadius: "10px", border: "1px solid #bae6fd" }}>
+            <div style={{ marginBottom: "1.25rem", background: "#f0f9ff", padding: "0.9rem 1.1rem", borderRadius: "12px", border: "1px solid #bae6fd" }}>
               <p style={{ color: "#0369a1", margin: 0, fontSize: "0.84rem", lineHeight: 1.5, fontWeight: 500 }}>
                 <strong style={{ color: "#075985" }}>CROSS-SECTOR SEARCH:</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire database</span> and extract every version of the requested EPS IDs.
               </p>
@@ -1476,7 +1687,7 @@ export default function PilotRecordsPage() {
               onClick={executeOmniSearchExport} 
               disabled={isExportingOmniSearch || omniSearchEpsList.trim() === ""} 
               className="nexus-btn btn-primary-blue" 
-              style={{ width: "100%", justifyContent: "center", padding: "0.9rem", fontSize: "0.92rem", fontWeight: 700 }}
+              style={{ width: "100%", justifyContent: "center", padding: "0.95rem", fontSize: "0.92rem", fontWeight: 700 }}
             >
               {isExportingOmniSearch ? "Scanning Global Matrix..." : "Execute Global Omni Search"}
             </button>

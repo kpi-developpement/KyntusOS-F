@@ -232,25 +232,36 @@ export default function FileUploadModal({
         justifyContent: "center", 
         alignItems: "center", 
         zIndex: 1050, 
-        backdropFilter: "blur(6px)" 
+        backdropFilter: "blur(8px)",
+        animation: "uploadModalFadeIn 0.22s ease forwards"
       }}
     >
+      <style>{`
+        @keyframes uploadModalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes uploadModalScaleIn {
+          from { opacity: 0; transform: scale(0.94) translateY(14px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
       <div 
-        className="hardware-accelerated" 
         style={{ 
           backgroundColor: "#ffffff", 
           border: "1px solid #bfdbfe", 
-          borderRadius: "18px", 
-          width: "640px", 
+          borderRadius: "20px", 
+          width: "650px", 
           maxWidth: "95%", 
           padding: "2rem", 
-          boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(37, 99, 235, 0.08)", 
+          boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(37, 99, 235, 0.08)", 
           position: "relative", 
           overflow: "hidden", 
           maxHeight: "90vh", 
           display: "flex", 
           flexDirection: "column",
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          animation: "uploadModalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards"
         }}
       >
         {/* Top Blue Accent Bar */}
@@ -273,7 +284,8 @@ export default function FileUploadModal({
               color: "#475569", 
               padding: "6px", 
               borderRadius: "8px", 
-              cursor: "pointer" 
+              cursor: "pointer",
+              transition: "all 0.15s ease"
             }}
           >
             <X size={20} />
@@ -282,7 +294,7 @@ export default function FileUploadModal({
 
         <div style={{ flex: 1, overflowY: "auto", paddingRight: "4px" }} className="clean-scroll">
           {/* Active Target & Cycle Pill Bar */}
-          <div style={{ display: "flex", gap: "16px", backgroundColor: "#eff6ff", padding: "0.8rem 1.2rem", borderRadius: "10px", border: "1px solid #bfdbfe", marginBottom: "1.25rem", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "16px", backgroundColor: "#eff6ff", padding: "0.8rem 1.2rem", borderRadius: "12px", border: "1px solid #bfdbfe", marginBottom: "1.25rem", justifyContent: "center", alignItems: "center" }}>
             <span style={{ color: "#1e40af", fontSize: "0.88rem", fontWeight: 700 }}>
               SECTOR: <strong style={{ color: "#2563eb" }}>[{category}]</strong>
             </span>
@@ -293,7 +305,7 @@ export default function FileUploadModal({
           </div>
 
           {/* Integrated Payloads List */}
-          <div style={{ marginBottom: "1.5rem", padding: "1.1rem", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0", borderLeft: "4px solid #2563eb" }}>
+          <div style={{ marginBottom: "1.5rem", padding: "1.1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #2563eb" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
               <h3 style={{ color: "#0f172a", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", margin: 0, fontWeight: 800, letterSpacing: "0.02em" }}>
                 <Terminal size={16} color="#2563eb" /> INTEGRATED PAYLOADS ({importedFiles.length})
@@ -304,17 +316,18 @@ export default function FileUploadModal({
                   onClick={saveNewOrder} 
                   disabled={isSavingOrder} 
                   style={{ 
-                    background: "#2563eb", 
+                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)", 
                     color: "#ffffff", 
                     border: "none", 
-                    borderRadius: "6px", 
-                    padding: "0.35rem 0.75rem", 
+                    borderRadius: "8px", 
+                    padding: "0.4rem 0.85rem", 
                     fontSize: "0.75rem", 
                     fontWeight: 700, 
                     display: "flex", 
                     gap: "5px", 
                     alignItems: "center", 
-                    cursor: "pointer" 
+                    cursor: "pointer",
+                    boxShadow: "0 4px 10px rgba(37, 99, 235, 0.25)"
                   }}
                 >
                   <Save size={13} /> {isSavingOrder ? "Saving..." : "Save New Order"}
@@ -341,15 +354,16 @@ export default function FileUploadModal({
                         color: "#1e293b", 
                         fontSize: "0.82rem", 
                         padding: "8px 10px", 
-                        marginBottom: "4px",
-                        border: "1px solid #e2e8f0", 
+                        marginBottom: "5px",
+                        border: draggedImportedIndex === idx ? "1px solid #3b82f6" : "1px solid #e2e8f0", 
                         display: "flex", 
                         alignItems: "center", 
                         justifyContent: "space-between", 
                         fontFamily: "monospace", 
                         cursor: "grab", 
-                        backgroundColor: draggedImportedIndex === idx ? "#dbeafe" : "#ffffff",
-                        borderRadius: "8px"
+                        backgroundColor: draggedImportedIndex === idx ? "#eff6ff" : "#ffffff",
+                        borderRadius: "8px",
+                        transition: "all 0.15s ease"
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
@@ -385,12 +399,13 @@ export default function FileUploadModal({
               onClick={() => files.length === 0 && fileInputRef.current?.click()}
               style={{ 
                 border: isDraggingOver ? "2px dashed #2563eb" : (files.length > 0 ? "2px solid #3b82f6" : "2px dashed #93c5fd"), 
-                borderRadius: "14px", 
+                borderRadius: "16px", 
                 padding: "1.75rem 1.25rem", 
                 textAlign: "center", 
                 cursor: files.length === 0 ? "pointer" : "default", 
                 backgroundColor: isDraggingOver ? "#eff6ff" : (files.length > 0 ? "#f8fafc" : "#f8fbff"), 
-                transition: "all 0.2s ease",
+                transform: isDraggingOver ? "scale(1.01)" : "scale(1)",
+                transition: "all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
                 position: "relative", 
                 minHeight: "135px"
               }} 
@@ -405,7 +420,7 @@ export default function FileUploadModal({
                       {files.length}
                     </div>
                   </div>
-                  <div className="clean-scroll" style={{ maxHeight: "110px", overflowY: "auto", textAlign: "left", background: "#ffffff", padding: "10px", borderRadius: "8px", border: "1px solid #dbeafe" }}>
+                  <div className="clean-scroll" style={{ maxHeight: "110px", overflowY: "auto", textAlign: "left", background: "#ffffff", padding: "10px", borderRadius: "10px", border: "1px solid #dbeafe" }}>
                     {files.map((f, i) => (
                       <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9", padding: "6px 4px" }}>
                         <span style={{ color: "#0f172a", fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "85%" }}>
@@ -418,7 +433,7 @@ export default function FileUploadModal({
                 </div>
               ) : (
                 <div style={{ marginTop: "6px" }}>
-                  <UploadCloud size={44} color="#2563eb" style={{ margin: "0 auto 8px" }} />
+                  <UploadCloud size={44} color="#2563eb" style={{ margin: "0 auto 8px", transition: "transform 0.2s ease", transform: isDraggingOver ? "translateY(-4px)" : "translateY(0)" }} />
                   <p style={{ color: "#1e3a8a", margin: "0 0 4px 0", fontSize: "0.95rem", fontWeight: 700 }}>
                     {isDraggingOver ? "Drop files to stage batch..." : "Drag & Drop Excel or CSV files here"}
                   </p>
@@ -451,7 +466,7 @@ export default function FileUploadModal({
                     width: `${uploadStats.percentage}%`, 
                     height: "100%", 
                     backgroundColor: uploadStats.percentage === 100 ? "#059669" : "#2563eb", 
-                    transition: "width 0.3s ease" 
+                    transition: "width 0.35s cubic-bezier(0.16, 1, 0.3, 1)" 
                   }} 
                 />
               </div>
@@ -465,18 +480,18 @@ export default function FileUploadModal({
               disabled={files.length === 0} 
               style={{ 
                 width: "100%", 
-                background: files.length > 0 ? "linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)" : "#f1f5f9", 
+                background: files.length > 0 ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "#f1f5f9", 
                 color: files.length > 0 ? "#ffffff" : "#94a3b8", 
                 border: files.length > 0 ? "1px solid #1d4ed8" : "1px solid #e2e8f0", 
                 padding: "0.95rem", 
-                borderRadius: "10px", 
+                borderRadius: "12px", 
                 cursor: files.length > 0 ? "pointer" : "not-allowed", 
                 fontWeight: 800, 
                 letterSpacing: "0.02em", 
                 marginTop: "1.25rem", 
                 fontSize: "0.92rem",
-                transition: "all 0.15s ease", 
-                boxShadow: files.length > 0 ? "0 6px 16px rgba(37, 99, 235, 0.25)" : "none"
+                transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)", 
+                boxShadow: files.length > 0 ? "0 8px 20px rgba(37, 99, 235, 0.28)" : "none"
               }}
             >
               {files.length > 0 ? `Execute Secure Injection (${files.length} ${files.length === 1 ? 'File' : 'Files'})` : "Select Files to Enable Uplink"}

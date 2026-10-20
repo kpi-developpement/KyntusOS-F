@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Database, Clock, CheckCircle2, XCircle, AlertCircle, Crosshair } from 'lucide-react';
+import CyberSelect from '../CyberSelect';
 import styles from './SmartTable.module.css';
 
 interface SmartTableProps {
@@ -24,14 +25,24 @@ const getVersionBadgeStyle = (version: string) => {
   return styles.badgeVDef; 
 };
 
-const TableRow = React.memo(({ row, dynamicColumns, getSpecialField, getExactValue, getStatusBadge, onEpsClick }: any) => {
+const pageSizeOptions = [
+  { value: 50, label: "50 Rows" },
+  { value: 100, label: "100 Rows" },
+  { value: 200, label: "200 Rows" },
+  { value: 500, label: "500 Rows" }
+];
+
+const TableRow = React.memo(({ row, index, dynamicColumns, getSpecialField, getExactValue, getStatusBadge, onEpsClick }: any) => {
   const epsValue = row.epsReference || row.eps_reference || getSpecialField(row, 'eps') || getSpecialField(row, 'idintervention') || "UNKNOWN";
   const verValue = row.version || row.ver || getSpecialField(row, 'version') || getSpecialField(row, 'ver') || "V1";
   const statusValue = getSpecialField(row, 'etat') || getSpecialField(row, 'statut') || "-";
   const commentValue = getSpecialField(row, 'commentaire') || getSpecialField(row, 'comment') || "-";
 
   return (
-    <tr className={styles.tr}>
+    <tr
+      className={styles.tr}
+      style={{ animationDelay: `${Math.min(index * 12, 240)}ms` }}
+    >
       <td className={styles.td}>
         <div 
           className={styles.epsInteractive} 
@@ -69,6 +80,8 @@ const TableRow = React.memo(({ row, dynamicColumns, getSpecialField, getExactVal
     </tr>
   );
 });
+
+TableRow.displayName = "TableRow";
 
 export default function SmartTable({
   data,
@@ -195,6 +208,7 @@ export default function SmartTable({
               data.map((row, idx) => (
                 <TableRow 
                   key={row.id || idx} 
+                  index={idx}
                   row={row} 
                   dynamicColumns={dynamicColumns} 
                   getSpecialField={getSpecialField} 
@@ -212,15 +226,16 @@ export default function SmartTable({
         <div className={styles.pagination}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <span className={styles.pageLabel}>ROWS PER PAGE</span>
-            <div className={styles.selectWrapper}>
-              <select
-                value={pageSize}
-                onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
-                className={styles.select}
-              >
-                {[50, 100, 200, 500].map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
+            <CyberSelect
+              width="130px"
+              direction="up"
+              value={pageSize}
+              options={pageSizeOptions}
+              onChange={(val: number) => {
+                setPageSize(Number(val));
+                setPage(0);
+              }}
+            />
           </div>
 
           <div className={styles.pageControls}>
