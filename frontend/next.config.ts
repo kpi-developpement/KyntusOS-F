@@ -1,20 +1,9 @@
 import type { NextConfig } from "next";
 
-// 🔥 L-FIX HNA: N-qraw l-variable d'environnement, wla n-forciw l-IP dyal host!
-const target = process.env.BACKEND_URL || 'http://10.10.10.25:8082';
-
 const nextConfig: NextConfig = {
-  transpilePackages: ['animejs'],
-  reactCompiler: true,
   output: "standalone",
   
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  
+  // N-khelliw Next.js y-qbel les fichiers kbar
   experimental: {
     serverActions: {
       bodySizeLimit: '500mb',
@@ -25,11 +14,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${target}/api/:path*`, 
+        // 🔥 L-FIX L-7ARBI: Forcina Next.js y-mchi direct l-l'IP dyal host dyalek!
+        destination: 'http://10.10.10.25:8082/api/:path*', 
       },
       {
         source: '/ws/:path*',
-        destination: `${target}/ws/:path*`,
+        destination: 'http://10.10.10.25:8082/ws/:path*',
       }
     ];
   },
