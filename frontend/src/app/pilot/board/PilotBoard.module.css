@@ -1,6 +1,6 @@
 /* ========================================================================== */
 /* KYNTUS EXECUTIVE PILOT BOARD (2026) — 70% PURE WHITE / 30% SAPPHIRE BLUE   */
-/* SPATIAL COLUMN REORDERING STUDIO + STICKY EPS ENGINE + 120 FPS MOTION      */
+/* IN-COLUMN SORT/FILTER STUDIO + BENTO AUTO-WRAP CELLS + 120 FPS MOTION      */
 /* ========================================================================== */
 
 .boardContainer {
@@ -28,9 +28,9 @@
   flex-direction: column;
   min-height: 100vh;
   padding: 6.8rem 2.25rem 2rem 2.25rem;
-  max-width: 1800px;
+  max-width: 1820px;
   margin: 0 auto;
-  gap: 1.3rem;
+  gap: 1.25rem;
 }
 
 /* ========================================================================== */
@@ -171,7 +171,7 @@
 .boardContent {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 1.1rem;
   flex: 1;
 }
 
@@ -185,7 +185,7 @@
   flex-wrap: wrap;
   gap: 1rem;
   padding: 0.65rem 1.1rem;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   border: 1.5px solid rgba(2, 132, 199, 0.2);
   border-radius: 18px;
   box-shadow: 0 8px 24px -6px rgba(2, 132, 199, 0.1);
@@ -222,7 +222,7 @@
 .kpiBadgesGroup {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
@@ -238,9 +238,9 @@
   gap: 7px;
   background: var(--pure-white);
   color: var(--slate-deep);
-  padding: 7px 15px;
+  padding: 7px 14px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 800;
   border: 1.5px solid #7dd3fc;
   cursor: pointer;
@@ -250,18 +250,18 @@
 
 .colStudioTrigger:hover,
 .colStudioTriggerActive {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: linear-gradient(135deg, var(--sapphire-core) 0%, var(--sapphire-royal) 100%);
   border-color: var(--sapphire-core);
-  color: var(--sapphire-core);
+  color: var(--pure-white);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.2);
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.28);
 }
 
 .colStudioPopover {
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
-  width: 410px;
+  width: 430px;
   max-width: 92vw;
   background: rgba(255, 255, 255, 0.99);
   backdrop-filter: blur(28px);
@@ -290,7 +290,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 900;
   color: var(--slate-deep);
   letter-spacing: 0.5px;
@@ -326,9 +326,9 @@
   background: #f1f5f9;
   border: none;
   color: #475569;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,7 +343,7 @@
 
 .colStudioHint {
   padding: 8px 16px;
-  font-size: 0.72rem;
+  font-size: 0.71rem;
   font-weight: 600;
   color: #64748b;
   background: #f8fafc;
@@ -460,6 +460,12 @@
   border-color: var(--sapphire-core);
 }
 
+.colIconBtnActive {
+  background: #e0f2fe;
+  color: var(--sapphire-core);
+  border-color: var(--sapphire-sky);
+}
+
 .colIconBtn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
@@ -477,9 +483,9 @@
   gap: 7px;
   background: var(--pure-white);
   color: var(--sapphire-core);
-  padding: 7px 15px;
+  padding: 7px 14px;
   border-radius: 999px;
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   font-weight: 800;
   border: 1.5px solid #bae6fd;
   box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
@@ -491,15 +497,15 @@
   gap: 7px;
   background: linear-gradient(135deg, var(--sapphire-core) 0%, var(--sapphire-royal) 100%);
   color: var(--pure-white);
-  padding: 7px 16px;
+  padding: 7px 15px;
   border-radius: 999px;
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   font-weight: 800;
   box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
 }
 
 /* ========================================================================== */
-/* 3. BENTO CARDS & CASCADING FILTER / MASS ACTION BAR (Z-INDEX 400)          */
+/* 3. BENTO CARDS, TOOLBAR & ACTIVE RULES CHIP BAR                            */
 /* ========================================================================== */
 
 .bentoCard {
@@ -515,7 +521,7 @@
   position: relative;
   z-index: 400;
   overflow: visible !important;
-  padding: 1.2rem 1.5rem;
+  padding: 1.15rem 1.45rem;
   border-bottom: 3px solid var(--sapphire-sky);
 }
 
@@ -641,6 +647,91 @@
   align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
+}
+
+/* ACTIVE COLUMN RULES RIBBON */
+.activeRulesBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 9px 16px;
+  background: linear-gradient(90deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1.5px solid #7dd3fc;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.1);
+  animation: popReveal 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.activeRulesLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: var(--sapphire-core);
+  letter-spacing: 0.5px;
+  margin-right: 4px;
+}
+
+.ruleChipSort,
+.ruleChipFilter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.ruleChipSort {
+  background: linear-gradient(135deg, var(--sapphire-core) 0%, var(--sapphire-royal) 100%);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+}
+
+.ruleChipFilter {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+}
+
+.ruleChipRemove {
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: inherit;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ruleChipRemove:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.clearAllRulesBtn {
+  margin-left: auto;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  padding: 4px 11px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearAllRulesBtn:hover {
+  background: #e11d48;
+  color: #ffffff;
 }
 
 /* MASS ACTION BANNER */
@@ -836,7 +927,7 @@
 }
 
 /* ========================================================================== */
-/* 4. SMART EXECUTIVE DATA TABLE + DRAGGABLE HEADERS + STICKY EPS             */
+/* 4. SMART EXECUTIVE DATA TABLE + IN-COLUMN POPOVER + BENTO AUTO-WRAP        */
 /* ========================================================================== */
 
 .gridWrapper {
@@ -848,7 +939,6 @@
   flex-direction: column;
   flex: 1;
   border-bottom: 4px solid var(--sapphire-core);
-  contain: layout style;
 }
 
 .tableScrollContainer {
@@ -856,7 +946,7 @@
   overflow-x: auto;
   overflow-y: auto;
   max-height: calc(100vh - 335px);
-  min-height: 420px;
+  min-height: 440px;
   scrollbar-width: thin;
   scrollbar-color: var(--sapphire-sky) #f1f5f9;
 }
@@ -871,7 +961,7 @@
 .luxeTable thead {
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 40;
 }
 
 /* STICKY LEFT COLUMNS (CHECKBOX + EPS + STATUS) */
@@ -887,59 +977,75 @@
 .stickyColEps {
   position: sticky;
   left: 48px;
-  min-width: 195px;
+  min-width: 210px;
   z-index: 22;
   background: inherit;
 }
 
 .stickyColStatus {
   position: sticky;
-  left: 243px;
-  min-width: 185px;
+  left: 258px;
+  min-width: 195px;
   z-index: 22;
   background: inherit;
-  box-shadow: 6px 0 14px -6px rgba(2, 132, 199, 0.14);
+  box-shadow: 6px 0 14px -6px rgba(2, 132, 199, 0.15);
 }
 
 .luxeTable thead .stickyColCheck,
 .luxeTable thead .stickyColEps,
 .luxeTable thead .stickyColStatus {
-  z-index: 35;
+  z-index: 45;
 }
 
 .thLocked {
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  position: relative;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
   color: #1e293b;
   font-weight: 800;
-  font-size: 0.73rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 13px 14px;
+  letter-spacing: 0.5px;
+  padding: 12px 13px;
   border-bottom: 2px solid #cbd5e1;
   border-right: 1px solid #e2e8f0;
   white-space: nowrap;
   text-align: left;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .thEditable {
+  position: relative;
   background: linear-gradient(135deg, var(--sapphire-core) 0%, var(--sapphire-royal) 100%);
   color: var(--pure-white);
   font-weight: 800;
-  font-size: 0.74rem;
+  font-size: 0.73rem;
   text-transform: uppercase;
-  letter-spacing: 0.7px;
-  padding: 13px 14px;
+  letter-spacing: 0.6px;
+  padding: 12px 13px;
   border-bottom: 2px solid #1e40af;
   border-right: 1px solid rgba(255, 255, 255, 0.24);
   white-space: nowrap;
   text-align: left;
-  min-width: 265px;
+  min-width: 280px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* DRAGGABLE HEADER INTERACTIONS */
+/* Active Laser Highlight when Column has Sort or Filter */
+.thActiveRule {
+  box-shadow: inset 0 3px 0 #38bdf8, 0 4px 12px rgba(2, 132, 199, 0.16) !important;
+}
+
+/* Elevate TH when its Filter/Sort Popover is open so it is never covered */
+.thMenuOpen {
+  z-index: 9999 !important;
+}
+
+.thWrappedMode {
+  min-width: 340px !important;
+  max-width: 420px !important;
+}
+
 .thDraggable {
   cursor: grab;
   user-select: none;
@@ -968,17 +1074,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 }
 
 .thContent {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.thTitleText {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .thGripHandle {
   opacity: 0.45;
+  flex-shrink: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -987,23 +1100,58 @@
   transform: scale(1.12);
 }
 
+/* IN-COLUMN HEADER ACTION BUTTONS (SORT, WRAP, FILTER, MOVE) */
+.thActionCluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.thHeaderIconBtn {
+  width: 23px;
+  height: 23px;
+  border-radius: 7px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.thHeaderIconBtn:hover {
+  background: var(--sapphire-core);
+  color: #ffffff;
+  border-color: #ffffff;
+  transform: translateY(-1px) scale(1.08);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.28);
+}
+
+.thHeaderIconBtnActive {
+  background: var(--sapphire-core) !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.55);
+}
+
 .thReorderControls {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  opacity: 0;
-  transform: translateX(4px);
-  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  gap: 2px;
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
 }
 
 .thDraggable:hover .thReorderControls {
   opacity: 1;
-  transform: translateX(0);
 }
 
 .thMoveBtn {
-  width: 21px;
-  height: 21px;
+  width: 20px;
+  height: 20px;
   border-radius: 6px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   background: rgba(255, 255, 255, 0.9);
@@ -1019,7 +1167,6 @@
   background: var(--sapphire-core);
   color: #ffffff;
   border-color: #ffffff;
-  transform: scale(1.12);
 }
 
 .thMoveBtn:disabled {
@@ -1027,7 +1174,267 @@
   cursor: not-allowed;
 }
 
-/* ROWS */
+/* ========================================================================== */
+/* IN-COLUMN FLOATING SORT & FILTER POPOVER (Z-INDEX 999999)                  */
+/* ========================================================================== */
+
+.colFilterPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 295px;
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(28px);
+  border: 1.5px solid rgba(2, 132, 199, 0.38);
+  border-top: 3px solid var(--sapphire-core);
+  border-radius: 18px;
+  box-shadow:
+    0 28px 60px -10px rgba(15, 23, 42, 0.26),
+    0 10px 26px -6px rgba(2, 132, 199, 0.22);
+  z-index: 999999 !important;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--slate-deep);
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: default;
+  animation: studio3DUnfold 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.colPopoverHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.colPopoverTitle {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: var(--sapphire-core);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colPopoverSection {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.colSectionLabel {
+  font-size: 0.66rem;
+  font-weight: 900;
+  color: #64748b;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.colSortGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.colSortBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.colSortBtn:hover {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+  color: var(--sapphire-core);
+  transform: translateX(2px);
+}
+
+.colSortBtnActive {
+  background: linear-gradient(135deg, var(--sapphire-core) 0%, var(--sapphire-royal) 100%) !important;
+  color: #ffffff !important;
+  border-color: var(--sapphire-core) !important;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.28);
+}
+
+.colWrapToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1.5px dashed #7dd3fc;
+  background: #f0f9ff;
+  color: #0369a1;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.colWrapToggleBtn:hover,
+.colWrapToggleActive {
+  background: var(--sapphire-core);
+  color: #ffffff;
+  border-style: solid;
+  border-color: var(--sapphire-core);
+}
+
+.colFilterHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.colClearRuleBtn {
+  background: none;
+  border: none;
+  color: #e11d48;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.colModePills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.colModePill {
+  padding: 5px 4px;
+  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.colModePillActive {
+  background: var(--sapphire-core);
+  color: #ffffff;
+  border-color: var(--sapphire-core);
+}
+
+.colSearchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.colSearchIcon {
+  position: absolute;
+  left: 9px;
+  color: var(--sapphire-core);
+}
+
+.colSearchInput {
+  width: 100%;
+  padding: 7px 26px 7px 28px;
+  border-radius: 9px;
+  border: 1.5px solid #93c5fd;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--slate-deep);
+  outline: none;
+}
+
+.colSearchInput:focus {
+  border-color: var(--sapphire-core);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.colClearInputBtn {
+  position: absolute;
+  right: 7px;
+  background: #e2e8f0;
+  border: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.colValuesBox {
+  max-height: 135px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 4px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.colValueOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.colValueOption:hover {
+  background: #e0f2fe;
+}
+
+.colValueOptionActive {
+  background: var(--sapphire-core) !important;
+  color: #ffffff !important;
+}
+
+.colValueText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colValueCount {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.colValueOptionActive .colValueCount {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* ========================================================================== */
+/* ROWS & BENTO AUTO-WRAP CELLS ("NO MORE 1CM X 17M")                         */
+/* ========================================================================== */
+
 .trRow {
   background: var(--pure-white);
   transition: background-color 0.15s ease;
@@ -1051,15 +1458,16 @@
 }
 
 .tdCell {
-  padding: 10px 16px;
+  padding: 10px 15px;
   border-bottom: 1px solid #e2e8f0;
   border-right: 1px solid #f1f5f9;
   color: #334155;
   vertical-align: middle;
-  max-width: 280px;
+  max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .tdEditableCell {
@@ -1068,7 +1476,73 @@
   border-right: 1px solid #e0f2fe;
   background: rgba(240, 249, 255, 0.55);
   vertical-align: middle;
-  min-width: 265px;
+  min-width: 280px;
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* BENTO MULTI-LINE AUTO-FIT CELL */
+.tdWrappedCell {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  min-width: 340px !important;
+  max-width: 420px !important;
+  vertical-align: top !important;
+  padding: 10px 14px !important;
+}
+
+.tdExpandableCursor {
+  cursor: pointer;
+}
+
+.tdActiveRuleHighlight {
+  background: rgba(224, 242, 254, 0.35);
+}
+
+.compactCellContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.wrappedBentoContent {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1px solid #bae6fd;
+  border-left: 3px solid var(--sapphire-core);
+  border-radius: 11px;
+  padding: 9px 12px;
+  line-height: 1.55;
+  word-break: break-word;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+  animation: popReveal 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.expandCellBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: #e0f2fe;
+  color: var(--sapphire-core);
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all 0.15s ease;
+}
+
+.tdCell:hover .expandCellBadge {
+  opacity: 1;
+  background: var(--sapphire-core);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.emptyDash {
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 /* EPS Badge Styling */
@@ -1116,13 +1590,15 @@
 }
 
 .lockedValue {
-  color: #475569;
+  color: #1e293b;
   font-size: 0.82rem;
   font-weight: 600;
   user-select: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Pilot Editable Input Inside Table */
+/* Pilot Editable Input & Multi-line Auto-Sizing Textarea */
 .pilotInputWrapper {
   position: relative;
   display: flex;
@@ -1143,11 +1619,32 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.pilotInput:hover:not(:disabled) {
+.pilotTextarea {
+  width: 100%;
+  background: var(--pure-white);
+  border: 1.5px solid #7dd3fc;
+  border-left: 3.5px solid var(--sapphire-core);
+  border-radius: 11px;
+  padding: 9px 30px 9px 12px;
+  font-family: inherit;
+  font-size: 0.83rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--slate-deep);
+  outline: none;
+  resize: vertical;
+  min-height: 58px;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pilotInput:hover:not(:disabled),
+.pilotTextarea:hover:not(:disabled) {
   border-color: var(--sapphire-sky);
 }
 
-.pilotInput:focus:not(:disabled) {
+.pilotInput:focus:not(:disabled),
+.pilotTextarea:focus:not(:disabled) {
   border-color: var(--sapphire-core);
   box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.16);
 }
@@ -1292,7 +1789,7 @@
 }
 
 @keyframes popReveal {
-  0% { opacity: 0; transform: scale(0.94); }
+  0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
 }
 
