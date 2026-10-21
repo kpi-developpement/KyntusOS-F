@@ -1,339 +1,355 @@
-/* =========================================
-   1. BACKGROUND: THE DIGITAL VOID
-   ========================================= */
+/* ========================================================================== */
+/* KYNTUS OS LOGIN (2026 EDITION) — 70% PURE WHITE / 30% ROYAL SAPPHIRE       */
+/* ========================================================================== */
+
 .container {
   height: 100vh;
   width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #02040a; /* Noir profond */
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 55%, #bae6fd 100%);
   position: relative;
   overflow: hidden;
-  perspective: 1000px; /* Pour la 3D */
+  perspective: 1200px;
 }
 
-/* Le Spot de Lumière (Atmosphere) */
-.container::after {
-  content: "";
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150vw; height: 150vh;
-  background: radial-gradient(circle, rgba(0, 112, 243, 0.15) 0%, rgba(2, 4, 10, 1) 70%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* La Grid en mouvement (Perspective Floor) */
+/* --- THE AMBIENT GRID (2026 AESTHETIC) --- */
 .container::before {
   content: "";
   position: absolute;
   top: -50%; left: -50%;
   width: 200%; height: 200%;
   background-image: 
-    linear-gradient(rgba(0, 242, 234, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 242, 234, 0.05) 1px, transparent 1px);
-  background-size: 60px 60px;
-  transform: perspective(500px) rotateX(60deg) translateY(0);
-  animation: gridMove 20s linear infinite;
+    linear-gradient(rgba(2, 132, 199, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 132, 199, 0.08) 1px, transparent 1px);
+  background-size: 80px 80px;
+  transform: perspective(600px) rotateX(60deg) translateY(0);
+  animation: gridMove 25s linear infinite;
   z-index: 1;
-  opacity: 0.6;
+  pointer-events: none;
 }
 
-/* =========================================
-   2. THE CARD: HOLO-GLASS TERMINAL
-   ========================================= */
-.loginCard {
-  position: relative;
-  width: 420px;
-  padding: 45px 45px 60px 45px;
-  
-  /* Glassmorphism Ultra */
-  background: rgba(10, 15, 30, 0.7);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  
-  /* Bordure Fine */
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  
-  z-index: 10;
-  box-shadow: 
-    0 20px 50px rgba(0,0,0,0.8), /* Ombre Profonde */
-    0 0 0 1px rgba(0, 242, 234, 0.1); /* Glow subtil */
-  
-  /* Animation d'entrée */
-  animation: floatCard 6s ease-in-out infinite;
-  overflow: hidden; /* Important pour le scanner */
-}
-
-/* --- TECH CORNERS (Les Brackets aux coins) --- */
-.loginCard::before,
-.loginCard::after {
+/* --- AMBIENT SAPPHIRE ORBS --- */
+.container::after {
   content: "";
   position: absolute;
-  width: 20px; height: 20px;
-  border: 2px solid var(--neon-cyan);
-  transition: all 0.3s ease;
-  opacity: 0.8;
-  z-index: 2;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw; height: 100vh;
+  background: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.15) 0%, transparent 60%),
+              radial-gradient(circle at 70% 70%, rgba(2, 132, 199, 0.1) 0%, transparent 60%);
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* Coin Haut-Gauche */
-.loginCard::before {
-  top: -1px; left: -1px;
-  border-right: none; border-bottom: none;
+/* ========================================================================== */
+/* 2. THE CARD: AERO-GLASS 3D TERMINAL                                        */
+/* ========================================================================== */
+
+.tiltWrapper {
+  position: relative;
+  z-index: 10;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
-/* Coin Bas-Droit */
-.loginCard::after {
-  bottom: -1px; right: -1px;
-  border-left: none; border-top: none;
+.loginCard {
+  position: relative;
+  width: 440px;
+  padding: 55px 45px;
+  
+  /* 70% Porcelain White Aero-Glass */
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 249, 255, 0.85) 100%);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 3px solid #0284c7;
+  border-radius: 28px;
+  
+  box-shadow: 
+    0 30px 60px -15px rgba(2, 132, 199, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 2px 5px #ffffff;
+  
+  overflow: hidden;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
-/* Scanner Laser */
+/* 3D Glare Effect (Lumière dynamique) */
+.glare {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255,255,255,0.7) 0%, transparent 50%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 20;
+  mix-blend-mode: overlay;
+}
+
+/* Scanner Laser Bleu (Au lieu du vert) */
 .scannerLine {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-  box-shadow: 0 0 15px var(--neon-cyan);
+  background: linear-gradient(90deg, transparent, #38bdf8, transparent);
+  box-shadow: 0 0 15px #38bdf8;
   animation: scan 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  opacity: 0.8;
+  opacity: 0.6;
   pointer-events: none;
   z-index: 20;
 }
 
-/* =========================================
-   3. 3D CUBE LOGO
-   ========================================= */
+/* ========================================================================== */
+/* 3. 3D HOLO NODE (Sapphire Blue)                                            */
+/* ========================================================================== */
+
 .logoWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 40px;
-  perspective: 600px;
+  margin-bottom: 45px;
+  transform: translateZ(30px); /* 3D Pop-out */
 }
 
-.cubeContainer {
-  width: 60px;
-  height: 60px;
+.holoNode {
+  width: 65px;
+  height: 65px;
   position: relative;
   transform-style: preserve-3d;
-  animation: spinCube 10s linear infinite;
-  margin-bottom: 20px;
+  animation: spinHolo 12s linear infinite;
+  margin-bottom: 25px;
 }
 
-.face {
+.nodeRing {
   position: absolute;
-  width: 60px;
-  height: 60px;
-  background: rgba(0, 112, 243, 0.1);
-  border: 2px solid var(--neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 242, 234, 0.2);
-  backface-visibility: visible;
+  inset: 0;
+  border: 2px solid rgba(2, 132, 199, 0.4);
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(2, 132, 199, 0.2);
 }
 
-.front  { transform: translateZ(30px); }
-.back   { transform: rotateY(180deg) translateZ(30px); }
-.right  { transform: rotateY(90deg) translateZ(30px); }
-.left   { transform: rotateY(-90deg) translateZ(30px); }
-.top    { transform: rotateX(90deg) translateZ(30px); }
-.bottom { transform: rotateX(-90deg) translateZ(30px); }
+.ring1 { transform: rotateX(60deg) rotateY(0deg); }
+.ring2 { transform: rotateX(60deg) rotateY(60deg); }
+.ring3 { transform: rotateX(60deg) rotateY(120deg); }
 
-/* Le noyau interne (Petit cube ldakhel) */
-.innerCube {
+.nodeCore {
   position: absolute;
-  top: 15px; left: 15px;
-  width: 30px; height: 30px;
-  background: var(--neon-cyan);
-  transform-style: preserve-3d;
-  transform: translateZ(0);
-  box-shadow: 0 0 20px var(--neon-cyan);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 25px; height: 25px;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 25px #0284c7;
   animation: pulseCore 2s ease-in-out infinite alternate;
 }
 
 /* Titre */
 .brandName {
-  font-size: 1.8rem;
+  font-size: 1.85rem;
   font-weight: 900;
-  color: white;
+  color: #0f172a;
   text-transform: uppercase;
-  letter-spacing: 4px;
+  letter-spacing: 5px;
   margin: 0;
-  text-shadow: 0 0 20px rgba(0, 112, 243, 0.6);
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.8);
 }
 
 .osTag {
-  color: var(--neon-cyan);
-  font-size: 0.8rem;
+  color: #0284c7;
+  font-size: 0.85rem;
   vertical-align: super;
-  margin-left: 5px;
+  margin-left: 6px;
+  padding: 2px 6px;
+  background: #e0f2fe;
+  border-radius: 6px;
+  border: 1px solid #bae6fd;
 }
 
 .statusText {
-  font-family: 'JetBrains Mono', monospace; /* Police Code */
-  color: #666;
-  font-size: 0.75rem;
-  letter-spacing: 1px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  margin-top: 10px;
+  margin-top: 14px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-/* =========================================
-   4. INPUTS & FORM
-   ========================================= */
+/* ========================================================================== */
+/* 4. INPUTS & FORM (Clean White 2026 UI)                                     */
+/* ========================================================================== */
+
 .inputGroup {
-  margin-bottom: 25px;
+  margin-bottom: 22px;
   position: relative;
+  transform: translateZ(20px); /* 3D Depth */
 }
 
 .inputIcon {
   position: absolute;
-  left: 16px; top: 50%;
+  left: 18px; top: 50%;
   transform: translateY(-50%);
-  color: #555;
-  transition: all 0.3s;
+  color: #94a3b8;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 5;
 }
 
 .inputField {
   width: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 2px solid rgba(255, 255, 255, 0.1); /* Accent gauche */
-  padding: 16px 16px 16px 50px;
-  border-radius: 4px;
-  color: white;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  padding: 16px 16px 16px 52px;
+  border-radius: 14px;
+  color: #0f172a;
+  font-weight: 700;
   outline: none;
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
-  transition: all 0.3s;
-  letter-spacing: 1px;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.02);
 }
 
 .inputField::placeholder {
-  color: #444;
-  letter-spacing: 1px;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .inputField:focus {
-  background: rgba(0, 112, 243, 0.05);
-  border-color: rgba(0, 112, 243, 0.5);
-  border-left-color: var(--neon-cyan); /* L'accent devient cyan */
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.1);
+  border-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2), inset 0 2px 4px rgba(15, 23, 42, 0.02);
+  transform: translateY(-2px);
 }
 
 .inputField:focus + .inputIcon {
-  color: var(--neon-cyan);
-  filter: drop-shadow(0 0 5px var(--neon-cyan));
+  color: #0284c7;
+  transform: translateY(-50%) scale(1.1);
 }
 
-/* Bouton */
+/* Bouton (Royal Sapphire) */
 .loginBtn {
   width: 100%;
   padding: 18px;
-  background: linear-gradient(90deg, #0070f3, #00c6ff);
+  margin-top: 10px;
+  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
   color: white;
   font-weight: 900;
   border: none;
-  border-radius: 4px;
+  border-radius: 14px;
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 3px;
-  font-size: 0.9rem;
-  transition: all 0.3s;
+  letter-spacing: 2px;
+  font-size: 0.92rem;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(0, 112, 243, 0.3);
+  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.35);
+  transform: translateZ(25px); /* 3D Depth */
 }
 
 .loginBtn::before {
   content: "";
   position: absolute;
   top: 0; left: -100%;
-  width: 100%; height: 100%;
+  width: 60%; height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  transition: 0.5s;
+  transform: skewX(-25deg);
+  transition: left 0.5s ease;
 }
 
-.loginBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 40px rgba(0, 112, 243, 0.6);
+.loginBtn:hover:not(:disabled) {
+  transform: translateY(-2px) translateZ(25px);
+  box-shadow: 0 14px 35px rgba(2, 132, 199, 0.45);
 }
 
-.loginBtn:hover::before {
-  left: 100%;
+.loginBtn:hover:not(:disabled)::before {
+  left: 150%;
+}
+
+.loginBtn:active:not(:disabled) {
+  transform: translateY(0) translateZ(25px) scale(0.98);
 }
 
 .loginBtn:disabled {
-  background: #222;
-  color: #555;
+  background: #e2e8f0;
+  color: #94a3b8;
   cursor: not-allowed;
   box-shadow: none;
-  transform: none;
 }
 
-/* =========================================
-   5. STATES (SUCCESS / ERROR)
-   ========================================= */
+/* ========================================================================== */
+/* 5. STATES (SUCCESS / ERROR / SPIN)                                         */
+/* ========================================================================== */
 
-/* ERROR SHAKE */
+.spin {
+  animation: spin 1.5s linear infinite;
+}
+
+/* ERROR SHAKE (Rouge élégant) */
 .errorMsg {
-  color: #ff0055;
+  color: #e11d48;
   text-align: center;
   margin-bottom: 25px;
-  font-family: monospace;
-  font-weight: bold;
+  font-family: ui-monospace, monospace;
+  font-weight: 800;
   font-size: 0.8rem;
-  padding: 10px;
-  background: rgba(255, 0, 85, 0.1);
-  border: 1px solid rgba(255, 0, 85, 0.3);
-  animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff1f2;
+  border: 1.5px solid #fecdd3;
+  transform: translateZ(20px);
+  animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both;
 }
 
-/* SUCCESS GREEN OVERRIDE */
+/* SUCCESS (Emerald Green Override) */
 .loginCard.success {
-  border-color: #39ff14;
-  box-shadow: 0 0 100px rgba(57, 255, 20, 0.15), inset 0 0 30px rgba(57, 255, 20, 0.05);
+  border-color: #10b981;
+  border-bottom-color: #059669;
+  box-shadow: 0 30px 60px -15px rgba(16, 185, 129, 0.25), 0 0 0 1px #10b981;
 }
 
 .loginCard.success .scannerLine {
-  background: #39ff14;
-  box-shadow: 0 0 30px #39ff14;
-  animation-duration: 0.8s;
+  background: linear-gradient(90deg, transparent, #34d399, transparent);
+  box-shadow: 0 0 20px #34d399;
+  animation-duration: 1.5s;
 }
 
-.loginCard.success .face {
-  border-color: #39ff14;
-  box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
-  background: rgba(57, 255, 20, 0.1);
+.loginCard.success .nodeRing {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
 
-.loginCard.success .innerCube {
-  background: #39ff14;
-  box-shadow: 0 0 40px #39ff14;
-}
-
-.loginCard.success .brandName {
-  color: #39ff14;
-  text-shadow: 0 0 30px #39ff14;
+.loginCard.success .nodeCore {
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+  box-shadow: 0 0 30px #10b981;
 }
 
 .loginCard.success .osTag {
-  color: #39ff14;
+  color: #059669;
+  background: #dcfce7;
+  border-color: #86efac;
 }
 
-/* =========================================
-   6. KEYFRAMES
-   ========================================= */
+.loginBtn.successBtn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+}
+
+/* ========================================================================== */
+/* 6. KEYFRAMES                                                               */
+/* ========================================================================== */
 @keyframes gridMove {
   0% { background-position: 0 0; }
-  100% { background-position: 0 60px; }
+  100% { background-position: 0 80px; }
 }
 
 @keyframes scan {
@@ -343,26 +359,26 @@
   100% { top: 110%; opacity: 0; }
 }
 
-@keyframes floatCard {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes spinCube {
+@keyframes spinHolo {
   0% { transform: rotateX(-20deg) rotateY(0deg); }
   100% { transform: rotateX(-20deg) rotateY(360deg); }
 }
 
 @keyframes pulseCore {
-  from { opacity: 0.5; box-shadow: 0 0 10px var(--neon-cyan); }
-  to { opacity: 1; box-shadow: 0 0 30px var(--neon-cyan); }
+  from { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+  to { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
+  0% { transform: translateZ(20px) translateX(0); }
+  20% { transform: translateZ(20px) translateX(-4px); }
+  40% { transform: translateZ(20px) translateX(4px); }
+  60% { transform: translateZ(20px) translateX(-2px); }
+  80% { transform: translateZ(20px) translateX(2px); }
+  100% { transform: translateZ(20px) translateX(0); }
 }
