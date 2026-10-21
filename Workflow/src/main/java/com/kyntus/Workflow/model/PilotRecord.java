@@ -9,7 +9,12 @@ import java.util.Date;
 import java.util.Map;
 
 @Entity
-@Table(name = "pilot_records")
+// 🔥 THE FIX: Zidna les Indexes hna bach Hibernate y-creyihom bla ma y-dir Deadlock f' demarrage
+@Table(name = "pilot_records", indexes = {
+        @Index(name = "idx_pilot_records_main", columnList = "category, import_year, import_month"),
+        @Index(name = "idx_pilot_records_eps", columnList = "eps_reference"),
+        @Index(name = "idx_pilot_records_perf", columnList = "category, import_year, import_month, eps_reference")
+})
 @Data
 public class PilotRecord {
 
@@ -45,6 +50,10 @@ public class PilotRecord {
     // 🔥 THE TIME-MACHINE COLUMN (Ex: 1, 2, 4...)
     @Column(name = "file_rank")
     private Integer fileRank;
+
+    // 🔥 THE FIX: Zidna data_hash hna blast ma n-dirou ALTER TABLE f' PostConstruct
+    @Column(name = "data_hash")
+    private Integer dataHash;
 
     @ManyToOne
     @JoinColumn(name = "pilot_id")

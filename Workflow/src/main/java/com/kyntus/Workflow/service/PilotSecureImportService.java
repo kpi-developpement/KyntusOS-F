@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -48,16 +47,8 @@ public class PilotSecureImportService {
         this.securityService = securityService;
     }
 
-    @PostConstruct
-    public void initIndexes() {
-        try {
-            jdbcTemplate.execute("ALTER TABLE pilot_records ADD COLUMN IF NOT EXISTS data_hash INTEGER");
-            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_perf ON pilot_records(category, import_year, import_month, eps_reference)");
-            System.out.println("✅ [KYNTUS NEXUS] Architecture Ultime (Absolute Shield + Hyper Speed) Prête !");
-        } catch (Exception e) {
-            System.out.println("⚠️ [KYNTUS NEXUS] Index déjà existants.");
-        }
-    }
+    // 🔥 THE FIX: 7iydna @PostConstruct li kan kay-dir ALTER TABLE w CREATE INDEX w kay-bloci d-démarrage.
+    // Daba kolchi m-gadd f' PilotRecord.java
 
     @Transactional
     public int fixRetroactiveDuplicates() {
@@ -86,10 +77,8 @@ public class PilotSecureImportService {
         }
     }
 
-    // 🚀 L-VITESSE X100: Msse7na Stream API w drna StringBuilder 🚀
     private int generateDataHash(Map<String, String> data) {
         StringBuilder sb = new StringBuilder();
-        // L-Map deja m-retiyba (TreeMap) w khawya mn l-nulls
         for (Map.Entry<String, String> entry : data.entrySet()) {
             sb.append(entry.getKey().toLowerCase()).append("=").append(entry.getValue().toLowerCase()).append("|");
         }
@@ -123,7 +112,6 @@ public class PilotSecureImportService {
         Map<Integer, String> sessionFilenameCache = new HashMap<>();
         Set<String> loadedCaches = new HashSet<>();
 
-        // 🔥 L-QALEB JDID: Set<Integer> machi Integer, bash n-7efdou l-HISTORIQUE KAMEL dyal l-EPS 🔥
         Map<String, Set<Integer>> memoryShieldCache = new ConcurrentHashMap<>();
 
         String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
@@ -263,7 +251,6 @@ public class PilotSecureImportService {
         String cacheKey = year + "-" + month;
         if (!loadedCaches.contains(cacheKey)) {
             long startTime = System.currentTimeMillis();
-            // 🛡️ THE ABSOLUTE SHIELD: Kay-jbed ga3 l-Historique dyal l-Hashes machi ghir t-tali
             String sql = "SELECT eps_reference, data_hash FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ? AND data_hash IS NOT NULL";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -330,7 +317,6 @@ public class PilotSecureImportService {
             List<SecureEpsRecord> pureNewData = group.stream().filter(rec -> {
                 String fullKey = rec.eps + "_" + cacheKeyMap;
                 Set<Integer> existingHashes = memoryShieldCache.get(fullKey);
-                // 🛑 BLOCK ANY MATCH IN HISTORY (Machi ghir V4, 7ta V1 y-tblocka) 🛑
                 if (existingHashes != null && existingHashes.contains(rec.dataHash)) return false;
                 rec.fileRank = rowFileRank;
                 rec.sourceFile = rowFilename;
@@ -377,7 +363,6 @@ public class PilotSecureImportService {
             psTemp.executeBatch();
         }
 
-        // 🚀 SQL UPDATE: Hna SQL 7ta howa kay-chouf l-Historique Kamel 🚀
         String megaMergeSql =
                 "WITH MaxVersions AS (" +
                         "    SELECT eps_reference, MAX(CAST(SUBSTRING(version FROM 2) AS INTEGER)) as max_v " +

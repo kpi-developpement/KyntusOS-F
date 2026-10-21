@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import jakarta.annotation.PostConstruct;
 
 import javax.sql.DataSource;
 import java.io.BufferedReader;
@@ -57,16 +56,8 @@ public class PilotImportService {
         this.mapWriter = objectMapper.writerFor(Map.class);
     }
 
-    @PostConstruct
-    public void initIndexes() {
-        try {
-            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_main ON pilot_records(category, import_year, import_month)");
-            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_pilot_records_eps ON pilot_records(eps_reference)");
-            System.out.println("✅ [KYNTUS NEXUS] BDD Indexes Vérifiés & Optimisés (Vitesse x100).");
-        } catch (Exception e) {
-            System.out.println("⚠️ [KYNTUS NEXUS] Impossible de créer les Index (peut-être déjà existants).");
-        }
-    }
+    // 🔥 THE FIX: 7iydna @PostConstruct li kan kay-dir CREATE INDEX w kay-bloci d-démarrage.
+    // Daba kolchi m-gadd f' PilotRecord.java
 
     public static class EpsRecord {
         public String eps;
@@ -728,12 +719,9 @@ public class PilotImportService {
         return jdbcTemplate.update(sql);
     }
 
-    // 🔥 LA NOUVELLE METHODE OMNI SEARCH (ZERO-RAM STREAMING + POSTGRESQL FIX) 🔥
-    // 7yedna @Transactional bach manssthelkouch l'pool dyal les connexions (hit kadiir dataSource.getConnection)
     public void exportGlobalOmniSearchToExcel(List<String> epsList, OutputStream outputStream) throws Exception {
         System.out.println("🚀 [OMNI SEARCH] Démarrage du processus...");
 
-        // 🚨 L'Mina 2 (NullPointerException Guard) 🚨
         if (epsList == null || epsList.isEmpty()) {
             throw new RuntimeException("La liste des EPS est vide ou invalide.");
         }
@@ -758,7 +746,6 @@ public class PilotImportService {
                 List<String> subList = cleanEpsList.subList(i, Math.min(i + batchSize, cleanEpsList.size()));
                 String inSql = String.join(",", Collections.nCopies(subList.size(), "?"));
 
-                // 🚨 L'Mina 1 (PostgreSQL JSONB Type Crash Fix) 🚨
                 String keysSql = "SELECT DISTINCT jsonb_object_keys(dynamic_data) FROM pilot_records WHERE eps_reference IN (" + inSql + ") AND dynamic_data IS NOT NULL AND jsonb_typeof(dynamic_data) = 'object'";
 
                 try (PreparedStatement psKeys = conn.prepareStatement(keysSql)) {
@@ -786,13 +773,10 @@ public class PilotImportService {
 
         System.out.println("🚀 [OMNI SEARCH] --- PHASE 2 : Génération du fichier Excel ---");
 
-        // 🔥 L'OPTIMISATION L'KBIRA: nakhaliw ghir 100 rows f RAM, w compressiw temp files f SSD 🔥
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(100);
              Connection conn = dataSource.getConnection()) {
 
             workbook.setCompressTempFiles(true);
-
-            // 🚨 L'Mina 3: setAutoCommit(false) hia drouriya l'PostgreSQL bash ykhdem l'fetchSize (Makhassh thiyed, wlkin 7yedna @Transactional lfoq)
             conn.setAutoCommit(false);
 
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Omni Search Export");
@@ -870,7 +854,6 @@ public class PilotImportService {
             }
             conn.commit();
 
-            // 🔥 KAN KETBOU FL FLUX RESEAU DIRECTEMENT (OUTPUT STREAM) 🔥
             workbook.write(outputStream);
             workbook.dispose();
             outputStream.flush();
