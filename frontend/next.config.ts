@@ -1,15 +1,13 @@
 import type { NextConfig } from "next";
 
-const target = process.env.NODE_ENV === 'production' 
-    ? 'http://backend:8082' 
-    : 'http://localhost:8082';
+// 🔥 L-FIX HNA: N-qraw l-variable d'environnement, wla n-forciw l-IP dyal host!
+const target = process.env.BACKEND_URL || 'http://10.10.10.25:8082';
 
 const nextConfig: NextConfig = {
   transpilePackages: ['animejs'],
   reactCompiler: true,
   output: "standalone",
   
-  // 🔥 Bash TypeScript w ESLint ma-y-blokiwch l-build f' Docker
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -17,7 +15,6 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // 🔥 N-khelliw Next.js y-qbel les fichiers kbar
   experimental: {
     serverActions: {
       bodySizeLimit: '500mb',
