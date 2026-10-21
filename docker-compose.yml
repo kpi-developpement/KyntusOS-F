@@ -36,4 +36,4 @@ services:
       - backend
     environment:
       - NEXT_PUBLIC_API_URL=/api
-      - BACKEND_URL=http://backend:8082
+      - BACKEND_URL=http://10.10.10.25:8082
