@@ -31,6 +31,62 @@ public class FactureMasterService {
             "CODE INSEE", "CODE_INSEE", "REPETEUR", "PREAPPEL", "DEVIS"
     ));
 
+    // ========================================================================
+    // 🧾 GRILLE TISSEO : nefs l-calcul dyal KYNTUS, w f' l-akhir kan-bedlou
+    // l-prix final dyal INSTALLATION / MES / MATERIEL / LOGISTIQUE
+    // (clé = valeur KYNTUS en centimes → prix TISSEO)
+    // ========================================================================
+    public static final String TYPE_KYNTUS = "KYNTUS";
+    public static final String TYPE_TISSEO = "TISSEO";
+
+    private static final Map<Long, Double> TISSEO_INSTALLATION = new HashMap<>();
+    private static final Map<Long, Double> TISSEO_MES = new HashMap<>();
+    private static final Map<Long, Double> TISSEO_MATERIEL = new HashMap<>();
+    private static final Map<Long, Double> TISSEO_LOGISTIQUE = new HashMap<>();
+
+    static {
+        // INSTALLATION
+        tisseoRule(TISSEO_INSTALLATION, 93.25, 86, 89, 98.9, 102.35, 67, 70, 77.05, 80.5, 80.05);
+        tisseoRule(TISSEO_INSTALLATION, 187.61, 108, 111, 124.2, 127.65);
+        tisseoRule(TISSEO_INSTALLATION, 328.22, 218, 221, 250.7, 254.15);
+        tisseoRule(TISSEO_INSTALLATION, 477.61, 273, 276, 313.95, 317.4);
+        tisseoRule(TISSEO_INSTALLATION, 545.65, 303, 306, 348.45, 351.9);
+
+        // MES
+        tisseoRule(TISSEO_MES, 7, 5);
+        tisseoRule(TISSEO_MES, 12, 10);
+        tisseoRule(TISSEO_MES, 25.3, 20);
+        tisseoRule(TISSEO_MES, 31.63, 21);
+        tisseoRule(TISSEO_MES, 37.95, 24);
+        tisseoRule(TISSEO_MES, 47.3, 30);
+        tisseoRule(TISSEO_MES, 53.63, 31);
+        tisseoRule(TISSEO_MES, 59.95, 34);
+
+        // MATERIEL
+        tisseoRule(TISSEO_MATERIEL, 2.34, 1.46);
+        tisseoRule(TISSEO_MATERIEL, 17.29, 11.03);
+        tisseoRule(TISSEO_MATERIEL, 57.66, 31.28, 28.62);
+        tisseoRule(TISSEO_MATERIEL, 63.24, 41.22, 41.21);
+
+        // LOGISTIQUE
+        tisseoRule(TISSEO_LOGISTIQUE, 14, 13);
+        tisseoRule(TISSEO_LOGISTIQUE, 28, 26);
+    }
+
+    private static void tisseoRule(Map<Long, Double> grid, double tisseoPrice, double... kyntusValues) {
+        for (double v : kyntusValues) grid.put(toCents(v), tisseoPrice);
+    }
+
+    private static long toCents(double v) {
+        return Math.round(v * 100.0);
+    }
+
+    /** Ila l-valeur kayna f' la grille Tisseo kan-rj3ou l-prix Tisseo, sinon kat-b9a kifma hiya. */
+    private static double applyTisseo(Map<Long, Double> grid, double kyntusValue) {
+        return grid.getOrDefault(toCents(kyntusValue), kyntusValue);
+    }
+
+    /** Compatibilité : l-appel l-9dim kay-b9a KYNTUS. */
     public byte[] generateFinalFacture(
             MultipartFile fichierAVide,
             Map<String, String> repeteurMap,
@@ -40,6 +96,21 @@ public class FactureMasterService {
             Map<String, MesProcessorService.MesResult> mesMap,
             Map<String, String> offreMap,
             Map<String, Double> devisMap) throws Exception {
+        return generateFinalFacture(fichierAVide, repeteurMap, tvcMap, diagWifiMap, qaMap, mesMap, offreMap, devisMap, TYPE_KYNTUS);
+    }
+
+    public byte[] generateFinalFacture(
+            MultipartFile fichierAVide,
+            Map<String, String> repeteurMap,
+            Map<String, String> tvcMap,
+            Map<String, String> diagWifiMap,
+            Map<String, QaProcessorService.QaData> qaMap,
+            Map<String, MesProcessorService.MesResult> mesMap,
+            Map<String, String> offreMap,
+            Map<String, Double> devisMap,
+            String typeFacture) throws Exception {
+
+        final boolean isTisseo = TYPE_TISSEO.equalsIgnoreCase(typeFacture);
 
         if (mesMap == null) {
             mesMap = new LinkedHashMap<>(32768);
@@ -139,6 +210,7 @@ public class FactureMasterService {
                 // LOGISTIQUE (Repeteur)
                 String repVal = repeteurMap.getOrDefault(codeInter, "0");
                 double logistiqueVal = parseDoubleSafe(repVal);
+                if (isTisseo) logistiqueVal = applyTisseo(TISSEO_LOGISTIQUE, logistiqueVal);
                 setCellNumeric(row, colLogistique, logistiqueVal);
                 setCellNumeric(row, colRepeteurOut, logistiqueVal);
 
@@ -169,6 +241,7 @@ public class FactureMasterService {
                     else if (materielVal == 28.62) materielVal = 77.41;
                     else if (materielVal == 41.22 || materielVal == 41.21) materielVal = 128.0;
                 }
+                if (isTisseo) materielVal = applyTisseo(TISSEO_MATERIEL, materielVal);
                 setCellNumeric(row, colMateriel, materielVal);
 
                 // CODE POSTAL & COEF ZONE
@@ -195,10 +268,12 @@ public class FactureMasterService {
                     else baseInstallation = rawInstallation;
                 }
                 double finalInstallation = baseInstallation * coefZone;
+                if (isTisseo) finalInstallation = applyTisseo(TISSEO_INSTALLATION, finalInstallation);
                 setCellNumeric(row, colInstallation, finalInstallation);
 
                 // MES
                 double mesVal = mesResult != null ? mesResult.mtPlusDiagWifi : 0.0;
+                if (isTisseo) mesVal = applyTisseo(TISSEO_MES, mesVal);
                 setCellNumeric(row, colMes, mesVal);
 
                 // TOTAL
@@ -274,6 +349,16 @@ public class FactureMasterService {
                 row.createCell(11).setCellValue(mes.codeInterDup);
                 row.createCell(12).setCellValue(mes.mt);
                 row.createCell(13).setCellValue(mes.mtPlusDiagWifi);
+            }
+
+            if (isTisseo) {
+                Sheet sheetGrille = workbook.createSheet("GRILLE TISSEO");
+                createHeaderRow(sheetGrille, "RUBRIQUE", "VALEUR KYNTUS", "PRIX TISSEO");
+                r = 1;
+                r = writeGrid(sheetGrille, r, "INSTALLATION", TISSEO_INSTALLATION);
+                r = writeGrid(sheetGrille, r, "MES", TISSEO_MES);
+                r = writeGrid(sheetGrille, r, "MATERIEL", TISSEO_MATERIEL);
+                writeGrid(sheetGrille, r, "LOGISTIQUE", TISSEO_LOGISTIQUE);
             }
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream(8 * 1024 * 1024);
@@ -373,6 +458,19 @@ public class FactureMasterService {
         if (categ.contains("chambre")) return 218;
         if (categ.contains("immeuble")) return 108;
         return 0;
+    }
+
+    private int writeGrid(Sheet sheet, int startRow, String rubrique, Map<Long, Double> grid) {
+        List<Long> keys = new ArrayList<>(grid.keySet());
+        Collections.sort(keys);
+        int r = startRow;
+        for (Long cents : keys) {
+            Row row = sheet.createRow(r++);
+            row.createCell(0).setCellValue(rubrique);
+            row.createCell(1).setCellValue(cents / 100.0);
+            row.createCell(2).setCellValue(grid.get(cents));
+        }
+        return r;
     }
 
     private void createHeaderRow(Sheet sheet, String... headers) {

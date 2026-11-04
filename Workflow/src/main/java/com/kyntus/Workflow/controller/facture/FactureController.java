@@ -48,10 +48,13 @@ public class FactureController {
             @RequestParam("fichierDiagWifi") MultipartFile fichierDiagWifi,
             @RequestParam("fichierQA") MultipartFile fichierQA,
             @RequestParam(value = "fichierIntervention", required = false) MultipartFile fichierIntervention,
-            @RequestParam(value = "devisData", required = false) String devisDataJson
+            @RequestParam(value = "devisData", required = false) String devisDataJson,
+            @RequestParam(value = "typeFacture", required = false, defaultValue = "KYNTUS") String typeFacture
     ) {
         try {
-            System.out.println("🚀 [FACTURE ENGINE] Début du traitement...");
+            boolean isTisseo = FactureMasterService.TYPE_TISSEO.equalsIgnoreCase(typeFacture);
+            String type = isTisseo ? FactureMasterService.TYPE_TISSEO : FactureMasterService.TYPE_KYNTUS;
+            System.out.println("🚀 [FACTURE ENGINE] Début du traitement... (Grille : " + type + ")");
 
             // 🔥 THE POI MASTER FIX : Augmenter la limite de mémoire à 300 Mo bach y-passer l-fichiers kbar
             IOUtils.setByteArrayMaxOverride(300_000_000);
@@ -72,13 +75,14 @@ public class FactureController {
             Map<String, String> offreMap = interventionService.processInterventionFile(fichierIntervention);
             Map<String, MesProcessorService.MesResult> mesMap = mesService.processMesData(fichierAVide, diagWifiMap, qaMap, offreMap);
 
-            // 🔥 Sifetna devisMap l-Master bash y-tbe9ha f' SUPPORT 🔥
+            // 🔥 Sifetna devisMap + type dyal la facture l-Master 🔥
             byte[] finalExcelBytes = masterService.generateFinalFacture(
-                    fichierAVide, repeteurMap, tvcMap, diagWifiMap, qaMap, mesMap, offreMap, devisMap);
+                    fichierAVide, repeteurMap, tvcMap, diagWifiMap, qaMap, mesMap, offreMap, devisMap, type);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Facture_Kyntus_2080.xlsx");
+            headers.setContentDispositionFormData("attachment", isTisseo ? "Facture_Tisseo_2080.xlsx" : "Facture_Kyntus_2080.xlsx");
+            headers.add("X-Facture-Type", type);
             headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
             System.out.println("✅ [FACTURE ENGINE] Traitement terminé avec succès !");
