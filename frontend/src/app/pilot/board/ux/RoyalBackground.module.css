@@ -1,121 +1,95 @@
 /* ========================================================================== */
-/* LUXE SAPPHIRE & ALABASTER BACKGROUND — 70% PURE WHITE / 30% SAPPHIRE BLUE  */
+/* SAPPHIRE & ALABASTER BACKGROUND — 70% WHITE / 30% BLUE                     */
+/* Perf: one fixed layer, static grid, only transform/opacity animate,        */
+/* everything paused when the tab is hidden.                                   */
 /* ========================================================================== */
 
 .container {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
-  /* 70% Pure Porcelain White + 30% Soft Sapphire Horizon */
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #e0f2fe 100%);
-  perspective: 1200px;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
   contain: strict;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #e8f1fe 100%);
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
 }
 
 .sapphireOrbPrimary {
-  position: absolute;
-  top: -15%;
-  right: -5%;
-  width: 52vw;
-  height: 52vw;
-  max-width: 780px;
-  max-height: 780px;
-  background: radial-gradient(
-    circle,
-    rgba(2, 132, 199, 0.16) 0%,
-    rgba(29, 78, 216, 0.06) 45%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  will-change: transform;
-  animation: floatSlow 15s ease-in-out infinite alternate;
+  top: -18%;
+  right: -8%;
+  width: 760px;
+  height: 760px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.13) 0%, rgba(29, 78, 216, 0.05) 45%, transparent 70%);
+  animation: floatSlow 18s ease-in-out infinite alternate;
 }
 
 .sapphireOrbSecondary {
-  position: absolute;
-  bottom: -20%;
-  left: -10%;
-  width: 48vw;
-  height: 48vw;
-  max-width: 680px;
-  max-height: 680px;
-  background: radial-gradient(
-    circle,
-    rgba(56, 189, 248, 0.15) 0%,
-    rgba(2, 132, 199, 0.05) 50%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  will-change: transform;
-  animation: floatSlow 19s ease-in-out infinite alternate-reverse;
+  bottom: -24%;
+  left: -12%;
+  width: 660px;
+  height: 660px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.13) 0%, rgba(2, 132, 199, 0.04) 50%, transparent 70%);
+  animation: floatSlow 22s ease-in-out infinite alternate-reverse;
 }
 
+/* mouse-following glow (moved with transform by JS, 1 update per frame max) */
 .interactiveAura {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 520px;
   height: 520px;
-  background: radial-gradient(
-    circle,
-    rgba(2, 132, 199, 0.12) 0%,
-    transparent 65%
-  );
   border-radius: 50%;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 65%);
   transform: translate3d(-1000px, -1000px, 0);
   will-change: transform;
-  pointer-events: none;
+  transition: opacity 0.4s;
 }
 
+/* perspective floor grid — STATIC (an animated 3D masked layer costs a lot of FPS) */
 .grid3d {
   position: absolute;
-  bottom: -42%;
   left: -50%;
+  bottom: -38%;
   width: 200%;
-  height: 125%;
+  height: 90%;
   background-image:
-    linear-gradient(rgba(2, 132, 199, 0.11) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(2, 132, 199, 0.11) 1px, transparent 1px);
+    linear-gradient(rgba(37, 99, 235, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.09) 1px, transparent 1px);
   background-size: 56px 56px;
-  transform: rotateX(72deg) translate3d(0, 0, 0);
+  transform: perspective(900px) rotateX(70deg);
   transform-origin: center top;
-  will-change: transform;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.75) 50%,
-    rgba(0, 0, 0, 0) 95%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.75) 50%,
-    rgba(0, 0, 0, 0) 95%
-  );
-  animation: moveGrid 7s linear infinite;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 45%, transparent 95%);
+  mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 45%, transparent 95%);
 }
 
 .topBeam {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 12.5%;
   width: 75%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #0284c7, #38bdf8, #0284c7, transparent);
-  box-shadow: 0 4px 25px rgba(2, 132, 199, 0.35);
+  background: linear-gradient(90deg, transparent, #2563eb, #60a5fa, #2563eb, transparent);
+  opacity: 0.8;
 }
 
-@keyframes moveGrid {
-  0% { transform: rotateX(72deg) translate3d(0, 0, 0); }
-  100% { transform: rotateX(72deg) translate3d(0, 56px, 0); }
+.paused .sapphireOrbPrimary,
+.paused .sapphireOrbSecondary {
+  animation-play-state: paused;
 }
 
 @keyframes floatSlow {
   0% { transform: translate3d(0, 0, 0) scale(1); }
-  100% { transform: translate3d(28px, -22px, 0) scale(1.06); }
+  100% { transform: translate3d(28px, -22px, 0) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sapphireOrbPrimary, .sapphireOrbSecondary { animation: none; }
+  .interactiveAura { display: none; }
 }

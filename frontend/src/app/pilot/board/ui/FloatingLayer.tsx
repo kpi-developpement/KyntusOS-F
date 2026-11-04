@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 
 // ============================================================================
 // FLOATING LAYER — renders a panel in document.body (portal), anchored to an
-// element. It is never clipped by the table's overflow, always stays inside
-// the viewport, and gets its own internal scroll when space is short.
+// element. Never clipped by any overflow / stacking context of the page,
+// always above everything (max z-index), stays inside the viewport and gets
+// its own internal scroll when space is short.
 // ============================================================================
 
 interface FloatingLayerProps {
@@ -14,6 +15,10 @@ interface FloatingLayerProps {
   open: boolean;
   onClose: () => void;
   width?: number;
+  /** panel is at least as wide as the anchor (dropdowns) */
+  fitAnchor?: boolean;
+  /** max height of the panel even when there is more room */
+  maxHeightCap?: number;
   align?: "left" | "right";
   className?: string;
   children: React.ReactNode;
@@ -21,12 +26,24 @@ interface FloatingLayerProps {
 
 const GAP = 8;
 const MARGIN = 12;
+export const TOP_LAYER_Z = 2147483000;
+
+interface Pos {
+  top: number;
+  left: number;
+  width: number;
+  maxHeight: number;
+  placeAbove: boolean;
+  ready: boolean;
+}
 
 export default function FloatingLayer({
   anchor,
   open,
   onClose,
   width = 320,
+  fitAnchor = false,
+  maxHeightCap,
   align = "left",
   className,
   children,
@@ -35,54 +52,58 @@ export default function FloatingLayer({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const [mounted, setMounted] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number; placeAbove: boolean }>({
-    top: -9999,
-    left: -9999,
-    maxHeight: 400,
-    placeAbove: false,
-  });
+  const [pos, setPos] = useState<Pos>({ top: -9999, left: -9999, width, maxHeight: 400, placeAbove: false, ready: false });
 
   useEffect(() => setMounted(true), []);
 
-  // Position calculation (runs on open, scroll of ANY ancestor, resize)
+  // Position (open, scroll of ANY ancestor, resize) — one calc per frame max
   useLayoutEffect(() => {
-    if (!open || !anchor) return;
+    if (!open || !anchor) {
+      setPos((p) => (p.ready ? { ...p, ready: false } : p));
+      return;
+    }
 
     let frame = 0;
-    const compute = () => {
+    const calc = () => {
+      if (!anchor.isConnected) {
+        onCloseRef.current();
+        return;
+      }
+      const r = anchor.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const w = Math.min(fitAnchor ? Math.max(width, r.width) : width, vw - MARGIN * 2);
+
+      let left = align === "right" ? r.right - w : r.left;
+      left = Math.max(MARGIN, Math.min(left, vw - w - MARGIN));
+
+      const spaceBelow = vh - r.bottom - GAP - MARGIN;
+      const spaceAbove = r.top - GAP - MARGIN;
+      const placeAbove = spaceBelow < 240 && spaceAbove > spaceBelow;
+      let maxHeight = Math.max(160, placeAbove ? spaceAbove : spaceBelow);
+      if (maxHeightCap) maxHeight = Math.min(maxHeight, maxHeightCap);
+      const top = placeAbove ? r.top - GAP : r.bottom + GAP;
+
+      setPos((p) =>
+        p.ready && p.top === top && p.left === left && p.width === w && p.maxHeight === maxHeight && p.placeAbove === placeAbove
+          ? p
+          : { top, left, width: w, maxHeight, placeAbove, ready: true }
+      );
+    };
+    const schedule = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        if (!anchor.isConnected) {
-          onCloseRef.current();
-          return;
-        }
-        const r = anchor.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const w = Math.min(width, vw - MARGIN * 2);
-
-        let left = align === "right" ? r.right - w : r.left;
-        left = Math.max(MARGIN, Math.min(left, vw - w - MARGIN));
-
-        const spaceBelow = vh - r.bottom - GAP - MARGIN;
-        const spaceAbove = r.top - GAP - MARGIN;
-        const placeAbove = spaceBelow < 260 && spaceAbove > spaceBelow;
-        const maxHeight = Math.max(180, placeAbove ? spaceAbove : spaceBelow);
-        const top = placeAbove ? r.top - GAP : r.bottom + GAP;
-
-        setPos({ top, left, maxHeight, placeAbove });
-      });
+      frame = requestAnimationFrame(calc);
     };
 
-    compute();
-    window.addEventListener("resize", compute);
-    window.addEventListener("scroll", compute, true);
+    calc(); // synchronous first placement → no visual jump
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener("resize", compute);
-      window.removeEventListener("scroll", compute, true);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
     };
-  }, [open, anchor, width, align]);
+  }, [open, anchor, width, fitAnchor, maxHeightCap, align]);
 
   // Outside click + Escape
   useEffect(() => {
@@ -115,12 +136,14 @@ export default function FloatingLayer({
         position: "fixed",
         top: pos.top,
         left: pos.left,
-        width: Math.min(width, typeof window !== "undefined" ? window.innerWidth - MARGIN * 2 : width),
+        width: pos.width,
         maxHeight: pos.maxHeight,
         transform: pos.placeAbove ? "translateY(-100%)" : undefined,
-        zIndex: 100000,
+        visibility: pos.ready ? "visible" : "hidden",
+        zIndex: TOP_LAYER_Z,
         display: "flex",
         flexDirection: "column",
+        isolation: "isolate",
       }}
     >
       {children}

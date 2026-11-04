@@ -1,15 +1,17 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState, useDeferredValue, startTransition } from "react";
 import {
   Activity, ListChecks, Lock, Edit3, Copy, Check, CheckCircle2, Clock, CircleDot, ShieldCheck, Layers, Pause, Play,
   Filter, FilterX, ArrowUpAZ, ArrowDownZA, ArrowUpDown, AlignLeft, X, Hourglass, RotateCcw, Zap, AlertTriangle, RefreshCw,
+  Rows3, Rows4, Loader2,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
 // ♻️ Composants & helpers du board pilote (même rendu, mode spectateur)
 import BoardActions from "../../../pilot/board/components/BoardActions";
 import ColumnFilterPanel, { ColumnFilterRule, EMPTY_RULE, SortMode } from "../../../pilot/board/components/ColumnFilterPanel";
+import { StatusPill, rowStatusOf } from "../../../pilot/board/components/BoardRow";
 import FloatingLayer from "../../../pilot/board/ui/FloatingLayer";
 import { LuxeOption } from "../../../pilot/board/ui/LuxeDropdown";
 import {
@@ -21,7 +23,9 @@ import l from "../LiveBoard.module.css";
 
 const API_URL = "/api";
 const POLL_MS = 2500;
+const ROW_CHUNK = 80;
 const PENDING_KEY = "kyntus_live_pending_only";
+const DENSITY_KEY = "kyntus_live_density";
 
 interface LiveBoardViewProps {
   pilotId: string;
@@ -51,6 +55,68 @@ const SORT_LABEL: Record<SortMode, string> = {
   LEN_DESC: "Plus longs",
 };
 
+// ============================================================================
+// READ-ONLY ROW (memoized: a poll only re-renders the rows that changed)
+// ============================================================================
+interface LiveRowProps {
+  task: any;
+  index: number;
+  eps: string;
+  cols: string[];
+  editableSet: Set<string>;
+  wrapAll: boolean;
+  flash: boolean;
+  copied: boolean;
+  onCopy: (id: number, eps: string) => void;
+}
+
+const LiveRow = memo(function LiveRow({ task, index, eps, cols, editableSet, wrapAll, flash, copied, onCopy }: LiveRowProps) {
+  const locked = isTaskLockedByAdmin(task);
+  const status = rowStatusOf(task, locked);
+  const dyn = task.dynamicData || {};
+  return (
+    <tr data-status={status} className={[s.trRow, locked && s.trLockedAdmin, flash && l.rowFlash].filter(Boolean).join(" ")}>
+      <td className={`${s.tdCell} ${s.stickyColCheck} ${l.rowIndex}`}>{index + 1}</td>
+      <td className={`${s.tdCell} ${s.stickyColEps}`}>
+        <div className={s.epsPillGroup}>
+          <span className={s.epsBadge} title={eps}>
+            {eps}
+          </span>
+          <button type="button" className={`${s.copyMiniBtn} ${copied ? s.copyMiniBtnDone : ""}`} onClick={() => onCopy(task.id, eps)} title="Copier cet EPS">
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+          </button>
+        </div>
+      </td>
+      <td className={`${s.tdCell} ${s.stickyColStatus}`}>
+        <StatusPill status={status} readOnly />
+      </td>
+      {cols.map((col) => {
+        const val = String(dyn[col] ?? "").trim();
+        if (editableSet.has(col.toLowerCase())) {
+          const kind = val ? getDecisionKind(val) : "AUTRE";
+          return (
+            <td key={col} className={`${s.tdEditableCell} ${wrapAll ? s.tdWrappedCell : ""}`}>
+              <div className={l.readCell} data-kind={val ? kind : "EMPTY"}>
+                {kind === "VALIDE" && <span className={`${l.kind} ${l.kindValide}`}>Validé</span>}
+                {kind === "CONTESTABLE" && <span className={`${l.kind} ${l.kindContest}`}>Contestable</span>}
+                {val ? <span className={l.readValue}>{val}</span> : <span className={l.readEmpty}>— non saisi —</span>}
+              </div>
+            </td>
+          );
+        }
+        return (
+          <td key={col} className={`${s.tdCell} ${wrapAll ? s.tdWrappedCell : ""}`} title={val}>
+            {val ? <span className={s.lockedValue}>{val}</span> : <span className={s.emptyDash}>—</span>}
+          </td>
+        );
+      })}
+    </tr>
+  );
+});
+
+// ============================================================================
+// LIVE BOARD VIEW
+// ============================================================================
 export default function LiveBoardView({ pilotId, pilotName, templateId, templateName }: LiveBoardViewProps) {
   const [isLive, setIsLive] = useState(true);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -61,35 +127,49 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
 
   // toolbar filters
   const [searchQuery, setSearchQuery] = useState("");
+  const deferredSearch = useDeferredValue(searchQuery);
   const [filterColumn, setFilterColumn] = useState("ALL");
   const [columnExactValue, setColumnExactValue] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  // in-column filters / sort / wrap
+  // in-column filters / sort / wrap / density
   const [colFilters, setColFilters] = useState<Record<string, ColumnFilterRule>>({});
   const [sortConfig, setSortConfig] = useState<{ col: string; mode: SortMode } | null>(null);
   const [openMenu, setOpenMenu] = useState<{ col: string; label: string; anchor: HTMLElement } | null>(null);
   const [pendingOnly, setPendingOnly] = useState(true);
   const [wrapAll, setWrapAll] = useState(true);
+  const [density, setDensity] = useState<"comfort" | "compact">("comfort");
+  const [renderLimit, setRenderLimit] = useState(ROW_CHUNK);
 
   // live diff
-  const prevSigRef = useRef<Map<number, string> | null>(null);
+  const prevByIdRef = useRef<Map<number, { sig: string; task: any }> | null>(null);
   const [flashIds, setFlashIds] = useState<Record<number, number>>({});
   const [feed, setFeed] = useState<FeedEvent[]>([]);
 
-  // sticky offsets
+  // table refs
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLTableRowElement>(null);
   const thIdxRef = useRef<HTMLTableCellElement>(null);
   const thEpsRef = useRef<HTMLTableCellElement>(null);
-  const [stickyOffsets, setStickyOffsets] = useState({ eps: 52, status: 282 });
+  const [stickyOffsets, setStickyOffsets] = useState({ eps: 56, status: 292 });
 
   const closeMenu = useCallback(() => setOpenMenu(null), []);
 
-  useEffect(() => setPendingOnly(readStorage<boolean>(PENDING_KEY, true)), []);
+  useEffect(() => {
+    setPendingOnly(readStorage<boolean>(PENDING_KEY, true));
+    setDensity(readStorage<"comfort" | "compact">(DENSITY_KEY, "comfort"));
+  }, []);
   const togglePendingOnly = () =>
     setPendingOnly((p) => {
       writeStorage(PENDING_KEY, !p);
       return !p;
+    });
+  const toggleDensity = () =>
+    setDensity((d) => {
+      const next = d === "compact" ? "comfort" : "compact";
+      writeStorage(DENSITY_KEY, next);
+      return next;
     });
 
   // ------------------------------------------------------------------
@@ -109,80 +189,84 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
     if (!templateData || !Array.isArray(templateData.fields)) return [];
     return templateData.fields.map((f: any) => (typeof f === "string" ? f : f?.name)).filter(Boolean);
   }, [templateData]);
+  const allowedRef = useRef(allowedFields);
+  allowedRef.current = allowedFields;
 
   const editableSet = useMemo(() => new Set(allowedFields.map((f) => f.toLowerCase())), [allowedFields]);
   const isEditableColumn = useCallback((c: string) => editableSet.has(c.toLowerCase()), [editableSet]);
 
   // ------------------------------------------------------------------
-  // 2. LIVE POLLING + DIFF (flash rows & activity feed)
+  // 2. LIVE POLLING
+  //    - unchanged rows keep the SAME object → memo rows don't re-render
+  //    - nothing changed → no state update at all
   // ------------------------------------------------------------------
-  const applyDiff = useCallback(
-    (next: any[]) => {
-      const prev = prevSigRef.current;
-      const nextSig = new Map<number, string>();
-      next.forEach((t) => nextSig.set(t.id, signature(t)));
-      prevSigRef.current = nextSig;
-      if (!prev) return; // first load: no diff
-
-      const now = Date.now();
-      const flashes: Record<number, number> = {};
-      const events: FeedEvent[] = [];
-
-      next.forEach((t) => {
-        const before = prev.get(t.id);
-        const after = nextSig.get(t.id)!;
-        if (before === undefined || before === after) return;
-        flashes[t.id] = now;
-        const [stBefore] = before.split("|");
-        const stAfter = statusOf(t);
-        const eps = extractTaskEPS(t, allowedFields);
-        if (stBefore !== stAfter) {
-          events.push({ id: `${t.id}-${now}-s`, taskId: t.id, eps, kind: "STATUS", text: `→ ${STATUS_LABELS[stAfter] || stAfter}`, at: new Date() });
-        } else {
-          events.push({ id: `${t.id}-${now}-d`, taskId: t.id, eps, kind: "DATA", text: "analyse modifiée", at: new Date() });
-        }
-      });
-
-      if (events.length) {
-        setFlashIds((p) => ({ ...p, ...flashes }));
-        setFeed((p) => [...events.reverse(), ...p].slice(0, 12));
-        setTimeout(() => {
-          setFlashIds((p) => {
-            const copy = { ...p };
-            Object.keys(flashes).forEach((id) => {
-              if (copy[+id] === now) delete copy[+id];
-            });
-            return copy;
-          });
-        }, 2700);
-      }
-    },
-    [allowedFields]
-  );
-
   const fetchTasks = useCallback(() => {
     return fetch(`${API_URL}/tasks?assigneeId=${pilotId}&templateId=${templateId}`)
       .then((res) => res.json())
       .then((data) => {
-        const list = Array.isArray(data) ? data : [];
-        applyDiff(list);
-        setTasks(list);
+        const list: any[] = Array.isArray(data) ? data : [];
+        const prev = prevByIdRef.current;
+        const nextMap = new Map<number, { sig: string; task: any }>();
+        const now = Date.now();
+        const flashes: Record<number, number> = {};
+        const events: FeedEvent[] = [];
+        let changed = !prev || prev.size !== list.length;
+
+        const merged = list.map((t) => {
+          const sig = signature(t);
+          const old = prev?.get(t.id);
+          if (old && old.sig === sig) {
+            nextMap.set(t.id, old);
+            return old.task;
+          }
+          changed = true;
+          nextMap.set(t.id, { sig, task: t });
+          if (prev && old) {
+            flashes[t.id] = now;
+            const eps = extractTaskEPS(t, allowedRef.current);
+            const before = old.sig.split("|")[0];
+            const after = statusOf(t);
+            events.push(
+              before !== after
+                ? { id: `${t.id}-${now}-s`, taskId: t.id, eps, kind: "STATUS", text: `→ ${STATUS_LABELS[after] || after}`, at: new Date() }
+                : { id: `${t.id}-${now}-d`, taskId: t.id, eps, kind: "DATA", text: "analyse modifiée", at: new Date() }
+            );
+          }
+          return t;
+        });
+
+        prevByIdRef.current = nextMap;
+        if (changed) setTasks(merged);
         setLastSync(new Date());
         setSyncError(false);
+
+        if (events.length) {
+          setFlashIds((p) => ({ ...p, ...flashes }));
+          setFeed((p) => [...events.reverse(), ...p].slice(0, 12));
+          setTimeout(() => {
+            setFlashIds((p) => {
+              const copy = { ...p };
+              Object.keys(flashes).forEach((id) => {
+                if (copy[+id] === now) delete copy[+id];
+              });
+              return copy;
+            });
+          }, 2700);
+        }
       })
       .catch((e) => {
         console.error("Fetch Tasks Error:", e);
         setSyncError(true);
       })
       .finally(() => setLoading(false));
-  }, [pilotId, templateId, applyDiff]);
+  }, [pilotId, templateId]);
 
   useEffect(() => {
-    prevSigRef.current = null;
+    prevByIdRef.current = null;
     setFeed([]);
     setLoading(true);
     fetchTasks();
-  }, [pilotId, templateId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchTasks]);
 
   useEffect(() => {
     if (!isLive) return;
@@ -195,11 +279,12 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
   // ------------------------------------------------------------------
   // 3. COLUMNS
   // ------------------------------------------------------------------
-  const columns = useMemo(() => {
+  const columnsKey = useMemo(() => {
     const cols = new Set<string>(allowedFields);
     tasks.forEach((t) => t.dynamicData && Object.keys(t.dynamicData).forEach((k) => cols.add(k)));
-    return Array.from(cols);
+    return Array.from(cols).join("\u0001");
   }, [tasks, allowedFields]);
+  const columns = useMemo(() => (columnsKey ? columnsKey.split("\u0001") : []), [columnsKey]);
 
   useEffect(() => {
     const a = thIdxRef.current;
@@ -215,7 +300,7 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
     ro.observe(a);
     ro.observe(b);
     return () => ro.disconnect();
-  }, [loading, tasks.length]);
+  }, [loading, tasks.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ------------------------------------------------------------------
   // 4. FILTER ENGINE (same rules as the pilot board)
@@ -255,14 +340,14 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
       for (const [col, rule] of Object.entries(colFilters)) {
         if (col !== skipCol && !matchesRule(getVal(task, col), rule)) return false;
       }
-      const q = searchQuery.trim().toLowerCase();
+      const q = deferredSearch.trim().toLowerCase();
       if (!q) return true;
       if (filterColumn === "EPS_ONLY") return eps.toLowerCase().includes(q);
       if (filterColumn !== "ALL") return String(dyn[filterColumn] ?? "").toLowerCase().includes(q);
       return eps.toLowerCase().includes(q) || Object.values(dyn).some((v) => String(v ?? "").toLowerCase().includes(q));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [statusFilter, pendingRuleActive, allowedFields, filterColumn, columnExactValue, colFilters, getVal, searchQuery]
+    [statusFilter, pendingRuleActive, allowedFields, filterColumn, columnExactValue, colFilters, getVal, deferredSearch]
   );
 
   const filteredTasks = useMemo(() => {
@@ -351,7 +436,39 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
   };
 
   // ------------------------------------------------------------------
-  // 5. ACTIONS (spectator)
+  // 5. PROGRESSIVE RENDERING + SCROLL SHADOWS
+  // ------------------------------------------------------------------
+  const filterSignature = `${statusFilter}|${deferredSearch}|${filterColumn}|${columnExactValue}|${pendingOnly}|${JSON.stringify(colFilters)}|${sortConfig?.col}|${sortConfig?.mode}`;
+  useEffect(() => {
+    setRenderLimit(ROW_CHUNK);
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [filterSignature, pilotId, templateId]);
+
+  const hasMoreRows = filteredTasks.length > renderLimit;
+  useEffect(() => {
+    const root = scrollRef.current;
+    const target = sentinelRef.current;
+    if (!root || !target || !hasMoreRows) return;
+    const io = new IntersectionObserver((entries) => entries[0]?.isIntersecting && startTransition(() => setRenderLimit((n) => n + ROW_CHUNK)), {
+      root,
+      rootMargin: "0px 0px 700px 0px",
+    });
+    io.observe(target);
+    return () => io.disconnect();
+  }, [hasMoreRows, renderLimit, loading]);
+
+  const handleTableScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const y = el.scrollTop > 2 ? "1" : "0";
+    const x = el.scrollLeft > 2 ? "1" : "0";
+    if (el.dataset.sy !== y) el.dataset.sy = y;
+    if (el.dataset.sx !== x) el.dataset.sx = x;
+  }, []);
+
+  const visibleRows = hasMoreRows ? filteredTasks.slice(0, renderLimit) : filteredTasks;
+
+  // ------------------------------------------------------------------
+  // 6. ACTIONS (spectator)
   // ------------------------------------------------------------------
   const spectatorWarning = () => toast({ message: "MODE SPECTATEUR : lecture seule.", type: "warning" });
 
@@ -363,12 +480,12 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
     toast({ message: ok ? `${values.length} valeur(s) copiée(s)` : "Copie impossible", type: ok ? "success" : "error" });
   };
 
-  const handleCopySingleEPS = async (taskId: number, eps: string) => {
+  const handleCopySingleEPS = useCallback(async (taskId: number, eps: string) => {
     if (await universalCopyToClipboard(eps)) {
       setCopiedId(taskId);
       setTimeout(() => setCopiedId(null), 1500);
     }
-  };
+  }, []);
 
   const colName = (k: string) => (k === "__EPS__" ? "EPS" : k === "__STATUS__" ? "STATUT" : k);
 
@@ -405,24 +522,6 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
     );
   };
 
-  const statusPill = (task: any) => {
-    const st = statusOf(task);
-    const cfg: Record<string, [string, React.ReactNode, string]> = {
-      VALIDATED: [s.statusLockedAdmin, <ShieldCheck key="i" size={13} />, "VALIDÉ ADMIN"],
-      DONE: [s.statusDone, <CheckCircle2 key="i" size={13} />, "TERMINÉ"],
-      EN_COURS: [s.statusProgress, <Clock key="i" size={13} />, "EN COURS"],
-      A_FAIRE: [s.statusTodo, <CircleDot key="i" size={13} />, "À FAIRE"],
-    };
-    const [cls, icon, label] = cfg[st] || cfg.A_FAIRE;
-    return (
-      <span className={`${s.statusBtn} ${cls}`} style={{ cursor: "default" }}>
-        {icon}
-        <span>{label}</span>
-        {st === "VALIDATED" ? <Lock size={11} /> : <i className={s.statusStep}>{st === "DONE" ? "2/2" : st === "EN_COURS" ? "1/2" : "0/2"}</i>}
-      </span>
-    );
-  };
-
   const pct = stats.total ? Math.round(((stats.done + stats.validated) / stats.total) * 100) : 0;
   const R = 26;
   const C = 2 * Math.PI * R;
@@ -437,7 +536,7 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
   ];
 
   return (
-    <div className={s.boardContainer} style={{ minHeight: 0, background: "transparent", isolation: "auto", overflow: "visible" }}>
+    <div className={`${s.boardContainer} ${l.liveBoardShell}`}>
       <div className={s.boardContent}>
         {/* HERO: pilot + KPI */}
         <div className={s.headerBento}>
@@ -446,7 +545,7 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
             <div className={s.heroIdentity}>
               <div className={s.heroAvatar}>
                 <span>{initials}</span>
-                <i className={s.heroLive} style={isLive ? undefined : { background: "#94a3b8", animation: "none" }} />
+                <i className={s.heroLive} style={isLive ? undefined : { background: "#94a3b8" }} />
               </div>
               <div className={s.heroIdText}>
                 <span className={s.heroKicker}>Mode spectateur · lecture seule</span>
@@ -484,7 +583,7 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
         </div>
 
         {/* LIVE BAR */}
-        <div className={l.liveBar}>
+        <div className={`${l.liveBar} ${isLive ? "" : l.liveBarPaused}`}>
           <div className={l.liveLeft}>
             <span className={l.liveTag}>
               <i className={`${l.liveDot} ${isLive ? "" : l.liveDotOff}`} />
@@ -515,7 +614,7 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
           <div className={l.feed}>
             {feed.map((ev) => (
               <span key={ev.id} className={l.feedItem}>
-                <span className={l.feedIcon}>{ev.kind === "STATUS" ? <Zap size={12} /> : <Edit3 size={12} />}</span>
+                <span className={`${l.feedIcon} ${ev.kind === "STATUS" ? l.feedIconStatus : ""}`}>{ev.kind === "STATUS" ? <Zap size={12} /> : <Edit3 size={12} />}</span>
                 <b>{ev.eps}</b> {ev.text}
                 <time>{ev.at.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</time>
               </span>
@@ -559,6 +658,10 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
             <button type="button" className={`${s.toolBtn} ${wrapAll ? s.toolBtnActive : ""}`} onClick={() => setWrapAll((p) => !p)}>
               <AlignLeft size={14} />
               <span>{wrapAll ? "Texte complet : ON" : "Textes compacts"}</span>
+            </button>
+            <button type="button" className={`${s.toolBtn} ${density === "compact" ? s.toolBtnActive : ""}`} onClick={toggleDensity}>
+              {density === "compact" ? <Rows4 size={14} /> : <Rows3 size={14} />}
+              <span>{density === "compact" ? "Compact" : "Confort"}</span>
             </button>
           </div>
           <div className={s.countBadge}>
@@ -631,9 +734,9 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
             </div>
           ) : (
             <>
-              <div className={s.tableScrollContainer}>
+              <div ref={scrollRef} className={s.tableScrollContainer} onScroll={handleTableScroll} data-sy="0" data-sx="0">
                 <table
-                  className={s.luxeTable}
+                  className={`${s.luxeTable} ${density === "compact" ? s.densityCompact : ""}`}
                   style={{ "--sticky-eps-left": `${stickyOffsets.eps}px`, "--sticky-status-left": `${stickyOffsets.status}px` } as React.CSSProperties}
                 >
                   <thead>
@@ -684,47 +787,35 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
                         </td>
                       </tr>
                     )}
-                    {filteredTasks.map((task, idx) => {
-                      const locked = isTaskLockedByAdmin(task);
-                      const eps = extractTaskEPS(task, allowedFields);
-                      const dyn = task.dynamicData || {};
-                      return (
-                        <tr key={task.id} className={[s.trRow, locked && s.trLockedAdmin, flashIds[task.id] && l.rowFlash].filter(Boolean).join(" ")}>
-                          <td className={`${s.tdCell} ${s.stickyColCheck}`} style={{ color: "#93c5fd", fontWeight: 800, fontSize: "0.72rem" }}>
-                            {idx + 1}
-                          </td>
-                          <td className={`${s.tdCell} ${s.stickyColEps}`}>
-                            <div className={s.epsPillGroup}>
-                              <span className={s.epsBadge} title={eps}>{eps}</span>
-                              <button type="button" className={s.copyMiniBtn} onClick={() => handleCopySingleEPS(task.id, eps)} title="Copier cet EPS">
-                                {copiedId === task.id ? <Check size={13} /> : <Copy size={13} />}
-                              </button>
-                            </div>
-                          </td>
-                          <td className={`${s.tdCell} ${s.stickyColStatus}`}>{statusPill(task)}</td>
-                          {columns.map((col) => {
-                            const val = String(dyn[col] ?? "").trim();
-                            if (isEditableColumn(col)) {
-                              const kind = val ? getDecisionKind(val) : "AUTRE";
-                              return (
-                                <td key={col} className={`${s.tdEditableCell} ${wrapAll ? s.tdWrappedCell : ""}`}>
-                                  <div className={l.readCell}>
-                                    {kind === "VALIDE" && <span className={`${l.kind} ${l.kindValide}`}>Validé</span>}
-                                    {kind === "CONTESTABLE" && <span className={`${l.kind} ${l.kindContest}`}>Contestable</span>}
-                                    {val ? <span className={l.readValue}>{val}</span> : <span className={l.readEmpty}>— non saisi —</span>}
-                                  </div>
-                                </td>
-                              );
-                            }
-                            return (
-                              <td key={col} className={`${s.tdCell} ${wrapAll ? s.tdWrappedCell : ""}`} title={val}>
-                                {val ? <span className={s.lockedValue}>{val}</span> : <span className={s.emptyDash}>—</span>}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
+                    {visibleRows.map((task, idx) => (
+                      <LiveRow
+                        key={task.id}
+                        task={task}
+                        index={idx}
+                        eps={extractTaskEPS(task, allowedFields)}
+                        cols={columns}
+                        editableSet={editableSet}
+                        wrapAll={wrapAll}
+                        flash={!!flashIds[task.id]}
+                        copied={copiedId === task.id}
+                        onCopy={handleCopySingleEPS}
+                      />
+                    ))}
+                    {hasMoreRows && (
+                      <tr ref={sentinelRef} className={s.sentinelRow}>
+                        <td colSpan={columns.length + 3}>
+                          <div className={s.sentinelBox}>
+                            <Loader2 size={15} className={s.spinSlow} />
+                            <span>
+                              Chargement de la suite… <b>{filteredTasks.length - renderLimit}</b> ligne(s) restante(s)
+                            </span>
+                            <button type="button" className={s.noMatchBtn} onClick={() => setRenderLimit(filteredTasks.length)}>
+                              Tout afficher
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -735,7 +826,12 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
                     <strong>Mode spectateur</strong> — les lignes modifiées par le pilote s&apos;illuminent en direct.
                   </span>
                 </span>
-                <span className={s.footerCount}>{filteredTasks.length} ligne(s) affichée(s)</span>
+                <div className={s.footerRight}>
+                  <div className={s.footerProgress} title="Avancement">
+                    <i style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className={s.footerCount}>{filteredTasks.length} ligne(s) filtrée(s)</span>
+                </div>
               </div>
             </>
           )}

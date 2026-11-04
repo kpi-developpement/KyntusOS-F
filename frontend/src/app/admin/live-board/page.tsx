@@ -201,7 +201,7 @@ export default function AdminLiveBoardOrchestrator() {
 
   return (
     <div className={styles.container}>
-      <LiveNetworkBackground />
+      <LiveNetworkBackground calm={view === "BOARD"} />
 
       {/* HEADER */}
       <div className={styles.header}>

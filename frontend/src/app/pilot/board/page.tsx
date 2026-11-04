@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef, useDeferredValue, startTransition } from "react";
 import dynamic from "next/dynamic";
 import {
-  Activity, ListChecks, Lock, Edit3, Copy, Check, CheckCircle2, Clock, CircleDot, Sparkles, FileSpreadsheet,
-  ShieldCheck, Info, GripVertical, ChevronLeft, ChevronRight, SlidersHorizontal, RotateCcw, Eye, EyeOff,
-  ArrowUpToLine, X, ArrowUpAZ, ArrowDownZA, ArrowUpDown, AlignLeft, Maximize2, Filter, FilterX, BookmarkCheck,
-  Scale, Layers, ChevronDown, Hourglass,
+  Activity, ListChecks, Lock, Edit3, CheckCircle2, CircleDot, FileSpreadsheet, Info, GripVertical, ChevronLeft,
+  ChevronRight, SlidersHorizontal, RotateCcw, Eye, EyeOff, ArrowUpToLine, X, ArrowUpAZ, ArrowDownZA, ArrowUpDown,
+  AlignLeft, Filter, FilterX, BookmarkCheck, Scale, Layers, ChevronDown, Hourglass, Rows3, Rows4, Loader2,
 } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
 
@@ -16,6 +15,7 @@ import ColumnFilterPanel, { ColumnFilterRule, EMPTY_RULE, SortMode } from "./com
 import DecisionLibraryModal from "./components/DecisionLibraryModal";
 import EpsCompareModal from "./components/EpsCompareModal";
 import CellDecisionPicker from "./components/CellDecisionPicker";
+import BoardRow from "./components/BoardRow";
 import FloatingLayer from "./ui/FloatingLayer";
 import { LuxeOption } from "./ui/LuxeDropdown";
 import {
@@ -32,10 +32,19 @@ const RoyalBackground = dynamic(() => import("./ux/RoyalBackground"), { ssr: fal
 const API_URL = "/api";
 const DECISIONS_KEY = "kyntus_decision_library_v1";
 const PENDING_ONLY_KEY = "kyntus_filter_pending_only";
+const DENSITY_KEY = "kyntus_board_density";
+const ROW_CHUNK = 80; // rows rendered per chunk (infinite scroll inside the table)
 
 type DropSide = "before" | "after";
 const buildDefaultDecisions = (): DecisionChoice[] => DEFAULT_DECISIONS.map((label) => ({ id: makeId(), label }));
 const cmpText = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+
+/** Stable function identity that always calls the latest closure (keeps memo rows from re-rendering). */
+function useStableCallback<T extends (...args: any[]) => any>(fn: T): T {
+  const ref = useRef(fn);
+  ref.current = fn;
+  return useCallback(((...args: any[]) => ref.current(...args)) as T, []);
+}
 
 export default function PilotBoard() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -51,8 +60,7 @@ export default function PilotBoard() {
   const [columnExactValue, setColumnExactValue] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
-  // Editable cells
-  const [draftEdits, setDraftEdits] = useState<Record<string, string>>({});
+  // Editable cells (drafts live inside each cell → no full-table re-render while typing)
   const [savingCell, setSavingCell] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
@@ -75,7 +83,12 @@ export default function PilotBoard() {
   // Text wrap
   const [wrappedColumns, setWrappedColumns] = useState<string[]>([]);
   const [globalWrap, setGlobalWrap] = useState(false);
-  const [expandedCells, setExpandedCells] = useState<Record<string, boolean>>({});
+  const [expandedCells, setExpandedCells] = useState<Record<number, Record<string, boolean>>>({});
+  const [density, setDensity] = useState<"comfort" | "compact">("comfort");
+  const [renderLimit, setRenderLimit] = useState(ROW_CHUNK);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLTableRowElement>(null);
+  const deferredSearch = useDeferredValue(searchQuery);
 
   // Decision library + comparator
   const [decisions, setDecisions] = useState<DecisionChoice[]>([]);
@@ -99,6 +112,7 @@ export default function PilotBoard() {
     const saved = readStorage<DecisionChoice[] | null>(DECISIONS_KEY, null);
     setDecisions(Array.isArray(saved) && saved.length > 0 ? saved : buildDefaultDecisions());
     setPendingOnly(readStorage<boolean>(PENDING_ONLY_KEY, true));
+    setDensity(readStorage<"comfort" | "compact">(DENSITY_KEY, "comfort"));
 
     const stored = localStorage.getItem("kyntus_user");
     if (!stored) return;
@@ -132,6 +146,13 @@ export default function PilotBoard() {
     updateDecisions(buildDefaultDecisions());
     toast({ message: "BIBLIOTHÈQUE RESTAURÉE PAR DÉFAUT", type: "success" });
   };
+
+  const toggleDensity = () =>
+    setDensity((d) => {
+      const next = d === "compact" ? "comfort" : "compact";
+      writeStorage(DENSITY_KEY, next);
+      return next;
+    });
 
   const togglePendingOnly = () => {
     setPendingOnly((prev) => {
@@ -337,11 +358,9 @@ export default function PilotBoard() {
     (task: any, colKey: string): string => {
       if (colKey === "__EPS__" || colKey === "EPS_ONLY") return extractTaskEPS(task, allowedFields);
       if (colKey === "__STATUS__") return isTaskLockedByAdmin(task) ? "VALIDATED" : String(task.status || "A_FAIRE");
-      const draft = draftEdits[`${task.id}_${colKey}`];
-      if (draft !== undefined) return String(draft).trim();
       return String(task.dynamicData?.[colKey] ?? "").trim();
     },
-    [allowedFields, draftEdits]
+    [allowedFields]
   );
 
   const colDisplayName = (key: string) => (key === "__EPS__" ? "EPS" : key === "__STATUS__" ? "STATUT" : key);
@@ -411,14 +430,14 @@ export default function PilotBoard() {
         if (colKey !== skipCol && !matchesRule(getTaskCellValue(task, colKey), rule)) return false;
       }
 
-      const q = searchQuery.trim().toLowerCase();
+      const q = deferredSearch.trim().toLowerCase();
       if (!q) return true;
       if (filterColumn === "EPS_ONLY") return eps.toLowerCase().includes(q);
       if (filterColumn !== "ALL") return String(dyn[filterColumn] ?? "").toLowerCase().includes(q);
       return eps.toLowerCase().includes(q) || Object.values(dyn).some((v) => String(v ?? "").toLowerCase().includes(q));
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [statusFilter, pendingRuleActive, allowedFields, filterColumn, columnExactValue, colFilters, getTaskCellValue, searchQuery]
+    [statusFilter, pendingRuleActive, allowedFields, filterColumn, columnExactValue, colFilters, getTaskCellValue, deferredSearch]
   );
 
   // Values of the opened column: counts only what is still to treat (if pendingOnly)
@@ -562,11 +581,6 @@ export default function PilotBoard() {
     if (ids.length === 0) return toast({ message: "Les lignes sélectionnées sont déjà validées par l'Admin.", type: "error" });
 
     setTasks((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, dynamicData: { ...t.dynamicData, [columnKey]: value } } : t)));
-    setDraftEdits((prev) => {
-      const copy = { ...prev };
-      ids.forEach((id) => delete copy[`${id}_${columnKey}`]);
-      return copy;
-    });
     try {
       await Promise.all(ids.map((id) => patchTask(id, "data", { key: columnKey, value })));
       toast({ message: `${ids.length} LIGNE(S) MISE(S) À JOUR AVEC SUCCÈS`, type: "success" });
@@ -625,11 +639,6 @@ export default function PilotBoard() {
   };
 
   const handlePickForCell = (taskId: number, col: string, value: string) => {
-    setDraftEdits((prev) => {
-      const copy = { ...prev };
-      delete copy[`${taskId}_${col}`];
-      return copy;
-    });
     handleUpdateData(taskId, col, value);
     setCellPicker(null);
   };
@@ -639,7 +648,11 @@ export default function PilotBoard() {
     setIsDecisionOpen(true);
   };
 
-  const allFilteredSelected = filteredTasks.length > 0 && filteredTasks.every((t) => selectedTasks.includes(t.id));
+  const allFilteredSelected = useMemo(() => {
+    if (filteredTasks.length === 0) return false;
+    const sel = new Set(selectedTasks);
+    return filteredTasks.every((t) => sel.has(t.id));
+  }, [filteredTasks, selectedTasks]);
   const toggleSelectAll = () => {
     if (allFilteredSelected) {
       const ids = new Set(filteredTasks.map((t) => t.id));
@@ -729,30 +742,56 @@ export default function PilotBoard() {
     );
   };
 
-  const statusPill = (task: any, locked: boolean) => {
-    const st = locked ? "LOCK" : task.status || "A_FAIRE";
-    const cfg: Record<string, [string, React.ReactNode, string]> = {
-      LOCK: [styles.statusLockedAdmin, <ShieldCheck key="i" size={13} />, "VALIDÉ ADMIN"],
-      DONE: [styles.statusDone, <CheckCircle2 key="i" size={13} />, "TERMINÉ"],
-      EN_COURS: [styles.statusProgress, <Clock key="i" size={13} />, "EN COURS"],
-      A_FAIRE: [styles.statusTodo, <CircleDot key="i" size={13} />, "À FAIRE"],
-    };
-    const [cls, icon, label] = cfg[st] || cfg.A_FAIRE;
-    const title = locked
-      ? "Validé par l'Admin dans le Kanban — lecture seule"
-      : st === "DONE"
-      ? "Terminé (en attente validation Admin). Cliquer pour rouvrir."
-      : st === "EN_COURS"
-      ? "Cliquer pour marquer Terminé"
-      : "Cliquer pour démarrer";
-    return (
-      <button type="button" disabled={locked} onClick={() => handleStatusToggle(task)} title={title} className={`${styles.statusBtn} ${cls}`}>
-        {icon}
-        <span>{label}</span>
-        {locked ? <Lock size={11} /> : <i className={styles.statusStep}>{st === "DONE" ? "2/2" : st === "EN_COURS" ? "1/2" : "0/2"}</i>}
-      </button>
+  // ========================================================================
+  // ROW PERFORMANCE: stable handlers + memo inputs + progressive rendering
+  // ========================================================================
+  const wrappedSet = useMemo(() => new Set(wrappedColumns), [wrappedColumns]);
+  const ruleColsKey = [sortConfig?.col || "", ...Object.keys(colFilters)].join("\u0001");
+  const ruleCols = useMemo(() => new Set(ruleColsKey.split("\u0001").filter(Boolean)), [ruleColsKey]);
+  const selectedSet = useMemo(() => new Set(selectedTasks), [selectedTasks]);
+
+  const onRowToggleSelect = useStableCallback(toggleSelectRow);
+  const onRowCopyEps = useStableCallback(handleCopySingleEPS);
+  const onRowStatus = useStableCallback(handleStatusToggle);
+  const onRowCommit = useStableCallback((taskId: number, col: string, value: string) => handleUpdateData(taskId, col, value));
+  const onRowOpenPicker = useStableCallback((taskId: number, col: string, anchor: HTMLElement) =>
+    setCellPicker((prev) => (prev?.taskId === taskId && prev?.col === col ? null : { taskId, col, anchor }))
+  );
+  const onRowToggleExpand = useStableCallback((taskId: number, col: string) =>
+    setExpandedCells((prev) => ({ ...prev, [taskId]: { ...(prev[taskId] || {}), [col]: !prev[taskId]?.[col] } }))
+  );
+
+  // reset the rendered window when the filter set changes (not on simple edits)
+  const filterSignature = `${selectedTemplate}|${statusFilter}|${deferredSearch}|${filterColumn}|${columnExactValue}|${pendingOnly}|${JSON.stringify(colFilters)}|${sortConfig?.col}|${sortConfig?.mode}`;
+  useEffect(() => {
+    setRenderLimit(ROW_CHUNK);
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [filterSignature]);
+
+  // load the next chunk when the sentinel row approaches the bottom of the table
+  const hasMoreRows = filteredTasks.length > renderLimit;
+  useEffect(() => {
+    const root = scrollRef.current;
+    const target = sentinelRef.current;
+    if (!root || !target || !hasMoreRows) return;
+    const io = new IntersectionObserver(
+      (entries) => entries[0]?.isIntersecting && startTransition(() => setRenderLimit((l) => l + ROW_CHUNK)),
+      { root, rootMargin: "0px 0px 700px 0px" }
     );
-  };
+    io.observe(target);
+    return () => io.disconnect();
+  }, [hasMoreRows, renderLimit, loading]);
+
+  // header / sticky-column shadows on scroll (DOM attributes → zero React renders)
+  const handleTableScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const y = el.scrollTop > 2 ? "1" : "0";
+    const x = el.scrollLeft > 2 ? "1" : "0";
+    if (el.dataset.sy !== y) el.dataset.sy = y;
+    if (el.dataset.sx !== x) el.dataset.sx = x;
+  }, []);
+
+  const visibleRows = hasMoreRows ? filteredTasks.slice(0, renderLimit) : filteredTasks;
 
   // ========================================================================
   // RENDER
@@ -804,6 +843,15 @@ export default function PilotBoard() {
               >
                 <AlignLeft size={14} />
                 <span>{globalWrap ? "Texte complet : ON" : "Textes longs"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleDensity}
+                className={`${styles.toolBtn} ${density === "compact" ? styles.toolBtnActive : ""}`}
+                title="Densité des lignes"
+              >
+                {density === "compact" ? <Rows4 size={14} /> : <Rows3 size={14} />}
+                <span>{density === "compact" ? "Compact" : "Confort"}</span>
               </button>
               <button
                 ref={colStudioBtnRef}
@@ -991,9 +1039,9 @@ export default function PilotBoard() {
               </div>
             ) : (
               <>
-                <div className={styles.tableScrollContainer}>
+                <div ref={scrollRef} className={styles.tableScrollContainer} onScroll={handleTableScroll} data-sy="0" data-sx="0">
                   <table
-                    className={styles.luxeTable}
+                    className={`${styles.luxeTable} ${density === "compact" ? styles.densityCompact : ""}`}
                     style={{ "--sticky-eps-left": `${stickyOffsets.eps}px`, "--sticky-status-left": `${stickyOffsets.status}px` } as React.CSSProperties}
                   >
                     <thead>
@@ -1073,123 +1121,49 @@ export default function PilotBoard() {
                         </tr>
                       )}
 
-                      {filteredTasks.map((task) => {
-                        const isSelected = selectedTasks.includes(task.id);
+                      {visibleRows.map((task) => {
                         const locked = isTaskLockedByAdmin(task);
-                        const epsCode = extractTaskEPS(task, allowedFields);
-                        const dyn = task.dynamicData || {};
                         return (
-                          <tr key={task.id} className={`${styles.trRow} ${isSelected ? styles.trSelected : ""} ${locked ? styles.trLockedAdmin : ""}`}>
-                            <td className={`${styles.tdCell} ${styles.stickyColCheck}`}>
-                              <input type="checkbox" className={styles.luxeCheckbox} checked={isSelected} onChange={() => toggleSelectRow(task.id)} />
-                            </td>
-                            <td className={`${styles.tdCell} ${styles.stickyColEps}`}>
-                              <div className={styles.epsPillGroup}>
-                                <span className={styles.epsBadge} title={epsCode}>{epsCode}</span>
-                                <button type="button" className={styles.copyMiniBtn} onClick={() => handleCopySingleEPS(task.id, epsCode)} title="Copier cet EPS">
-                                  {copiedId === task.id ? <Check size={13} /> : <Copy size={13} />}
-                                </button>
-                              </div>
-                            </td>
-                            <td className={`${styles.tdCell} ${styles.stickyColStatus}`}>{statusPill(task, locked)}</td>
-
-                            {visibleOrderedCols.map((col) => {
-                              const cellKey = `${task.id}_${col}`;
-                              const wrapped = globalWrap || wrappedColumns.includes(col) || expandedCells[cellKey];
-                              const dropCls = dropTarget?.col === col ? styles.tdDropCol : "";
-
-                              if (isEditableColumn(col)) {
-                                const val = draftEdits[cellKey] !== undefined ? draftEdits[cellKey] : String(dyn[col] ?? "");
-                                const multi = wrapped || val.length > 42;
-                                const commit = () => {
-                                  if (!locked && draftEdits[cellKey] !== undefined && draftEdits[cellKey] !== String(dyn[col] ?? "")) {
-                                    handleUpdateData(task.id, col, draftEdits[cellKey]);
-                                  }
-                                };
-                                const common = {
-                                  disabled: locked,
-                                  className: `${multi ? styles.pilotTextarea : styles.pilotInput} ${locked ? styles.pilotInputDisabled : ""}`,
-                                  placeholder: locked ? "Validé par l'Admin" : `Saisir ${col}...`,
-                                  value: val,
-                                  onBlur: commit,
-                                  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                                    setDraftEdits((p) => ({ ...p, [cellKey]: e.target.value })),
-                                };
-                                return (
-                                  <td key={col} className={`${styles.tdEditableCell} ${multi ? styles.tdWrappedCell : ""} ${dropCls}`}>
-                                    <div className={styles.pilotInputWrapper}>
-                                      {multi ? (
-                                        <textarea
-                                          {...common}
-                                          rows={Math.min(5, Math.max(2, Math.ceil(val.length / 38)))}
-                                          onKeyDown={(e) => {
-                                            if (e.key === "Enter" && !e.shiftKey) {
-                                              e.preventDefault();
-                                              (e.target as HTMLTextAreaElement).blur();
-                                            }
-                                          }}
-                                        />
-                                      ) : (
-                                        <input {...common} type="text" onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()} />
-                                      )}
-                                      {locked ? (
-                                        <Lock size={13} className={styles.lockedInputIcon} />
-                                      ) : savingCell === cellKey ? (
-                                        <Sparkles size={14} className={styles.savedIndicator} />
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          className={styles.cellPickBtn}
-                                          title="Choisir un motif Contestable / Validé"
-                                          onClick={(e) =>
-                                            setCellPicker(
-                                              cellPicker?.taskId === task.id && cellPicker?.col === col
-                                                ? null
-                                                : { taskId: task.id, col, anchor: e.currentTarget }
-                                            )
-                                          }
-                                        >
-                                          <BookmarkCheck size={13} />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </td>
-                                );
-                              }
-
-                              const raw = dyn[col] !== undefined && dyn[col] !== "" ? String(dyn[col]) : "";
-                              const isLong = raw.length > 36;
-                              return (
-                                <td
-                                  key={col}
-                                  onClick={() => isLong && setExpandedCells((p) => ({ ...p, [cellKey]: !p[cellKey] }))}
-                                  className={[
-                                    styles.tdCell,
-                                    wrapped && styles.tdWrappedCell,
-                                    isLong && styles.tdExpandableCursor,
-                                    (sortConfig?.col === col || colFilters[col]) && styles.tdActiveRuleHighlight,
-                                    dropCls,
-                                  ].filter(Boolean).join(" ")}
-                                  title={isLong && !wrapped ? `${raw}\n\n(Cliquez pour tout afficher)` : raw}
-                                >
-                                  {raw ? (
-                                    <div className={wrapped ? styles.wrappedBentoContent : styles.compactCellContent}>
-                                      <span className={styles.lockedValue}>{raw}</span>
-                                      {isLong && !wrapped && (
-                                        <span className={styles.expandCellBadge}>
-                                          <Maximize2 size={10} />
-                                        </span>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <span className={styles.emptyDash}>—</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                          </tr>
+                          <BoardRow
+                            key={task.id}
+                            task={task}
+                            epsCode={extractTaskEPS(task, allowedFields)}
+                            locked={locked}
+                            isSelected={selectedSet.has(task.id)}
+                            cols={visibleOrderedCols}
+                            isEditable={isEditableColumn}
+                            globalWrap={globalWrap}
+                            wrappedSet={wrappedSet}
+                            ruleCols={ruleCols}
+                            expanded={expandedCells[task.id]}
+                            copied={copiedId === task.id}
+                            savingCol={savingCell && savingCell.startsWith(`${task.id}_`) ? savingCell.slice(String(task.id).length + 1) : null}
+                            dropCol={dropTarget?.col || null}
+                            onToggleSelect={onRowToggleSelect}
+                            onCopyEps={onRowCopyEps}
+                            onStatus={onRowStatus}
+                            onCommit={onRowCommit}
+                            onOpenPicker={onRowOpenPicker}
+                            onToggleExpand={onRowToggleExpand}
+                          />
                         );
                       })}
+
+                      {hasMoreRows && (
+                        <tr ref={sentinelRef} className={styles.sentinelRow}>
+                          <td colSpan={visibleOrderedCols.length + 3}>
+                            <div className={styles.sentinelBox}>
+                              <Loader2 size={15} className={styles.spinSlow} />
+                              <span>
+                                Chargement de la suite… <b>{filteredTasks.length - renderLimit}</b> ligne(s) restante(s)
+                              </span>
+                              <button type="button" className={styles.noMatchBtn} onClick={() => setRenderLimit(filteredTasks.length)}>
+                                Tout afficher
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1201,9 +1175,14 @@ export default function PilotBoard() {
                       <strong>Filtre</strong> par colonne (plusieurs valeurs, plusieurs colonnes) · <strong>⠿</strong> pour déplacer · icône motif dans une case.
                     </span>
                   </span>
-                  <span className={styles.footerCount}>
-                    {selectedTasks.length > 0 ? `${selectedTasks.length} ligne(s) cochée(s)` : `${filteredTasks.length} ligne(s) affichée(s)`}
-                  </span>
+                  <div className={styles.footerRight}>
+                    <div className={styles.footerProgress} title="Avancement de la mission">
+                      <i style={{ width: `${stats.total ? Math.round(((stats.done + stats.validated) / stats.total) * 100) : 0}%` }} />
+                    </div>
+                    <span className={styles.footerCount}>
+                      {selectedTasks.length > 0 ? `${selectedTasks.length} ligne(s) cochée(s)` : `${filteredTasks.length} ligne(s) filtrée(s)`}
+                    </span>
+                  </div>
                 </div>
               </>
             )}

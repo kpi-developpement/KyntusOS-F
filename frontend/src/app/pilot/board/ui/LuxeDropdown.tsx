@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { ChevronDown, Check, Search, X } from "lucide-react";
+import FloatingLayer from "./FloatingLayer";
 import styles from "./LuxeDropdown.module.css";
+
+// ============================================================================
+// LUXE DROPDOWN — the menu is rendered in a portal (FloatingLayer), so it is
+// never hidden under a card / table / header and never shifted by a parent.
+// Keyboard: ↑ ↓ to move, Enter to pick, Esc to close.
+// ============================================================================
 
 export interface LuxeOption {
   value: string;
@@ -24,6 +31,7 @@ interface LuxeDropdownProps {
   variant?: "default" | "royal" | "hero";
   align?: "left" | "right";
   minWidth?: number | string;
+  menuWidth?: number;
 }
 
 export default function LuxeDropdown({
@@ -39,79 +47,95 @@ export default function LuxeDropdown({
   variant = "default",
   align = "left",
   minWidth = 200,
+  menuWidth = 280,
 }: LuxeDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const close = useCallback(() => setIsOpen(false), []);
 
-  useEffect(() => {
-    if (isOpen && searchable) {
-      setTimeout(() => searchInputRef.current?.focus(), 50);
-    } else {
-      setQuery("");
-    }
-  }, [isOpen, searchable]);
-
-  const selectedOption = useMemo(
-    () => options.find((o) => o.value === value),
-    [options, value]
-  );
+  const selectedOption = useMemo(() => options.find((o) => o.value === value), [options, value]);
 
   const filteredOptions = useMemo(() => {
     if (!query.trim()) return options;
     const q = query.toLowerCase();
-    return options.filter(
-      (o) =>
-        o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q)
-    );
+    return options.filter((o) => o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q));
   }, [options, query]);
 
-  const variantClass =
-    variant === "royal"
-      ? styles.triggerRoyal
-      : variant === "hero"
-      ? styles.triggerHero
-      : "";
+  useEffect(() => {
+    if (!isOpen) {
+      setQuery("");
+      setActiveIdx(-1);
+      return;
+    }
+    setActiveIdx(Math.max(0, options.findIndex((o) => o.value === value)));
+    if (searchable) {
+      const id = setTimeout(() => searchInputRef.current?.focus({ preventScroll: true }), 30);
+      return () => clearTimeout(id);
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => setActiveIdx(0), [query]);
+
+  // keep the active option visible
+  useEffect(() => {
+    if (!isOpen || activeIdx < 0) return;
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-idx="${activeIdx}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [activeIdx, isOpen]);
+
+  const pick = (val: string) => {
+    onChange(val);
+    setIsOpen(false);
+    triggerRef.current?.focus({ preventScroll: true });
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.min(filteredOptions.length - 1, i + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => Math.max(0, i - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const opt = filteredOptions[activeIdx];
+      if (opt) pick(opt.value);
+    } else if (e.key === "Tab") {
+      setIsOpen(false);
+    }
+  };
+
+  const variantClass = variant === "royal" ? styles.triggerRoyal : variant === "hero" ? styles.triggerHero : "";
 
   return (
-    <div
-      ref={containerRef}
-      className={`${styles.dropdownContainer} ${
-        isOpen ? styles.dropdownContainerOpen : ""
-      }`}
-      style={{ minWidth }}
-    >
-      {/* Trigger Button */}
+    <div className={styles.dropdownContainer} style={{ minWidth }}>
       <div
-        role="button"
+        ref={triggerRef}
+        role="combobox"
+        aria-expanded={isOpen}
         tabIndex={0}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`${styles.trigger} ${variantClass} ${
-          isOpen ? styles.triggerOpen : ""
-        }`}
+        onKeyDown={onKeyDown}
+        className={`${styles.trigger} ${variantClass} ${isOpen ? styles.triggerOpen : ""}`}
       >
         <div className={styles.triggerLeft}>
           {icon && <span className={styles.iconWrap}>{icon}</span>}
           {prefixLabel && <span className={styles.prefixLabel}>{prefixLabel}</span>}
           {selectedOption ? (
             <span className={styles.selectedText}>
-              {selectedOption.icon && (
-                <span className={styles.iconWrap}>{selectedOption.icon}</span>
-              )}
+              {selectedOption.icon && <span className={styles.iconWrap}>{selectedOption.icon}</span>}
               <span>{selectedOption.label}</span>
             </span>
           ) : (
@@ -133,20 +157,20 @@ export default function LuxeDropdown({
               <X size={11} />
             </button>
           )}
-          <ChevronDown
-            size={16}
-            className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}
-          />
+          <ChevronDown size={16} className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`} />
         </div>
       </div>
 
-      {/* Floating 3D Popover Menu */}
-      {isOpen && (
-        <div
-          className={`${styles.menuPopover} ${
-            align === "right" ? styles.menuAlignRight : ""
-          }`}
-        >
+      <FloatingLayer
+        anchor={triggerRef.current}
+        open={isOpen}
+        onClose={close}
+        width={menuWidth}
+        fitAnchor
+        maxHeightCap={420}
+        align={align}
+      >
+        <div className={styles.menuPopover} onKeyDown={onKeyDown}>
           {searchable && (
             <div className={styles.searchHeader}>
               <Search size={14} className={styles.searchIcon} />
@@ -157,46 +181,38 @@ export default function LuxeDropdown({
                 placeholder={searchPlaceholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
               />
               {query && (
-                <button
-                  type="button"
-                  className={styles.clearMiniBtn}
-                  onClick={() => setQuery("")}
-                >
+                <button type="button" className={styles.clearMiniBtn} onClick={() => setQuery("")}>
                   <X size={10} />
                 </button>
               )}
+              <span className={styles.searchCount}>{filteredOptions.length}</span>
             </div>
           )}
 
-          <div className={styles.optionsList}>
+          <div ref={listRef} className={styles.optionsList} role="listbox">
             {filteredOptions.length > 0 ? (
-              filteredOptions.map((opt) => {
+              filteredOptions.map((opt, i) => {
                 const isSelected = opt.value === value;
                 return (
                   <div
                     key={opt.value}
-                    className={`${styles.optionItem} ${
-                      isSelected ? styles.optionSelected : ""
-                    }`}
-                    onClick={() => {
-                      onChange(opt.value);
-                      setIsOpen(false);
-                    }}
+                    data-idx={i}
+                    role="option"
+                    aria-selected={isSelected}
+                    className={`${styles.optionItem} ${isSelected ? styles.optionSelected : ""} ${i === activeIdx ? styles.optionActive : ""}`}
+                    onMouseEnter={() => setActiveIdx(i)}
+                    onClick={() => pick(opt.value)}
                   >
                     <div className={styles.optionLeft}>
-                      {opt.icon && (
-                        <span className={styles.optionIcon}>{opt.icon}</span>
-                      )}
-                      <span>{opt.label}</span>
+                      {opt.icon && <span className={styles.optionIcon}>{opt.icon}</span>}
+                      <span className={styles.optionLabel} title={opt.label}>
+                        {opt.label}
+                      </span>
                     </div>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      {opt.badge !== undefined && (
-                        <span className={styles.optionBadge}>{opt.badge}</span>
-                      )}
+                    <div className={styles.optionRight}>
+                      {opt.badge !== undefined && <span className={styles.optionBadge}>{opt.badge}</span>}
                       {isSelected && <Check size={14} />}
                     </div>
                   </div>
@@ -207,7 +223,7 @@ export default function LuxeDropdown({
             )}
           </div>
         </div>
-      )}
+      </FloatingLayer>
     </div>
   );
 }
