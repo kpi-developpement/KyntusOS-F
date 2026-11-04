@@ -1,115 +1,34 @@
 /* ========================================================================== */
-/* LUXE EXECUTIVE BUTTONS — 70% PORCELAIN WHITE / 30% ROYAL SAPPHIRE BLUE     */
+/* LUXE BUTTONS — 70% WHITE / 30% BLUE                                        */
 /* ========================================================================== */
 
 .luxeBtn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  border-radius: 12px;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  overflow: hidden;
-  user-select: none;
-  white-space: nowrap;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 16px;
+  border-radius: 13px; font-family: "Inter", system-ui, -apple-system, sans-serif; font-size: 0.74rem; font-weight: 800;
+  letter-spacing: 0.4px; text-transform: uppercase; white-space: nowrap; cursor: pointer; outline: none; overflow: hidden;
+  user-select: none; box-sizing: border-box; transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
 }
+.luxeBtn:focus-visible { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2); }
+.luxeBtn:active { transform: scale(0.98); }
 
-/* Primary: 30% Royal Sapphire Accent */
 .primary, .cyan {
-  background: linear-gradient(135deg, #0284c7 0%, #1d4ed8 100%);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 
-    0 6px 16px rgba(2, 132, 199, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  color: #fff; border: 1px solid transparent; background: linear-gradient(135deg, #2563eb, #1e40af);
+  box-shadow: 0 10px 22px -12px rgba(29, 78, 216, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
+.primary:hover, .cyan:hover { transform: translateY(-1px); background: linear-gradient(135deg, #1d4ed8, #1e3a8a); box-shadow: 0 14px 26px -12px rgba(29, 78, 216, 0.95); }
 
-.primary:hover, .cyan:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 10px 24px rgba(2, 132, 199, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  background: linear-gradient(135deg, #0369a1 0%, #1e40af 100%);
-}
+.secondary, .warning { color: #1d4ed8; background: #fff; border: 1px solid #bfdbfe; }
+.secondary:hover, .warning:hover { transform: translateY(-1px); background: #eff6ff; border-color: #3b82f6; }
 
-/* Secondary: 70% Porcelain White with Sapphire Border */
-.secondary, .warning {
-  background: #ffffff;
-  color: #0284c7;
-  border: 1.5px solid rgba(2, 132, 199, 0.32);
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
-}
+.danger { color: #dc2626; background: #fff; border: 1px solid #fecaca; }
+.danger:hover { transform: translateY(-1px); color: #fff; background: #dc2626; border-color: #dc2626; box-shadow: 0 12px 24px -12px rgba(220, 38, 38, 0.7); }
 
-.secondary:hover, .warning:hover {
-  background: #f0f9ff;
-  border-color: #0284c7;
-  color: #0369a1;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(2, 132, 199, 0.16);
-}
-
-/* Danger: Porcelain White with Crimson Accent */
-.danger {
-  background: #ffffff;
-  color: #e11d48;
-  border: 1.5px solid rgba(225, 29, 72, 0.3);
-  box-shadow: 0 3px 10px rgba(225, 29, 72, 0.05);
-}
-
-.danger:hover {
-  background: #e11d48;
-  color: #ffffff;
-  border-color: #e11d48;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(225, 29, 72, 0.28);
-}
-
-.content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.icon {
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.luxeBtn:hover .icon {
-  transform: scale(1.15) rotate(-4deg);
-}
-
-.luxeBtn:active {
-  transform: translateY(0) scale(0.98);
-}
+.content { position: relative; z-index: 2; display: flex; align-items: center; gap: 8px; }
+.icon { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.luxeBtn:hover .icon { transform: scale(1.12) rotate(-4deg); }
 
 .shimmer {
-  position: absolute;
-  top: 0;
-  left: -110%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.35),
-    transparent
-  );
-  transform: skewX(-20deg);
-  transition: left 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 1;
+  position: absolute; top: 0; left: -110%; z-index: 1; width: 60%; height: 100%; transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent); transition: left 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-.luxeBtn:hover .shimmer {
-  left: 150%;
-}
+.luxeBtn:hover .shimmer { left: 150%; }

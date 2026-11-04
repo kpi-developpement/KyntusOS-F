@@ -20,8 +20,7 @@ import {
   CircleDot,
   Lock,
   Layers,
-  Check,
-  AlertTriangle,
+  BookmarkCheck,
 } from "lucide-react";
 import ActionButton from "../ui/ActionButton";
 import LuxeDropdown, { LuxeOption } from "../ui/LuxeDropdown";
@@ -48,6 +47,7 @@ interface BoardActionsProps {
   onBulkEdit?: (col: string, val: string) => void;
   onClearSelection?: () => void;
   onResetFilters?: () => void;
+  onOpenDecisions?: (column?: string) => void;
 }
 
 export default function BoardActions({
@@ -71,6 +71,7 @@ export default function BoardActions({
   onBulkEdit = () => {},
   onClearSelection = () => {},
   onResetFilters = () => {},
+  onOpenDecisions = () => {},
 }: BoardActionsProps) {
   const [bulkCol, setBulkCol] = useState<string>(allowedFields?.[0] || "");
   const [bulkVal, setBulkVal] = useState<string>("");
@@ -83,11 +84,7 @@ export default function BoardActions({
   }, [allowedFields, bulkCol]);
 
   useEffect(() => {
-    if (filterColumn && filterColumn !== "ALL") {
-      setCopyTargetCol(filterColumn);
-    } else {
-      setCopyTargetCol("EPS_ONLY");
-    }
+    setCopyTargetCol(filterColumn && filterColumn !== "ALL" ? filterColumn : "EPS_ONLY");
   }, [filterColumn]);
 
   const handleBulkSubmit = (e: React.FormEvent) => {
@@ -97,7 +94,6 @@ export default function BoardActions({
     setBulkVal("");
   };
 
-  // Pure Vector Options for Columns (Zero Emoji)
   const columnDropdownOptions: LuxeOption[] = [
     { value: "ALL", label: "Toutes les colonnes", icon: <Globe size={14} /> },
     { value: "EPS_ONLY", label: "Référence EPS (EPS-...)", icon: <Zap size={14} /> },
@@ -109,17 +105,11 @@ export default function BoardActions({
     })),
   ];
 
-  // Pure Vector Options for Copy Column Selector (Zero Emoji)
   const copyColumnOptions: LuxeOption[] = [
     { value: "EPS_ONLY", label: "Référence EPS (EPS-...)", icon: <Zap size={14} /> },
-    ...allColumns.map((col) => ({
-      value: col,
-      label: col,
-      icon: <Copy size={14} />,
-    })),
+    ...allColumns.map((col) => ({ value: col, label: col, icon: <Copy size={14} /> })),
   ];
 
-  // Pure Vector Options for Status (Zero Emoji)
   const statusDropdownOptions: LuxeOption[] = [
     { value: "ALL", label: "Tous les statuts", badge: tasksCount, icon: <Layers size={14} /> },
     { value: "A_FAIRE", label: "À Faire", icon: <CircleDot size={14} /> },
@@ -128,7 +118,6 @@ export default function BoardActions({
     { value: "VALIDATED", label: "Validé (Admin Kanban)", icon: <Lock size={14} /> },
   ];
 
-  // Pure Vector Options for Bulk Editable Columns (Zero Emoji)
   const editableDropdownOptions: LuxeOption[] = allowedFields.map((f) => ({
     value: f,
     label: f,
@@ -141,18 +130,16 @@ export default function BoardActions({
     statusFilter !== "ALL" ||
     searchQuery.trim() !== "";
 
-  const activeCopyColName =
-    copyTargetCol === "EPS_ONLY" ? "EPS" : copyTargetCol.toUpperCase();
+  const activeCopyColName = copyTargetCol === "EPS_ONLY" ? "EPS" : copyTargetCol.toUpperCase();
   const countToCopy = selectedCount > 0 ? selectedCount : filteredCount;
 
   return (
     <div className={styles.actionsContainer}>
-      {/* TOP ROW: LUXE FILTER ENGINE & PRIMARY ACTIONS */}
+      {/* TOP ROW: FILTERS & PRIMARY ACTIONS */}
       <div className={styles.toolbarRow}>
         <div className={styles.filterGroup}>
-          {/* 1. COLUMN SELECTOR DROPDOWN */}
           <LuxeDropdown
-            minWidth={235}
+            minWidth={225}
             icon={<Filter size={15} />}
             prefixLabel="COLONNE"
             options={columnDropdownOptions}
@@ -166,12 +153,11 @@ export default function BoardActions({
             clearable
           />
 
-          {/* 2. CASCADING DISTINCT VALUES DROPDOWN */}
           {filterColumn !== "ALL" && (
             <div className={styles.cascadingDropReveal}>
               <LuxeDropdown
                 variant="royal"
-                minWidth={250}
+                minWidth={240}
                 icon={<ListFilter size={15} />}
                 prefixLabel="VALEUR"
                 placeholder={`Choisir dans ${filterColumn}...`}
@@ -185,7 +171,6 @@ export default function BoardActions({
             </div>
           )}
 
-          {/* 3. INSTANT TEXT SEARCH */}
           <div className={styles.searchBox}>
             <Search size={16} className={styles.searchIcon} />
             <input
@@ -200,19 +185,14 @@ export default function BoardActions({
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <button
-                type="button"
-                className={styles.clearSearchBtn}
-                onClick={() => setSearchQuery("")}
-              >
+              <button type="button" className={styles.clearSearchBtn} onClick={() => setSearchQuery("")}>
                 <X size={13} />
               </button>
             )}
           </div>
 
-          {/* 4. STATUS DROPDOWN */}
           <LuxeDropdown
-            minWidth={205}
+            minWidth={200}
             prefixLabel="STATUT"
             options={statusDropdownOptions}
             value={statusFilter}
@@ -220,7 +200,6 @@ export default function BoardActions({
             clearable
           />
 
-          {/* Reset Filters Button */}
           {hasActiveFilters && (
             <button
               type="button"
@@ -234,7 +213,6 @@ export default function BoardActions({
           )}
         </div>
 
-        {/* Right: Quick Action Buttons */}
         <div className={styles.actionButtonsGroup}>
           <ActionButton
             icon={Copy}
@@ -242,28 +220,17 @@ export default function BoardActions({
             variant="primary"
             onClick={() => onCopyColumnValues(copyTargetCol)}
           />
-
           <ActionButton
             icon={CheckCircle2}
-            label={
-              selectedCount > 0
-                ? `TERMINER (${selectedCount})`
-                : "TERMINER SÉLECTION"
-            }
+            label={selectedCount > 0 ? `TERMINER (${selectedCount})` : "TERMINER SÉLECTION"}
             variant="secondary"
             onClick={onCoachSync}
           />
-
-          <ActionButton
-            icon={Trash2}
-            label="PURGER DOUBLONS"
-            variant="danger"
-            onClick={onPurgeDoublons}
-          />
+          <ActionButton icon={Trash2} label="PURGER DOUBLONS" variant="danger" onClick={onPurgeDoublons} />
         </div>
       </div>
 
-      {/* BOTTOM ROW: MASS EDIT & MULTI-LINE COLUMN COPY BAR */}
+      {/* BOTTOM ROW: MASS EDIT (visible when rows are checked) */}
       {selectedCount > 0 && (
         <div className={styles.massActionBanner}>
           <div className={styles.massLeftZone}>
@@ -274,7 +241,7 @@ export default function BoardActions({
 
             <div className={styles.massCopyBox}>
               <LuxeDropdown
-                minWidth={210}
+                minWidth={200}
                 prefixLabel="COPIER COL."
                 options={copyColumnOptions}
                 value={copyTargetCol}
@@ -288,7 +255,7 @@ export default function BoardActions({
                 title="Copier les valeurs de cette colonne pour les lignes sélectionnées"
               >
                 <ClipboardCheck size={15} />
-                <span>COPIER {selectedCount} VALEURS</span>
+                <span>COPIER {selectedCount}</span>
               </button>
             </div>
           </div>
@@ -300,57 +267,32 @@ export default function BoardActions({
               {allowedFields.length > 0 ? (
                 <LuxeDropdown
                   variant="royal"
-                  minWidth={195}
+                  minWidth={185}
                   options={editableDropdownOptions}
                   value={bulkCol}
                   onChange={setBulkCol}
                 />
               ) : (
-                <span className={styles.noEditableWarn}>
-                  Aucune colonne modifiable
-                </span>
+                <span className={styles.noEditableWarn}>Aucune colonne modifiable</span>
               )}
             </div>
 
             {allowedFields.length > 0 && (
               <>
-                <div className={styles.quickTagsGroup}>
-                  <button
-                    type="button"
-                    className={styles.quickTagValide}
-                    onClick={() =>
-                      setBulkVal((prev) =>
-                        prev.toLowerCase().startsWith("valide")
-                          ? prev
-                          : `VALIDE - ${prev}`
-                      )
-                    }
-                    title="Préfixe reconnu par l'Export Équipe"
-                  >
-                    <Check size={12} />
-                    <span>VALIDE</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.quickTagContest}
-                    onClick={() =>
-                      setBulkVal((prev) =>
-                        prev.toLowerCase().startsWith("contester")
-                          ? prev
-                          : `CONTESTER - ${prev}`
-                      )
-                    }
-                    title="Préfixe reconnu par l'Export Équipe"
-                  >
-                    <AlertTriangle size={12} />
-                    <span>CONTESTER</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={styles.massDecisionBtn}
+                  onClick={() => onOpenDecisions(bulkCol)}
+                  title="Ouvrir la bibliothèque Contestable / Validé"
+                >
+                  <BookmarkCheck size={15} />
+                  <span>CHOISIR UN MOTIF</span>
+                </button>
 
                 <input
                   type="text"
                   className={styles.massInput}
-                  placeholder={`Commentaire / analyse pour les ${selectedCount} lignes...`}
+                  placeholder={`Ou saisir un commentaire libre pour ${selectedCount} ligne(s)...`}
                   value={bulkVal}
                   onChange={(e) => setBulkVal(e.target.value)}
                 />
