@@ -27,7 +27,7 @@ function extractExcelEPS(task: any): string {
   const dyn = task.dynamicData || {};
 
   // 1. Scan for any value matching "EPS-..." inside Excel dynamicData
-  const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
+  const epsRegex = /((?:EPS|LOR)-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
   for (const val of Object.values(dyn)) {
     const str = String(val ?? "").trim();
     const match = str.match(epsRegex);

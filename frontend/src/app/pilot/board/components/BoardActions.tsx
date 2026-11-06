@@ -96,7 +96,7 @@ export default function BoardActions({
 
   const columnDropdownOptions: LuxeOption[] = [
     { value: "ALL", label: "Toutes les colonnes", icon: <Globe size={14} /> },
-    { value: "EPS_ONLY", label: "Référence EPS (EPS-...)", icon: <Zap size={14} /> },
+    { value: "EPS_ONLY", label: "Référence (EPS- / LOR-)", icon: <Zap size={14} /> },
     ...allColumns.map((col) => ({
       value: col,
       label: col,
@@ -106,7 +106,7 @@ export default function BoardActions({
   ];
 
   const copyColumnOptions: LuxeOption[] = [
-    { value: "EPS_ONLY", label: "Référence EPS (EPS-...)", icon: <Zap size={14} /> },
+    { value: "EPS_ONLY", label: "Référence (EPS- / LOR-)", icon: <Zap size={14} /> },
     ...allColumns.map((col) => ({ value: col, label: col, icon: <Copy size={14} /> })),
   ];
 

@@ -53,14 +53,14 @@ public class ExcelImportService {
 
                     // Fallback l-amane: ila l'auto-discovery ma-lqach "EPS-", n-3etmdo 3la s-smiya
                     String colNameUpper = colName.toUpperCase();
-                    if (colNameUpper.contains("EPS") || colNameUpper.contains("REFERENCE") || colNameUpper.contains("RDV")) {
+                    if (colNameUpper.contains("EPS") || colNameUpper.contains("LOR") || colNameUpper.contains("REFERENCE") || colNameUpper.contains("RDV")) {
                         fallbackEpsIndex = cell.getColumnIndex();
                     }
                 }
             }
 
             // =========================================================================
-            // 🧠 L'INTELLIGENCE : AUTO-DISCOVERY DYAL L'PRIMARY KEY (EPS-)
+            // 🧠 L'INTELLIGENCE : AUTO-DISCOVERY DYAL L'PRIMARY KEY (EPS- / LOR-)
             // =========================================================================
             int epsColumnIndex = -1;
             // N-scanniw les 5 premières lignes de données bash n-l9aw l'EPS
@@ -71,7 +71,7 @@ public class ExcelImportService {
                 if (scanRow == null) continue;
                 for (Cell cell : scanRow) {
                     String val = getCellValueAsString(cell).trim().toUpperCase();
-                    if (val.startsWith("EPS-")) {
+                    if (val.startsWith("EPS-") || val.startsWith("LOR-")) {
                         epsColumnIndex = cell.getColumnIndex();
                         break;
                     }

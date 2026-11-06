@@ -50,7 +50,7 @@ export function extractTaskEPS(task: any, editableCols: string[] = []): string {
     task.reference,
   ];
   for (const cand of directCandidates) {
-    if (cand && typeof cand === "string" && !cand.startsWith("AUTO-")) {
+    if (cand && typeof cand === "string" && !cand.startsWith("AUTO-") && !cand.startsWith("UNKNOWN-")) {
       return cand.trim();
     }
   }
@@ -58,7 +58,8 @@ export function extractTaskEPS(task: any, editableCols: string[] = []): string {
   const dyn = task.dynamicData || {};
   const keys = Object.keys(dyn);
 
-  const epsRegex = /(EPS-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
+  // Identifiant = valeur qui commence par EPS- ou LOR-
+  const epsRegex = /((?:EPS|LOR)-[A-Z0-9_-]*\d+[A-Z0-9_-]*)/i;
   for (const k of keys) {
     const val = String(dyn[k] ?? "").trim();
     const match = val.match(epsRegex);
