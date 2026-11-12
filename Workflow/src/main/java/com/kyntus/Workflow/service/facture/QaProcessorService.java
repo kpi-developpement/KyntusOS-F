@@ -1,12 +1,12 @@
 package com.kyntus.Workflow.service.facture;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 @Service
@@ -21,37 +21,39 @@ public class QaProcessorService {
     public Map<String, QaData> processQaFile(MultipartFile file) throws Exception {
         Map<String, QaData> qaDataMap = new HashMap<>(32768);
 
+        // ⚡ STREAMING : ma-b9ach XSSFWorkbook li kan kay-7ett l-fichier kamel f r-RAM
         try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
+             Workbook workbook = FactureStreamSupport.open(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            Row headerRow = sheet.getRow(0);
+            Iterator<Row> rows = sheet.iterator();
 
-            if (headerRow == null) throw new Exception("Le fichier QA est vide.");
+            if (!rows.hasNext()) throw new Exception("Le fichier QA est vide.");
+            Row headerRow = rows.next();
 
             int colInter = -1, colQuestionName = -1, colReponse = -1;
 
             for (Cell cell : headerRow) {
-                String headerName = cell.getStringCellValue().trim().toUpperCase();
+                String headerName = FactureStreamSupport.cellToString(cell).trim().toUpperCase();
                 if (headerName.contains("INTERVENTION")) colInter = cell.getColumnIndex();
                 else if (headerName.contains("QUESTION NAME")) colQuestionName = cell.getColumnIndex();
                 else if (headerName.contains("RÉPONSE") || headerName.contains("REPONSE")) colReponse = cell.getColumnIndex();
             }
 
-            int lastRow = sheet.getLastRowNum();
-            for (int i = 1; i <= lastRow; i++) {
-                Row row = sheet.getRow(i);
+            while (rows.hasNext()) {
+                Row row = rows.next();
                 if (row == null) continue;
 
-                Cell cellInter = safeGetCell(row, colInter);
-                Cell cellQuestionName = safeGetCell(row, colQuestionName);
+                Cell cellInter = FactureStreamSupport.safeCell(row, colInter);
+                Cell cellQuestionName = FactureStreamSupport.safeCell(row, colQuestionName);
                 if (cellInter == null || cellQuestionName == null) continue;
 
-                String intervention = getCellValueAsString(cellInter).trim();
-                String questionName = getCellValueAsString(cellQuestionName).trim();
+                String intervention = FactureStreamSupport.cellToString(cellInter).trim();
+                String questionName = FactureStreamSupport.cellToString(cellQuestionName).trim();
                 if (intervention.isEmpty() || questionName.isEmpty()) continue;
 
-                String reponse = getCellValueAsString(safeGetCell(row, colReponse)).trim();
+                String reponse = FactureStreamSupport.cellToString(
+                        FactureStreamSupport.safeCell(row, colReponse)).trim();
                 QaData qaData = qaDataMap.computeIfAbsent(intervention, k -> new QaData());
 
                 if ("Message_Mise_en_service".equalsIgnoreCase(questionName)) {
@@ -72,19 +74,5 @@ public class QaProcessorService {
             }
         }
         return qaDataMap;
-    }
-
-    private Cell safeGetCell(Row row, int colIndex) {
-        if (colIndex < 0 || row == null) return null;
-        return row.getCell(colIndex);
-    }
-
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
-        CellType type = cell.getCellType();
-        if (type == CellType.STRING) return cell.getStringCellValue();
-        if (type == CellType.NUMERIC) return String.valueOf((long) cell.getNumericCellValue());
-        if (type == CellType.BOOLEAN) return String.valueOf(cell.getBooleanCellValue());
-        return cell.toString();
     }
 }

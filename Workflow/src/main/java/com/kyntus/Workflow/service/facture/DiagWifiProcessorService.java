@@ -1,12 +1,12 @@
 package com.kyntus.Workflow.service.facture;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 @Service
@@ -15,19 +15,21 @@ public class DiagWifiProcessorService {
     public Map<String, String> processDiagWifiFile(MultipartFile file) throws Exception {
         Map<String, Boolean> tempMap = new HashMap<>(32768);
 
+        // ⚡ STREAMING : RAM constante, mahma kbar l-fichier
         try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
+             Workbook workbook = FactureStreamSupport.open(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            Row headerRow = sheet.getRow(0);
+            Iterator<Row> rows = sheet.iterator();
 
-            if (headerRow == null) throw new Exception("Le fichier Diag Wifi est vide.");
+            if (!rows.hasNext()) throw new Exception("Le fichier Diag Wifi est vide.");
+            Row headerRow = rows.next();
 
             int colIntervention = -1;
             int colDiagRealise = -1;
 
             for (Cell cell : headerRow) {
-                String headerName = cell.getStringCellValue().trim().toUpperCase();
+                String headerName = FactureStreamSupport.cellToString(cell).trim().toUpperCase();
                 if (headerName.contains("INTERVENTION")) {
                     colIntervention = cell.getColumnIndex();
                 } else if (headerName.contains("DIAGNOSTIC WIFI RÉALISÉ") || headerName.contains("DIAGNOSTIC WIFI REALISE")) {
@@ -39,18 +41,17 @@ public class DiagWifiProcessorService {
                 throw new Exception("Colonnes manquantes dans le fichier Diag Wifi (Intervention, Diagnostic WiFi réalisé).");
             }
 
-            int lastRow = sheet.getLastRowNum();
-            for (int i = 1; i <= lastRow; i++) {
-                Row row = sheet.getRow(i);
+            while (rows.hasNext()) {
+                Row row = rows.next();
                 if (row == null) continue;
 
-                Cell cellIntervention = row.getCell(colIntervention);
+                Cell cellIntervention = FactureStreamSupport.safeCell(row, colIntervention);
                 if (cellIntervention == null) continue;
 
-                String intervention = getCellValueAsString(cellIntervention).trim();
+                String intervention = FactureStreamSupport.cellToString(cellIntervention).trim();
                 if (intervention.isEmpty()) continue;
 
-                boolean isRealise = getCellValueAsBoolean(row.getCell(colDiagRealise));
+                boolean isRealise = getCellValueAsBoolean(FactureStreamSupport.safeCell(row, colDiagRealise));
                 Boolean existing = tempMap.get(intervention);
                 if (existing == null || (!existing && isRealise)) {
                     tempMap.put(intervention, isRealise);
@@ -64,13 +65,6 @@ public class DiagWifiProcessorService {
         }
 
         return finalResultMap;
-    }
-
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
-        if (cell.getCellType() == CellType.STRING) return cell.getStringCellValue();
-        if (cell.getCellType() == CellType.NUMERIC) return String.valueOf((long) cell.getNumericCellValue());
-        return cell.toString();
     }
 
     private boolean getCellValueAsBoolean(Cell cell) {

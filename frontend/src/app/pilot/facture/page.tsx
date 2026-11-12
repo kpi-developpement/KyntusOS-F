@@ -28,7 +28,11 @@ import HoloSpreadsheet from "./components/HoloSpreadsheet";
 type FactureType = "KYNTUS" | "TISSEO";
 type FileKey = "vide" | "tvc" | "rep" | "diag" | "qa" | "intervention";
 
-const BACKEND_URL = "http://10.10.10.25:8082/api/facture/generate";
+// URL RELATIVE : kat-douz mn l-proxy /api dyal Next.js (rewrites -> backend:8082).
+// Qbel kanet "http://10.10.10.25:8082/..." m-7futa b l-yedd, w 7it l-navigateur
+// (machi l-serveur) hwa li kan kay-7awel y-wsel l port 8082, kolla mra ikoun
+// firewall wla l-user kay-dkhol b IP/nom-de-domaine akhor -> "Failed to fetch".
+const BACKEND_URL = "/api/facture/generate";
 
 const FILE_ITEMS: { key: FileKey; label: string; hint: string; required: boolean }[] = [
   { key: "vide", label: "A VIDE", hint: "nom contient « VIDE »", required: true },
@@ -173,8 +177,18 @@ export default function FacturePage() {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`[ERREUR SERVEUR ${response.status}] ${errorText || "Anomalie inconnue."}`);
+        const errorText = await response.text().catch(() => "");
+        // L-backend daba kay-rje3 JSON {"error": "..."} ; l'proxy dyal Next.js
+        // kay-rje3 "Internal Server Error" b7al texte brut mnin l-backend m-7eyyed.
+        let detail = errorText;
+        try {
+          const parsed = JSON.parse(errorText);
+          if (parsed?.error) detail = String(parsed.error);
+        } catch { /* machi JSON */ }
+        if (/^internal server error/i.test(detail.trim())) {
+          detail = "Le serveur backend ne répond pas (redémarrage ou saturation mémoire). Réessayez dans un instant.";
+        }
+        throw new Error(`[ERREUR SERVEUR ${response.status}] ${detail || "Anomalie inconnue."}`);
       }
 
       const blob = await response.blob();
@@ -198,7 +212,7 @@ export default function FacturePage() {
       if (err.name === "AbortError") {
         setErrorMessage("TIMEOUT : le serveur a mis trop de temps à répondre.");
       } else if (String(err.message).includes("Failed to fetch")) {
-        setErrorMessage("ERREUR RÉSEAU : impossible de contacter le port 8082. Vérifiez le pare-feu du serveur.");
+        setErrorMessage("ERREUR RÉSEAU : le serveur est injoignable. Vérifiez que les conteneurs kyntus-frontend et kyntus-backend tournent.");
       } else {
         setErrorMessage(err.message || "Erreur de connexion au serveur backend.");
       }

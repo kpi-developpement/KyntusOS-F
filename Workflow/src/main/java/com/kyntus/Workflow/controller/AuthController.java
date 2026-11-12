@@ -29,17 +29,25 @@ public class AuthController {
         String username = payload.get("username");
         String password = payload.get("password");
 
+        if (username == null || username.isBlank() || password == null) {
+            return ResponseEntity.status(400).body(Map.of("error", "Nom d'utilisateur et mot de passe requis."));
+        }
+
         User user = userRepository.findByUsername(username).orElse(null);
 
-        if (user != null) {
+        if (user != null && user.getPassword() != null) {
             // 🛑 CHECK D'ACTIVATION: Wach l-Admin darlou OFF ?
             if (!user.isActive()) {
                 return ResponseEntity.status(403).body(Map.of("error", "Ce compte a été désactivé par l'administrateur."));
             }
 
             // 🧠 LOGIQUE "RISK-FIRST": N-tchekiw wach l-password hashé (jdid) wla en clair (qdim)
+            // NOTE: getPassword() != null deja m-verifi f l-condition l-fou9.
+            // Qbel, user b password NULL f l-DB kan kay-3ti NullPointerException
+            // -> 500 Internal Server Error f /api/auth/login.
             boolean isMatch = false;
-            if (user.getPassword().startsWith("$2a$")) {
+            if (user.getPassword().startsWith("$2a$") || user.getPassword().startsWith("$2b$")
+                    || user.getPassword().startsWith("$2y$")) {
                 // Hada password m-hashi b' BCrypt
                 isMatch = passwordEncoder.matches(password, user.getPassword());
             } else {

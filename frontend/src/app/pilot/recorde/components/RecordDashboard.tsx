@@ -35,16 +35,11 @@ export default function RecordDashboard() {
     formData.append('file', file);
 
     try {
-      const getUploadApiUrl = () => {
-        if (typeof window !== 'undefined') {
-          return `http://${window.location.hostname}:8082`;
-        }
-        return 'http://localhost:8082';
-      };
-
-      const UPLOAD_API_URL = getUploadApiUrl();
-
-      const res = await fetch(`${UPLOAD_API_URL}/api/pilot-records/import/${PILOT_ID}`, {
+      // URL RELATIVE : kat-douz mn l-proxy /api dyal Next.js.
+      // Qbel kanet `http://${window.location.hostname}:8082` -> kat-tleb mn
+      // l-navigateur bli port 8082 ykoun maftou7 l-berra, w hadi hiya 3lach
+      // b3d les requetes kanou kay-tay7o merra merra.
+      const res = await fetch(`/api/pilot-records/import/${PILOT_ID}`, {
         method: 'POST',
         body: formData,
       });

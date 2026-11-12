@@ -12,6 +12,7 @@ import ProcessChart3D from "@/components/dashboard/3d-chart";
 import CommandHeader from "@/components/dashboard/CommandHeader";
 import HudStats from "@/components/dashboard/HudStats";
 import ProjectRow from "@/components/dashboard/ProjectRow";
+import { apiJsonOr } from "@/lib/api";
 
 export default function CommandPage() {
   const [data, setData] = useState<any>(null);
@@ -23,9 +24,10 @@ export default function CommandPage() {
 
   const fetchDashboardData = useCallback(async (isInitial = false) => {
     try {
-      // ✅ L-FIX HNA
-      const res = await fetch("/api/stats/dashboard-summary");
-      const d = await res.json();
+      // apiJsonOr : kat-cheki res.ok w kat-parsi b 7imaya. Qbel, mnin l-backend
+      // kay-rje3 "Internal Server Error" (texte brut), res.json() kan kay-tfe9e3.
+      const d = await apiJsonOr("/api/stats/dashboard-summary", null);
+      if (d === null) { setLoading(false); return; }
       if (isInitial) {
         setTimeout(() => { setData(d); setLoading(false); setLastUpdate(new Date()); }, 500);
       } else {
@@ -37,9 +39,7 @@ export default function CommandPage() {
 
   const fetchPilotDetails = async (id: number) => {
     try {
-      // ✅ L-FIX HNA
-      const res = await fetch(`/api/stats/template/${id}/pilots`);
-      const d = await res.json();
+      const d = await apiJsonOr(`/api/stats/template/${id}/pilots`, []);
       setPilotsData(prev => ({...prev, [id]: d}));
     } catch(e) { console.error(e); }
   };

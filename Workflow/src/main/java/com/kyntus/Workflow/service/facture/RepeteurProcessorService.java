@@ -1,12 +1,12 @@
 package com.kyntus.Workflow.service.facture;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 @Service
@@ -15,19 +15,21 @@ public class RepeteurProcessorService {
     public Map<String, String> processRepeteurFile(MultipartFile file) throws Exception {
         Map<String, String> repeteurDataMap = new HashMap<>(16384);
 
+        // ⚡ STREAMING : RAM constante
         try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
+             Workbook workbook = FactureStreamSupport.open(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
-            Row headerRow = sheet.getRow(0);
+            Iterator<Row> rows = sheet.iterator();
 
-            if (headerRow == null) throw new Exception("Le fichier Validation CR (Repeteur) est vide.");
+            if (!rows.hasNext()) throw new Exception("Le fichier Validation CR (Repeteur) est vide.");
+            Row headerRow = rows.next();
 
             int colIntervention = -1;
             int colImeis = -1;
 
             for (Cell cell : headerRow) {
-                String headerName = cell.getStringCellValue().trim().toUpperCase();
+                String headerName = FactureStreamSupport.cellToString(cell).trim().toUpperCase();
                 if (headerName.contains("INTERVENTION")) {
                     colIntervention = cell.getColumnIndex();
                 } else if (headerName.contains("IMEIS RÉPÉTEURS") || headerName.contains("IMEIS REPETEURS")) {
@@ -39,19 +41,18 @@ public class RepeteurProcessorService {
                 throw new Exception("Colonnes manquantes (Intervention, IMEIs répéteurs).");
             }
 
-            int lastRow = sheet.getLastRowNum();
-            for (int i = 1; i <= lastRow; i++) {
-                Row row = sheet.getRow(i);
+            while (rows.hasNext()) {
+                Row row = rows.next();
                 if (row == null) continue;
 
-                Cell cellIntervention = row.getCell(colIntervention);
-                Cell cellImeis = row.getCell(colImeis);
+                Cell cellIntervention = FactureStreamSupport.safeCell(row, colIntervention);
+                Cell cellImeis = FactureStreamSupport.safeCell(row, colImeis);
                 if (cellIntervention == null) continue;
 
-                String intervention = getCellValueAsString(cellIntervention).trim();
+                String intervention = FactureStreamSupport.cellToString(cellIntervention).trim();
                 if (intervention.isEmpty()) continue;
 
-                String imeisString = getCellValueAsString(cellImeis).trim();
+                String imeisString = FactureStreamSupport.cellToString(cellImeis).trim();
 
                 if (!imeisString.isEmpty() && !"-".equals(imeisString) && !"null".equalsIgnoreCase(imeisString)) {
                     int validImeiCount = countValidImeisFast(imeisString);
@@ -81,14 +82,5 @@ public class RepeteurProcessorService {
         }
         if (currentAlnumCount > 3) validCount++;
         return validCount;
-    }
-
-    private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
-        if (cell.getCellType() == CellType.STRING) return cell.getStringCellValue();
-        if (cell.getCellType() == CellType.NUMERIC) {
-            return String.valueOf((long) cell.getNumericCellValue());
-        }
-        return cell.toString();
     }
 }

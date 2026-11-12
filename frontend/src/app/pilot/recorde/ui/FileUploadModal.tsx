@@ -31,12 +31,9 @@ export default function FileUploadModal({
   const [isOrderModified, setIsOrderModified] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
-  const getUploadApiUrl = () => {
-    if (typeof window !== 'undefined') {
-      return `http://${window.location.hostname}:8082`;
-    }
-    return 'http://localhost:8082';
-  };
+  // URL RELATIVE : kolchi kay-douz mn l-proxy /api dyal Next.js.
+  // Qbel kan kay-bni `http://<host>:8082` w kay-byassi l-proxy.
+  const getUploadApiUrl = () => '';
 
   const fetchImportedFiles = useCallback(() => {
     setLoadingFiles(true);
