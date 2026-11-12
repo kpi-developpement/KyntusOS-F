@@ -170,7 +170,7 @@ export default function FacturePage() {
     formData.append("typeFacture", factureType);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 300000);
+    const timeoutId = setTimeout(() => controller.abort(), 15 * 60 * 1000); // 15 min, kif proxyTimeout
 
     try {
       const response = await fetch(BACKEND_URL, { method: "POST", body: formData, signal: controller.signal });

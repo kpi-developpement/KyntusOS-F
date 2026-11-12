@@ -305,7 +305,12 @@ public class FactureMasterService {
             for (Map.Entry<String, String> entry : repeteurMap.entrySet()) {
                 Row row = sheetRep.createRow(r++);
                 row.createCell(0).setCellValue(entry.getKey());
-                row.createCell(1).setCellValue(entry.getValue());
+                if (isTisseo) {
+                    // 🧾 TISSEO : nefs grille LOGISTIQUE li f "A REMPLIS" (13 -> 14, 26 -> 28)
+                    row.createCell(1).setCellValue(applyTisseo(TISSEO_LOGISTIQUE, parseDoubleSafe(entry.getValue())));
+                } else {
+                    row.createCell(1).setCellValue(entry.getValue());
+                }
             }
 
             Sheet sheetDiag = workbook.createSheet("Diag Wifi");
@@ -347,8 +352,9 @@ public class FactureMasterService {
                 row.createCell(9).setCellValue(mes.phone);
                 row.createCell(10).setCellValue(mes.tv);
                 row.createCell(11).setCellValue(mes.codeInterDup);
-                row.createCell(12).setCellValue(mes.mt);
-                row.createCell(13).setCellValue(mes.mtPlusDiagWifi);
+                // 🧾 TISSEO : nefs grille MES li f "A REMPLIS"
+                row.createCell(12).setCellValue(isTisseo ? applyTisseo(TISSEO_MES, mes.mt) : mes.mt);
+                row.createCell(13).setCellValue(isTisseo ? applyTisseo(TISSEO_MES, mes.mtPlusDiagWifi) : mes.mtPlusDiagWifi);
             }
 
             if (isTisseo) {

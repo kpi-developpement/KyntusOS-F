@@ -154,6 +154,9 @@ export default function DecisionLibraryModal({
     setApplying(true);
     try {
       await onApply(targetCol, draftValue.trim());
+      // Le motif choisi ne reste pas sélectionné pour la prochaine ouverture
+      setActiveId(null);
+      setDraftValue("");
       onClose();
     } finally {
       setApplying(false);

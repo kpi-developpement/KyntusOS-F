@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "500mb",
     },
+    // 🔥 PROXY /api (rewrites) : Next.js 16 kay-limiti par défaut l-body
+    //    l 10 Mo w l-timeout l 30s. Ay upload kbir (record 30-80 Mo) wla
+    //    facture li kat-dewwem > 30s kan kay-rje3 "Internal Server Error".
+    proxyClientMaxBodySize: "500mb",
+    proxyTimeout: 15 * 60 * 1000, // 15 min (generation facture + gros imports)
   },
   async rewrites() {
     return [

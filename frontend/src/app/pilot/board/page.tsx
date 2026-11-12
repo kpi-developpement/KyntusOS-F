@@ -403,8 +403,11 @@ export default function PilotBoard() {
   };
 
   const hasColFilters = Object.keys(colFilters).length > 0;
-  // "À traiter uniquement": active when column filters exist and no explicit status was chosen
-  const pendingRuleActive = pendingOnly && hasColFilters && statusFilter === "ALL";
+  // Filtre de la barre d'outils (ex : colonne ANOMALIE = "PTO") : compte aussi comme filtre actif.
+  const hasToolbarFilter = filterColumn !== "ALL" && columnExactValue !== "ALL";
+  // "À traiter uniquement" : dès qu'un filtre est actif (colonne OU barre d'outils) et qu'aucun
+  // statut n'est choisi, les lignes TERMINÉES sortent de la vue filtrée.
+  const pendingRuleActive = pendingOnly && (hasColFilters || hasToolbarFilter) && statusFilter === "ALL";
 
   /** skipCol: ignore that column's own rule (cascading value lists) */
   const taskPassesFilters = useCallback(
@@ -584,9 +587,11 @@ export default function PilotBoard() {
     try {
       await Promise.all(ids.map((id) => patchTask(id, "data", { key: columnKey, value })));
       toast({ message: `${ids.length} LIGNE(S) MISE(S) À JOUR AVEC SUCCÈS`, type: "success" });
-      setSelectedTasks([]);
     } catch (e) {
       refreshTasks();
+    } finally {
+      // La sélection ne reste jamais cochée après application d'un motif / d'une valeur
+      setSelectedTasks([]);
     }
   };
 
@@ -624,6 +629,8 @@ export default function PilotBoard() {
     const label = col === "EPS_ONLY" ? "EPS" : col;
     if (values.length === 0) return toast({ message: `AUCUNE VALEUR TROUVÉE DANS LA COLONNE [${label}]`, type: "error" });
     const ok = await universalCopyToClipboard(values.join("\n"));
+    // Après copie, on décoche les lignes sélectionnées
+    if (ok && selectedTasks.length > 0) setSelectedTasks([]);
     toast({
       message: ok ? `${values.length} VALEUR(S) [${label}] COPIÉE(S)` : "Erreur d'accès au presse-papiers",
       type: ok ? "success" : "error",
