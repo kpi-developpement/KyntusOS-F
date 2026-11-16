@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { 
   LayoutGrid, Target, SquareActivity, DatabaseZap, UsersRound, Cpu, LogOut, ScanSearch, FileDown,
-  TableProperties, Map, ShieldAlert, FileCheck, Radio 
+  TableProperties, Map, ShieldAlert, FileCheck, Radio, Radar
 } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import { useAuth } from "@/context/AuthContext";
@@ -30,6 +30,7 @@ export default function Sidebar() {
     { name: "Tactical Board", path: "/admin/kanban", icon: SquareActivity },
     { name: "Live Monitor", path: "/admin/live-board", icon: Radio }, // 🔥 NEW: Spectator Mode
     { name: "Inspector (Audit)", path: "/admin/check", icon: ScanSearch },
+    { name: "EPS Tracer", path: "/admin/eps-tracer", icon: Radar },
     { name: "Omni-Grid (Data)", path: "/admin/data", icon: TableProperties },
     { name: "Data Extraction", path: "/admin/export", icon: FileDown },
     { name: "Data Injection", path: "/import", icon: DatabaseZap },

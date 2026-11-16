@@ -38,6 +38,88 @@ public class AdminController {
         }
     }
 
+    // 1-bis. 🔎 EPS TRACER : bulk search (EPS / LOR) f ga3 les templates + chkoun khdemhoum
+    @PostMapping("/eps-tracer")
+    public ResponseEntity<?> traceEps(@RequestBody Map<String, Object> payload) {
+        Object raw = payload.get("refs");
+        if (!(raw instanceof List<?> rawList)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "refs (liste) obligatoire"));
+        }
+
+        LinkedHashSet<String> refs = new LinkedHashSet<>();
+        for (Object o : rawList) {
+            if (o == null) continue;
+            String r = o.toString().trim().toUpperCase();
+            if (!r.isEmpty()) refs.add(r);
+        }
+        if (refs.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Aucune référence valide"));
+        }
+        if (refs.size() > 20000) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Maximum 20 000 références par recherche"));
+        }
+
+        // Chunks de 1000 bach PostgreSQL may-t9elch
+        List<String> refList = new ArrayList<>(refs);
+        LinkedHashSet<Long> ids = new LinkedHashSet<>();
+        for (int i = 0; i < refList.size(); i += 1000) {
+            ids.addAll(taskRepository.findIdsMatchingRefs(refList.subList(i, Math.min(i + 1000, refList.size()))));
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        Set<String> found = new HashSet<>();
+        List<Long> idList = new ArrayList<>(ids);
+        for (int i = 0; i < idList.size(); i += 1000) {
+            for (Task t : taskRepository.findAllWithTemplateAndAssignee(idList.subList(i, Math.min(i + 1000, idList.size())))) {
+                String matchedRef = null;
+                String matchedColumn = null;
+                String eps = t.getEpsReference() == null ? "" : t.getEpsReference().trim().toUpperCase();
+                if (refs.contains(eps)) {
+                    matchedRef = eps;
+                    matchedColumn = "epsReference";
+                } else if (t.getDynamicData() != null) {
+                    for (Map.Entry<String, Object> e : t.getDynamicData().entrySet()) {
+                        if (e.getValue() == null) continue;
+                        String v = e.getValue().toString().trim().toUpperCase();
+                        if (refs.contains(v)) {
+                            matchedRef = v;
+                            matchedColumn = e.getKey();
+                            break;
+                        }
+                    }
+                }
+                if (matchedRef == null) continue;
+                found.add(matchedRef);
+
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("taskId", t.getId());
+                row.put("ref", matchedRef);
+                row.put("matchedColumn", matchedColumn);
+                row.put("epsReference", t.getEpsReference());
+                row.put("status", t.getStatus());
+                row.put("templateId", t.getTemplate() != null ? t.getTemplate().getId() : null);
+                row.put("templateName", t.getTemplate() != null ? t.getTemplate().getName() : null);
+                row.put("assigneeId", t.getAssignee() != null ? t.getAssignee().getId() : null);
+                row.put("assignee", t.getAssignee() != null ? t.getAssignee().getUsername() : null);
+                row.put("importedAt", t.getImportedAt());
+                row.put("deadline", t.getDeadline());
+                row.put("timeSeconds", t.getCumulativeTimeSeconds());
+                row.put("flaggedError", t.isFlaggedError());
+                row.put("dynamicData", t.getDynamicData() != null ? t.getDynamicData() : Map.of());
+                rows.add(row);
+            }
+        }
+
+        List<String> notFound = refList.stream().filter(r -> !found.contains(r)).toList();
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("requested", refList.size());
+        res.put("foundRefs", found.size());
+        res.put("rows", rows);
+        res.put("notFound", notFound);
+        return ResponseEntity.ok(res);
+    }
+
     // 2. FLAG ERROR (Blâme - Ancienne méthode, toujours utile pour l'audit)
     @PostMapping("/flag-error/{taskId}")
     public ResponseEntity<?> flagError(@PathVariable Long taskId) {

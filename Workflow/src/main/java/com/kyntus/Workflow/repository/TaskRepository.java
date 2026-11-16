@@ -42,6 +42,17 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("value") String value
     );
 
+    // --- 🔎 EPS TRACER : IDs dyal ga3 les tasks li fihom wahed mn les refs (epsReference wla ay cellule Excel) ---
+    @Query(value = "SELECT t.id FROM tasks t " +
+            "WHERE UPPER(TRIM(t.eps_reference)) IN (:refs) " +
+            "OR (jsonb_typeof(t.dynamic_data) = 'object' AND EXISTS (" +
+            "  SELECT 1 FROM jsonb_each_text(t.dynamic_data) kv WHERE UPPER(TRIM(kv.value)) IN (:refs)))",
+            nativeQuery = true)
+    List<Long> findIdsMatchingRefs(@Param("refs") List<String> refs);
+
+    @Query("SELECT t FROM Task t LEFT JOIN FETCH t.template LEFT JOIN FETCH t.assignee WHERE t.id IN :ids ORDER BY t.id ASC")
+    List<Task> findAllWithTemplateAndAssignee(@Param("ids") List<Long> ids);
+
     @Query(value = "SELECT DISTINCT t.dynamic_data ->> :key FROM tasks t " +
             "WHERE t.template_id = :templateId " +
             "AND t.assigned_to IS NULL " +
