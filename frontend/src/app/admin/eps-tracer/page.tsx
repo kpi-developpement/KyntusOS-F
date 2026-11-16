@@ -17,7 +17,6 @@ import {
   Copy,
   ChevronDown,
   ChevronRight,
-  Clock,
   Sparkles,
 } from "lucide-react";
 import styles from "./Tracer.module.css";
@@ -64,6 +63,36 @@ const STATUS_META: Record<string, { label: string; cls: string }> = {
 };
 
 const PAGE = 250;
+
+// Colonnes Excel (dynamicData) affichées dans le tableau + export, dans cet ordre
+const DATA_COLS = [
+  "ANALYSE",
+  "Nacelle",
+  "Anomalie 1",
+  "Anomalie 2",
+  "Groupe de catégorie Racco Logement",
+  "Typologie PBO-PTO déclarée par le technicien",
+];
+
+const normKey = (k: string) =>
+  k
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase();
+
+// Lecture tolérante : ignore majuscules, accents, espaces et tirets dans le nom de colonne
+const getCol = (data: Record<string, unknown> | undefined, col: string): string => {
+  if (!data) return "";
+  let v = data[col];
+  if (v === undefined) {
+    const target = normKey(col);
+    const key = Object.keys(data).find((k) => normKey(k) === target);
+    v = key ? data[key] : undefined;
+  }
+  if (v == null) return "";
+  return typeof v === "object" ? JSON.stringify(v) : String(v);
+};
 
 const parseRefs = (txt: string) => {
   const tokens = txt
@@ -201,16 +230,6 @@ export default function EpsTracerPage() {
   const exportExcel = () => {
     if (!result) return;
     const data = filtered;
-    const dynCols: string[] = [];
-    const seen = new Set<string>();
-    data.forEach((r) =>
-      Object.keys(r.dynamicData || {}).forEach((k) => {
-        if (!seen.has(k)) {
-          seen.add(k);
-          dynCols.push(k);
-        }
-      })
-    );
 
     const sheetRows = data.map((r) => {
       const base: Record<string, unknown> = {
@@ -218,16 +237,9 @@ export default function EpsTracerPage() {
         "Template": r.templateName || "",
         "Traité par": r.assignee || "",
         "Statut": STATUS_META[r.status]?.label || r.status,
-        "Colonne trouvée": r.matchedColumn,
-        "Temps passé": fmtDuration(r.timeSeconds),
-        "Importé le": fmtDate(r.importedAt),
-        "Deadline": fmtDate(r.deadline),
-        "Erreur signalée": r.flaggedError ? "OUI" : "",
-        "Task ID": r.taskId,
       };
-      dynCols.forEach((c) => {
-        const v = r.dynamicData?.[c];
-        base[c] = v == null ? "" : typeof v === "object" ? JSON.stringify(v) : v;
+      DATA_COLS.forEach((c) => {
+        base[c] = getCol(r.dynamicData, c);
       });
       return base;
     });
@@ -464,9 +476,9 @@ export default function EpsTracerPage() {
                         <th>Template</th>
                         <th>Traité par</th>
                         <th>Statut</th>
-                        <th>Trouvée dans</th>
-                        <th>Temps</th>
-                        <th>Importé le</th>
+                        {DATA_COLS.map((c) => (
+                          <th key={c}>{c}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
@@ -505,25 +517,19 @@ export default function EpsTracerPage() {
                               <td>
                                 <span className={`${styles.status} ${st.cls}`}>{st.label}</span>
                               </td>
-                              <td>
-                                <span className={styles.colHit}>{r.matchedColumn}</span>
-                              </td>
-                              <td>
-                                {r.timeSeconds ? (
-                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                                    <Clock size={13} color="#64748b" />
-                                    {fmtDuration(r.timeSeconds)}
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                              </td>
-                              <td>{fmtDate(r.importedAt)}</td>
+                              {DATA_COLS.map((c) => {
+                                const v = getCol(r.dynamicData, c);
+                                return (
+                                  <td key={c} className={styles.dataCell} title={v}>
+                                    {v || <span className={styles.nobody}>—</span>}
+                                  </td>
+                                );
+                              })}
                             </tr>
                             {isOpen && (
                               <tr className={styles.details}>
                                 <td />
-                                <td colSpan={7}>
+                                <td colSpan={4 + DATA_COLS.length}>
                                   <div className={styles.detailGrid}>
                                     {Object.entries(r.dynamicData || {}).map(([k, v]) => (
                                       <div

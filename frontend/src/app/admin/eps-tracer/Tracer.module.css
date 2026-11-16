@@ -646,6 +646,12 @@
 .stValid { background: var(--blue-100); color: var(--blue-700); }
 .stReject { background: #ffe4e6; color: #be123c; }
 
+.dataCell {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .colHit {
   font-size: 0.78rem;
   color: var(--muted);
