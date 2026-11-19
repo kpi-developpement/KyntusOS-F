@@ -55,7 +55,9 @@ public class BytelRechercheService {
             Integer page,
             Integer size,
             /** COURANTE (defaut) | PREMIERE | TOUTE : version sur laquelle porte le filtre d'etat */
-            String modeEtat
+            String modeEtat,
+            /** Nombre de versions de l'EPS : "" (tous), "1", "2", "3", "2+", "3+"... */
+            String versions
     ) {}
 
     /** Criteres normalises, prets pour le repository. Jamais de valeur nulle. */
@@ -71,7 +73,9 @@ public class BytelRechercheService {
             boolean nonTraiteeOnly,
             String dateDebut,
             String dateFin,
-            String modeEtat
+            String modeEtat,
+            long versionsMin,
+            long versionsMax
     ) {
         public boolean sansListe() { return epsList == null || epsList.isEmpty(); }
         public Collection<String> listeOuFactice() { return sansListe() ? LISTE_FACTICE : epsList; }
@@ -159,7 +163,22 @@ public class BytelRechercheService {
                 "NON_TRAITEE".equals(traitement),
                 dateDebut,
                 dateFin,
-                normaliserMode(f.modeEtat()));
+                normaliserMode(f.modeEtat()),
+                bornesVersions(f.versions())[0],
+                bornesVersions(f.versions())[1]);
+    }
+
+    /** "2" -> [2,2], "3+" -> [3,0], vide ou invalide -> [0,0] (0 = pas de borne). */
+    static long[] bornesVersions(String v) {
+        if (v == null || v.isBlank()) return new long[]{0, 0};
+        String t = v.trim();
+        try {
+            if (t.endsWith("+")) return new long[]{Math.max(0, Long.parseLong(t.substring(0, t.length() - 1))), 0};
+            long n = Math.max(0, Long.parseLong(t));
+            return new long[]{n, n};
+        } catch (NumberFormatException e) {
+            return new long[]{0, 0};
+        }
     }
 
     private static String normaliserMode(String m) {
@@ -173,19 +192,19 @@ public class BytelRechercheService {
     public Page<BytelQualification> rechercher(Criteres c, Pageable pageable) {
         return qualifRepo.rechercher(c.periode(), c.courantesOnly(), c.etat(), c.type(), c.qualif(),
                 c.eps(), c.sansListe(), c.listeOuFactice(), c.traiteeOnly(), c.nonTraiteeOnly(),
-                c.dateDebut(), c.dateFin(), pageable);
+                c.dateDebut(), c.dateFin(), c.versionsMin(), c.versionsMax(), pageable);
     }
 
     public long compter(Criteres c) {
         return qualifRepo.compter(c.periode(), c.courantesOnly(), c.etat(), c.type(), c.qualif(),
                 c.eps(), c.sansListe(), c.listeOuFactice(), c.traiteeOnly(), c.nonTraiteeOnly(),
-                c.dateDebut(), c.dateFin());
+                c.dateDebut(), c.dateFin(), c.versionsMin(), c.versionsMax());
     }
 
     public List<BytelQualification> lot(Criteres c, long apresId, int taille) {
         return qualifRepo.lotExport(c.periode(), c.courantesOnly(), c.etat(), c.type(), c.qualif(),
                 c.eps(), c.sansListe(), c.listeOuFactice(), c.traiteeOnly(), c.nonTraiteeOnly(),
-                c.dateDebut(), c.dateFin(), apresId, PageRequest.of(0, taille));
+                c.dateDebut(), c.dateFin(), c.versionsMin(), c.versionsMax(), apresId, PageRequest.of(0, taille));
     }
 
     // ---------------- Historique par EPS ----------------

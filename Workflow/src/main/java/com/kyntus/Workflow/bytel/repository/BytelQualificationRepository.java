@@ -40,7 +40,12 @@ public interface BytelQualificationRepository extends JpaRepository<BytelQualifi
             "AND (:traiteeOnly = false OR COALESCE(q.versionCourante, 0) > 0) " +
             "AND (:nonTraiteeOnly = false OR COALESCE(q.versionCourante, 0) = 0) " +
             "AND (:dateDebut = '' OR q.dateQualification >= :dateDebut) " +
-            "AND (:dateFin = '' OR q.dateQualification <= :dateFin) ";
+            "AND (:dateFin = '' OR q.dateQualification <= :dateFin) " +
+            // Nombre de versions de l'EPS sur sa periode (0 = pas de borne)
+            "AND (:vMin = 0 OR (SELECT COUNT(n1) FROM BytelQualification n1 " +
+            "      WHERE n1.idIntervention = q.idIntervention AND n1.periode = q.periode) >= :vMin) " +
+            "AND (:vMax = 0 OR (SELECT COUNT(n2) FROM BytelQualification n2 " +
+            "      WHERE n2.idIntervention = q.idIntervention AND n2.periode = q.periode) <= :vMax) ";
 
     /**
      * Selection d'EPS pour la vue "historique par EPS".
@@ -127,6 +132,8 @@ public interface BytelQualificationRepository extends JpaRepository<BytelQualifi
                                         @Param("nonTraiteeOnly") boolean nonTraiteeOnly,
                                         @Param("dateDebut") String dateDebut,
                                         @Param("dateFin") String dateFin,
+                                        @Param("vMin") long vMin,
+                                        @Param("vMax") long vMax,
                                         Pageable pageable);
 
     @Query("SELECT COUNT(q) FROM BytelQualification q WHERE " + FILTRE)
@@ -141,7 +148,9 @@ public interface BytelQualificationRepository extends JpaRepository<BytelQualifi
                  @Param("traiteeOnly") boolean traiteeOnly,
                  @Param("nonTraiteeOnly") boolean nonTraiteeOnly,
                  @Param("dateDebut") String dateDebut,
-                 @Param("dateFin") String dateFin);
+                 @Param("dateFin") String dateFin,
+                 @Param("vMin") long vMin,
+                 @Param("vMax") long vMax);
 
     /**
      * Lecture par lot pour l'export, par curseur sur l'id plutot que par
@@ -161,6 +170,8 @@ public interface BytelQualificationRepository extends JpaRepository<BytelQualifi
                                        @Param("nonTraiteeOnly") boolean nonTraiteeOnly,
                                        @Param("dateDebut") String dateDebut,
                                        @Param("dateFin") String dateFin,
+                                       @Param("vMin") long vMin,
+                                       @Param("vMax") long vMax,
                                        @Param("apresId") Long apresId,
                                        Pageable limite);
 
@@ -212,4 +223,39 @@ public interface BytelQualificationRepository extends JpaRepository<BytelQualifi
     @Query("SELECT COUNT(q) FROM BytelQualification q " +
             "WHERE q.periode LIKE :periode AND q.ordreApi = 0 AND COALESCE(q.versionCourante, 0) > 0")
     long countTraitees(@Param("periode") String periode);
+
+    // ===================== Alertes (equivalent des alertes de Terrain Records) =====================
+
+    /** EPS dont la version courante attend la validation partenaire et n'a recu aucune decision Kyntus. */
+    @Query("SELECT DISTINCT q.idIntervention FROM BytelQualification q " +
+            "WHERE q.periode LIKE :periode AND q.ordreApi = 0 AND q.etat = :etat " +
+            "AND COALESCE(q.versionCourante, 0) = 0 " +
+            "AND (:qualif = '' OR q.typeQualification = :qualif) " +
+            "ORDER BY q.idIntervention")
+    List<String> epsEnAttenteNonTraites(@Param("periode") String periode,
+                                        @Param("etat") String etat,
+                                        @Param("qualif") String qualif,
+                                        Pageable limite);
+
+    /**
+     * EPS dont le commentaire de la version courante est identique a celui
+     * de la version precedente : commentaire repris tel quel d'une version a l'autre.
+     */
+    @Query("SELECT DISTINCT a.idIntervention FROM BytelQualification a, BytelQualification b " +
+            "WHERE a.periode LIKE :periode AND b.periode = a.periode " +
+            "AND b.idIntervention = a.idIntervention AND a.ordreApi = 0 AND b.ordreApi = 1 " +
+            "AND a.etapeCommentaire IS NOT NULL AND TRIM(a.etapeCommentaire) <> '' " +
+            "AND a.etapeCommentaire = b.etapeCommentaire " +
+            "AND (:qualif = '' OR a.typeQualification = :qualif) " +
+            "ORDER BY a.idIntervention")
+    List<String> epsCommentairesFiges(@Param("periode") String periode,
+                                      @Param("qualif") String qualif,
+                                      Pageable limite);
+
+    // ===================== Purge de la copie locale d'une periode =====================
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("DELETE FROM BytelQualification q WHERE q.periode = :periode")
+    int purgerPeriode(@Param("periode") String periode);
 }

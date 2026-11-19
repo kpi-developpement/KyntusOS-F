@@ -25,4 +25,9 @@ public interface BytelInterventionRepository extends JpaRepository<BytelInterven
     long compterMotif(@org.springframework.data.repository.query.Param("periode") String periode);
 
     long countByPeriodeAndCiblageAmbigu(String periode, Boolean ciblageAmbigu);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    @Query("DELETE FROM BytelIntervention b WHERE b.periode = :periode")
+    int purgerPeriode(@org.springframework.data.repository.query.Param("periode") String periode);
 }

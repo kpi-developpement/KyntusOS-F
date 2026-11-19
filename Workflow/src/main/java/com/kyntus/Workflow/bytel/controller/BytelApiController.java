@@ -9,6 +9,7 @@ import com.kyntus.Workflow.bytel.service.BytelActionService;
 import com.kyntus.Workflow.bytel.service.BytelExportService;
 import com.kyntus.Workflow.bytel.service.BytelRechercheService;
 import com.kyntus.Workflow.bytel.service.BytelLiveService;
+import com.kyntus.Workflow.bytel.service.BytelOmniService;
 import com.kyntus.Workflow.bytel.service.BytelSyncService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +40,7 @@ public class BytelApiController {
     private final BytelActionRepository actionRepo;
     private final BytelRechercheService recherche;
     private final BytelExportService exportService;
+    private final BytelOmniService omniService;
 
     public BytelApiController(BytelSyncService syncService,
                               BytelLiveService liveService,
@@ -47,7 +49,8 @@ public class BytelApiController {
                               BytelQualificationRepository qualifRepo,
                               BytelActionRepository actionRepo,
                               BytelRechercheService recherche,
-                              BytelExportService exportService) {
+                              BytelExportService exportService,
+                              BytelOmniService omniService) {
         this.syncService = syncService;
         this.liveService = liveService;
         this.actionService = actionService;
@@ -56,6 +59,7 @@ public class BytelApiController {
         this.actionRepo = actionRepo;
         this.recherche = recherche;
         this.exportService = exportService;
+        this.omniService = omniService;
     }
 
     /** Le mois choisi dans l'ecran devient le parametre period de l'URL d'appel. */
@@ -168,7 +172,7 @@ public class BytelApiController {
             @RequestParam(defaultValue = "50") int size) {
         String traitement = traiteeOnly ? "TRAITEE" : (nonTraiteeOnly ? "NON_TRAITEE" : "");
         return ResponseEntity.ok(listerInterne(new BytelRechercheService.Filtres(
-                period, year, month, etat, type, qualif, eps, null, traitement, null, null, page, size, null), true));
+                period, year, month, etat, type, qualif, eps, null, traitement, null, null, page, size, null, null), true));
     }
 
     @PostMapping("/qualifications/recherche")
@@ -189,7 +193,7 @@ public class BytelApiController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
         return ResponseEntity.ok(listerInterne(new BytelRechercheService.Filtres(
-                period, year, month, etat, null, qualif, eps, null, null, dateDebut, dateFin, page, size, null), false));
+                period, year, month, etat, null, qualif, eps, null, null, dateDebut, dateFin, page, size, null, null), false));
     }
 
     @PostMapping("/versions/recherche")
@@ -320,7 +324,7 @@ public class BytelApiController {
             boolean versions = parEps || BytelExportService.ONGLET_VERSIONS.equals(req.onglet());
             BytelRechercheService.Filtres f = req.filtres() != null ? req.filtres()
                     : new BytelRechercheService.Filtres(null, null, null, null, null, null, null,
-                            null, null, null, null, 0, 50, null);
+                            null, null, null, null, 0, 50, null, null);
             BytelRechercheService.Criteres c = recherche.construire(f, !versions);
             String onglet = parEps ? BytelExportService.ONGLET_VERSIONS_EPS
                     : (versions ? BytelExportService.ONGLET_VERSIONS : BytelExportService.ONGLET_INTERVENTIONS);
@@ -448,6 +452,17 @@ public class BytelApiController {
         // Tri chronologique, du plus ancien au plus recent
         sortie.sort(Comparator.comparing(m -> String.valueOf(m.get("date") == null ? "" : m.get("date"))));
         return ResponseEntity.ok(sortie);
+    }
+
+    /** Decisions Kyntus d'un EPS sur une periode, de la plus ancienne a la plus recente. */
+    @GetMapping("/history/eps/{eps}")
+    public ResponseEntity<List<BytelAction>> decisionsDeLEps(
+            @PathVariable String eps, @RequestParam("period") String period) {
+        try {
+            return ResponseEntity.ok(actionRepo.findByIdInterventionAndPeriodeOrderByActionAtAsc(eps, period));
+        } catch (Exception e) {
+            return ResponseEntity.ok(List.of());
+        }
     }
 
     /** Toutes les versions brutes d'un EPS. */
@@ -647,5 +662,102 @@ public class BytelApiController {
         out.put("envoiActive", actionService.isEnvoiActive());
         out.put("partnerBaseUrl", actionService.getPartnerBaseUrl());
         return ResponseEntity.ok(out);
+    }
+
+    // ===================== ALERTES (comme Terrain Records) =====================
+
+    /**
+     * attente      : EPS dont la version courante attend la validation partenaire, sans decision Kyntus.
+     * commentaires : EPS dont le commentaire courant est identique a celui de la version precedente.
+     * Les listes sont plafonnees ; total donne le volume reel affiche.
+     */
+    @GetMapping("/alertes")
+    public ResponseEntity<Map<String, Object>> alertes(@RequestParam(required = false) String period,
+                                                       @RequestParam(required = false) String year,
+                                                       @RequestParam(required = false) String month,
+                                                       @RequestParam(required = false) String qualif) {
+        String p = motif(period, year, month);
+        String q = qualif == null ? "" : qualif.trim();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("periode", p);
+        try {
+            out.put("attente", qualifRepo.epsEnAttenteNonTraites(p, BytelQualification.ETAT_ACTIONNABLE, q, PageRequest.of(0, 5000)));
+        } catch (Exception e) {
+            out.put("attente", List.of());
+            out.put("noteAttente", e.getMessage());
+        }
+        try {
+            out.put("commentaires", qualifRepo.epsCommentairesFiges(p, q, PageRequest.of(0, 5000)));
+        } catch (Exception e) {
+            out.put("commentaires", List.of());
+            out.put("noteCommentaires", e.getMessage());
+        }
+        return ResponseEntity.ok(out);
+    }
+
+    // ===================== PURGE DE LA COPIE LOCALE =====================
+
+    /**
+     * Supprime la copie locale d'une periode (EPS + versions). Les decisions
+     * Kyntus sont CONSERVEES : elles ne viennent pas de l'API et ne se
+     * reconstruisent pas. La source de verite reste l'API : une
+     * synchronisation recree la periode a l'identique.
+     */
+    @DeleteMapping("/purge")
+    public ResponseEntity<Map<String, Object>> purger(@RequestParam("period") String period) {
+        try {
+            if (!syncService.oublier(period)) {
+                return ResponseEntity.status(409).body(Map.of("ok", false,
+                        "erreur", "Synchronisation en cours sur " + period + " : arretez-la avant de purger."));
+            }
+            int versions = qualifRepo.purgerPeriode(period.trim());
+            int eps = interventionRepo.purgerPeriode(period.trim());
+            return ResponseEntity.ok(Map.of("ok", true, "periode", period.trim(),
+                    "epsSupprimes", eps, "versionsSupprimees", versions));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "erreur", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("ok", false, "erreur", String.valueOf(e.getMessage())));
+        }
+    }
+
+    // ===================== OMNI SEARCH (DIRECT API, toutes periodes) =====================
+
+    public record OmniRequest(List<String> epsList, String eps) {}
+
+    private static List<String> epsDe(OmniRequest req) {
+        LinkedHashSet<String> eps = new LinkedHashSet<>();
+        if (req != null && req.epsList() != null) {
+            for (String e : req.epsList()) eps.addAll(BytelRechercheService.parserEps(e));
+        }
+        if (req != null) eps.addAll(BytelRechercheService.parserEps(req.eps()));
+        return new ArrayList<>(eps);
+    }
+
+    @PostMapping("/omni")
+    public ResponseEntity<Map<String, Object>> omni(@RequestBody OmniRequest req) {
+        List<String> eps = epsDe(req);
+        if (eps.isEmpty()) return ResponseEntity.ok(Map.of("content", List.of(), "erreur", "Aucun EPS fourni."));
+        return ResponseEntity.ok(omniService.rechercher(eps));
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/omni/export")
+    public ResponseEntity<?> omniExport(@RequestBody OmniRequest req) {
+        List<String> eps = epsDe(req);
+        if (eps.isEmpty()) return ResponseEntity.badRequest().body(Map.of("erreur", "Aucun EPS fourni."));
+        try {
+            Map<String, Object> res = omniService.rechercher(eps);
+            byte[] data = omniService.excel((List<Map<String, Object>>) res.get("content"));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"Omni_Search_API_" + eps.size() + "_EPS.xlsx\"")
+                    .header("X-Eps-Introuvables", String.valueOf(((List<?>) res.get("introuvables")).size()))
+                    .contentType(MediaType.parseMediaType(
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(data);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("erreur", String.valueOf(e.getMessage())));
+        }
     }
 }

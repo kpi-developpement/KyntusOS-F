@@ -109,6 +109,34 @@ public class BytelLiveService {
      * Une ligne = un EPS, avec sa version courante a plat et la liste
      * complete de ses versions.
      */
+    /**
+     * Recherche DIRECTE d'un EPS dans l'API, toutes periodes confondues :
+     * l'API accepte "search" sans periode. Un EPS peut exister sur plusieurs
+     * periodes, d'ou une liste. Seules les correspondances exactes sont gardees.
+     */
+    public List<Map<String, Object>> chercherEps(String eps) throws Exception {
+        String url = dashboardUrl + "?search=" + java.net.URLEncoder.encode(eps, java.nio.charset.StandardCharsets.UTF_8)
+                + "&size=50&page=0";
+        Exception derniere = null;
+        for (int essai = 1; essai <= 3; essai++) {
+            try {
+                String body = restClient.get().uri(java.net.URI.create(url)).retrieve().body(String.class);
+                JsonNode root = mapper.readTree(body == null ? "{}" : body);
+                List<Map<String, Object>> lignes = new ArrayList<>();
+                for (JsonNode item : root.path("content")) {
+                    if (!eps.equalsIgnoreCase(item.path("idIntervention").asText(""))) continue;
+                    Map<String, Object> l = construireLigne(item, item.path("periode").asText(""));
+                    if (l != null) lignes.add(l);
+                }
+                return lignes;
+            } catch (Exception e) {
+                derniere = e;
+                if (essai < 3) Thread.sleep(800L * essai);
+            }
+        }
+        throw derniere;
+    }
+
     private Map<String, Object> construireLigne(JsonNode item, String periodeDefaut) {
         String eps = item.path("idIntervention").asText(null);
         if (eps == null || eps.isBlank()) return null;

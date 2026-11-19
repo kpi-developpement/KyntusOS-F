@@ -126,6 +126,19 @@ public class BytelSyncService implements DisposableBean {
         }
     }
 
+    /**
+     * Oublie l'etat memorise d'une periode (apres une purge) pour que la
+     * prochaine synchronisation reparte de zero sans avoir a "forcer".
+     * @return false si une synchronisation est en cours sur cette periode.
+     */
+    public synchronized boolean oublier(String periode) {
+        String p = valider(periode);
+        Etat e = etats.get(p);
+        if (e != null && e.actif) return false;
+        etats.remove(p);
+        return true;
+    }
+
     /** Etats observes depuis le demarrage de cette instance ; aucune nouvelle table. */
     public synchronized List<Map<String, Object>> etatsConnus() {
         List<Map<String, Object>> resultat = new ArrayList<>();
