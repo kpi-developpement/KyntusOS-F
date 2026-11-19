@@ -3,14 +3,14 @@
 export const ETAT_ACTIONNABLE = "EN_ATTENTE_VALIDATION_PARTENAIRE";
 
 export const ETAT_COLORS: Record<string, string> = {
-  EN_ATTENTE_VALIDATION_PARTENAIRE: "#f59e0b",
-  EN_ATTENTE_VALIDATION_BYTEL: "#38bdf8",
-  EN_ATTENTE_ANALYSE_PHOTOS: "#a855f7",
-  EN_ATTENTE_VALIDATION_ANALYSE_PHOTOS: "#c084fc",
-  VALIDEE: "#10b981",
+  EN_ATTENTE_VALIDATION_PARTENAIRE: "#d97706",
+  EN_ATTENTE_VALIDATION_BYTEL: "#2563eb",
+  EN_ATTENTE_ANALYSE_PHOTOS: "#0284c7",
+  EN_ATTENTE_VALIDATION_ANALYSE_PHOTOS: "#1d4ed8",
+  VALIDEE: "#059669",
   INCONNU: "#64748b",
 };
-export const couleurEtat = (e?: string | null) => (e && ETAT_COLORS[e]) || "#94a3b8";
+export const couleurEtat = (e?: string | null) => (e && ETAT_COLORS[e]) || "#334e7b";
 
 export const TYPES_RACCORDEMENT = ["EXISTANTE", "BRASSAGE_PM", "INTERIEUR", "CHAMBRE", "AERIEN", "FACADE"];
 export const TYPES_PAR_QUALIF: Record<string, string[]> = {
