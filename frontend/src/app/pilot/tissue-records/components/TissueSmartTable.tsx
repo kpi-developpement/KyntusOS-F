@@ -1,0 +1,259 @@
+import React, { useMemo, useCallback } from 'react';
+import { ChevronLeft, ChevronRight, Loader2, Layers, Clock, CheckCircle2, XCircle, AlertCircle, Crosshair } from 'lucide-react';
+import TissueSelect from '../TissueSelect';
+import styles from './TissueSmartTable.module.css';
+
+interface TissueSmartTableProps {
+  data: any[];
+  loading: boolean;
+  page: number;
+  setPage: (p: number) => void;
+  pageSize: number;
+  setPageSize: (s: number) => void;
+  totalPages: number;
+  totalItems: number;
+  onEpsClick?: (eps: string) => void;
+}
+
+const getVersionBadgeStyle = (version: string) => {
+  const v = (version || "V1").toUpperCase().trim();
+  if (v === "V1") return styles.badgeV1;
+  if (v === "V2") return styles.badgeV2;
+  if (v === "V3") return styles.badgeV3;
+  if (v === "V4") return styles.badgeV4;
+  if (v === "V5") return styles.badgeV5;
+  return styles.badgeVDef;
+};
+
+const pageSizeOptions = [
+  { value: 50, label: "50 Rows" },
+  { value: 100, label: "100 Rows" },
+  { value: 200, label: "200 Rows" },
+  { value: 500, label: "500 Rows" }
+];
+
+const TableRow = React.memo(({ row, index, dynamicColumns, getSpecialField, getExactValue, getStatusBadge, onEpsClick }: any) => {
+  const epsValue = row.epsReference || row.eps_reference || getSpecialField(row, 'eps') || getSpecialField(row, 'idintervention') || "UNKNOWN";
+  const verValue = row.version || row.ver || getSpecialField(row, 'version') || getSpecialField(row, 'ver') || "V1";
+  const statusValue = getSpecialField(row, 'etat') || getSpecialField(row, 'statut') || "-";
+  const commentValue = getSpecialField(row, 'commentaire') || getSpecialField(row, 'comment') || "-";
+
+  return (
+    <tr
+      className={styles.tr}
+      style={{ animationDelay: `${Math.min(index * 12, 240)}ms` }}
+    >
+      <td className={styles.td}>
+        <div
+          className={styles.epsInteractive}
+          onClick={() => { if (onEpsClick) onEpsClick(epsValue); }}
+        >
+          <Crosshair size={13} className={styles.epsIcon} />
+          <span className={styles.epsText}>{epsValue}</span>
+        </div>
+      </td>
+
+      <td className={styles.td}>
+        <span className={`${styles.badge} ${getVersionBadgeStyle(verValue)}`}>
+          {verValue}
+        </span>
+      </td>
+
+      <td className={styles.td}>
+        {getStatusBadge(statusValue)}
+      </td>
+
+      <td className={styles.td}>
+        <div className={styles.commentaire} title={commentValue}>
+          {commentValue}
+        </div>
+      </td>
+
+      {dynamicColumns.map((col: string) => (
+        <td key={col} className={styles.td}>{getExactValue(row, col)}</td>
+      ))}
+
+      <td className={`${styles.td} ${styles.dateCell}`}>
+        <Clock size={12} className={styles.clockIcon} />
+        {row.importedAt ? new Date(row.importedAt).toLocaleString() : "-"}
+      </td>
+    </tr>
+  );
+});
+
+TableRow.displayName = "TissueTableRow";
+
+export default function TissueSmartTable({
+  data,
+  loading,
+  page,
+  setPage,
+  pageSize,
+  setPageSize,
+  totalPages,
+  totalItems,
+  onEpsClick
+}: TissueSmartTableProps) {
+
+  const dynamicColumns = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    const keys = new Set<string>();
+
+    data.forEach(row => {
+      if (row.dynamicData) {
+        Object.keys(row.dynamicData).forEach(key => {
+          const lower = key.toLowerCase();
+          if (
+            lower !== 'etat' &&
+            lower !== 'statut' &&
+            lower !== 'commentaire' &&
+            lower !== 'comment' &&
+            lower !== 'idintervention' &&
+            lower !== 'eps' &&
+            lower !== 'version' &&
+            lower !== 'ver'
+          ) {
+            keys.add(key);
+          }
+        });
+      }
+    });
+    return Array.from(keys);
+  }, [data]);
+
+  const getExactValue = useCallback((row: any, exactKey: string) => {
+    if (!row.dynamicData) return <span className={styles.emptyDash}>—</span>;
+    const val = row.dynamicData[exactKey];
+    return (val !== null && val !== undefined && val !== "") ? val : <span className={styles.emptyDash}>—</span>;
+  }, []);
+
+  const getSpecialField = useCallback((row: any, fieldName: string) => {
+    if (!row.dynamicData) return "";
+    for (const key in row.dynamicData) {
+      if (key.toLowerCase() === fieldName) return row.dynamicData[key] || "";
+    }
+    return "";
+  }, []);
+
+  const getStatusBadge = useCallback((status: string) => {
+    const s = status.toLowerCase();
+    if (s.includes('ok') || s.includes('succès') || s.includes('réalisé') || s.includes('termine')) {
+      return <span className={`${styles.badge} ${styles.badgeOk}`}><CheckCircle2 size={12} /> {status.toUpperCase() || "OK"}</span>;
+    }
+    if (s.includes('ko') || s.includes('échec') || s.includes('anomalie') || s.includes('annule')) {
+      return <span className={`${styles.badge} ${styles.badgeKo}`}><XCircle size={12} /> {status.toUpperCase() || "KO"}</span>;
+    }
+    if (s.includes('en cours') || s.includes('planifie') || s.includes('attente') || s.includes('validation')) {
+      return <span className={`${styles.badge} ${styles.badgeWarn}`}><AlertCircle size={12} /> {status.toUpperCase() || "PENDING"}</span>;
+    }
+    return <span className={`${styles.badge} ${styles.badgeNeutral}`}>{status.toUpperCase() || "-"}</span>;
+  }, []);
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerTitle}>
+          <div className={styles.headerIconBox}>
+            <Layers size={17} color="#ffffff" />
+          </div>
+          <span>TISSUE DATAGRID</span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className={styles.statusDotWrapper}>
+            <div className={styles.dot}></div>
+            <span>TISSUE LIVE SYNC</span>
+          </div>
+          <div className={styles.totalBadge}>
+            <span className={styles.badgeHighlight}>{(totalItems || 0).toLocaleString()}</span> RECORDS
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.scrollWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th className={styles.th}>TARGET EPS</th>
+              <th className={styles.th}>VER</th>
+              <th className={styles.th}>CORE STATUS</th>
+              <th className={styles.th}>PILOT LOG (COMMENT)</th>
+              {dynamicColumns.map(col => <th key={col} className={styles.th}>{col}</th>)}
+              <th className={styles.th}>TIMESTAMP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={100} style={{ padding: 0 }}>
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.loaderWrapper}>
+                      <div className={styles.hexCenter}></div>
+                      <Loader2 size={48} className={styles.spinner} />
+                    </div>
+                    <div className={styles.loadingText}>SYNCHRONIZING TISSUE MATRIX...</div>
+                  </div>
+                </td>
+              </tr>
+            ) : (!data || data.length === 0) ? (
+              <tr>
+                <td colSpan={100} style={{ padding: 0 }}>
+                  <div className={styles.emptyContainer}>
+                    <Layers size={48} className={styles.emptyIcon} />
+                    <div className={styles.emptyTitle}>No Tissue Records Found in This Sector</div>
+                    <div className={styles.emptySub}>Try adjusting your filters or inject a new Tissue Excel batch payload.</div>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              data.map((row, idx) => (
+                <TableRow
+                  key={row.id || idx}
+                  index={idx}
+                  row={row}
+                  dynamicColumns={dynamicColumns}
+                  getSpecialField={getSpecialField}
+                  getExactValue={getExactValue}
+                  getStatusBadge={getStatusBadge}
+                  onEpsClick={onEpsClick}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {(!loading && data && data.length > 0) && (
+        <div className={styles.pagination}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span className={styles.pageLabel}>ROWS PER PAGE</span>
+            <TissueSelect
+              width="130px"
+              direction="up"
+              variant="emerald"
+              value={pageSize}
+              options={pageSizeOptions}
+              onChange={(val: number) => {
+                setPageSize(Number(val));
+                setPage(0);
+              }}
+            />
+          </div>
+
+          <div className={styles.pageControls}>
+            <button className={styles.pageBtn} disabled={page === 0} onClick={() => setPage(page - 1)}>
+              <ChevronLeft size={17} />
+            </button>
+            <div className={styles.pageTextWrapper}>
+              <span className={styles.pageText}>PAGE</span>
+              <span className={styles.pageHighlight}>{page + 1}</span>
+              <span className={styles.pageText}>OF {totalPages === 0 ? 1 : totalPages}</span>
+            </div>
+            <button className={styles.pageBtn} disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
+              <ChevronRight size={17} />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

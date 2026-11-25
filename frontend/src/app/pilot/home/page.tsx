@@ -82,6 +82,16 @@ export default function PilotHomePage() {
       model: "DB_CORE" 
     },
     { 
+      id: "tissue-records", 
+      title: "Tissue Records", 
+      path: "/pilot/tissue-records", 
+      icon: Layers, 
+      color: "#10b981", 
+      desc: "Gestion dédiée des dossiers Tissue et versions.", 
+      status: "SECURE", 
+      model: "TISSUE_CORE" 
+    },
+    { 
       id: "ventilation", 
       title: "Ventilation", 
       path: "/pilot/ventilation", 

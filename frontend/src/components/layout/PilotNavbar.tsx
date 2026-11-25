@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutList, KanbanSquare, History, LogOut, Terminal, 
-  Database, Cpu, BarChart2, Receipt, Cloud 
+  Database, Cpu, BarChart2, Receipt, Cloud, Layers 
 } from "lucide-react";
 import styles from "./PilotNavbar.module.css";
 import { useEffect, useState, MouseEvent } from "react";
@@ -37,6 +37,7 @@ export default function PilotNavbar() {
     { href: "/pilot/board", label: "Data Entry", icon: LayoutList },
     { href: "/pilot/kanban", label: "Tactical", icon: KanbanSquare },
     { href: "/pilot/recorde", label: "Terrain Records", icon: Database },
+    { href: "/pilot/tissue-records", label: "Tissue Records", icon: Layers },
     { href: "/pilot/api", label: "API Bytel", icon: Cloud },
     { href: "/pilot/parametrage", label: "Paramétrage", icon: Cpu },
     { href: "/pilot/ventilation", label: "Ventilation", icon: BarChart2 },
