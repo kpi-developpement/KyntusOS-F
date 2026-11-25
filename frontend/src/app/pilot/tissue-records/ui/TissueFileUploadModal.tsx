@@ -1,7 +1,32 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, UploadCloud, Layers, CheckCircle, Terminal, ShieldAlert, Trash2, Activity, GripVertical, Save } from 'lucide-react';
+import {
+  X, UploadCloud, Layers, CheckCircle, Terminal, ShieldAlert, Trash2,
+  Activity, GripVertical, Save, XCircle, RefreshCw, Clock, History
+} from 'lucide-react';
 
 const API_BASE = "";
+
+interface BatchFileResult {
+  filename: string;
+  status: 'PENDING' | 'UPLOADING' | 'SUCCESS' | 'DUPLICATE_ONLY' | 'ERROR';
+  totalRows?: number;
+  insertedRows?: number;
+  duplicateRows?: number;
+  routedMonths?: string;
+  message?: string;
+}
+
+interface ImportLogEntry {
+  id: number;
+  filename: string;
+  status: string;
+  totalRows?: number;
+  insertedRows?: number;
+  duplicateRows?: number;
+  routedMonths?: string;
+  errorMessage?: string;
+  importedAt: string;
+}
 
 export default function TissueFileUploadModal({
   isOpen,
@@ -20,28 +45,35 @@ export default function TissueFileUploadModal({
   const [month, setMonth] = useState<number>(defaultMonth || new Date().getMonth() + 1);
 
   const [importedFiles, setImportedFiles] = useState<string[]>([]);
+  const [importLogs, setImportLogs] = useState<ImportLogEntry[]>([]);
   const [loadingFiles, setLoadingFiles] = useState(false);
 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [uploadStats, setUploadStats] = useState({ current: 0, total: 0, percentage: 0 });
+  const [batchResults, setBatchResults] = useState<BatchFileResult[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [draggedImportedIndex, setDraggedImportedIndex] = useState<number | null>(null);
   const [isOrderModified, setIsOrderModified] = useState(false);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
-  const getUploadApiUrl = () => '';
-
-  const fetchImportedFiles = useCallback(() => {
+  const fetchImportedFilesAndLogs = useCallback(() => {
     setLoadingFiles(true);
-    fetch(`${API_BASE}/api/tissue-records/imported-files?category=${defaultCategory}&year=${defaultYear}&month=${defaultMonth}`)
-      .then(res => res.json())
-      .then(data => {
-        setImportedFiles(data || []);
+    Promise.all([
+      fetch(`${API_BASE}/api/tissue-records/imported-files?category=${defaultCategory}&year=${defaultYear}&month=${defaultMonth}`)
+        .then(res => (res.ok ? res.json() : []))
+        .catch(() => []),
+      fetch(`${API_BASE}/api/tissue-secure-upload/logs?category=${defaultCategory}&year=${defaultYear}&month=${defaultMonth}`)
+        .then(res => (res.ok ? res.json() : []))
+        .catch(() => [])
+    ])
+      .then(([filesData, logsData]) => {
+        setImportedFiles(filesData || []);
+        setImportLogs(logsData || []);
         setIsOrderModified(false);
       })
-      .catch(() => setImportedFiles([]))
       .finally(() => setLoadingFiles(false));
   }, [defaultCategory, defaultYear, defaultMonth]);
 
@@ -50,22 +82,26 @@ export default function TissueFileUploadModal({
       setCategory(defaultCategory);
       setYear(defaultYear);
       setMonth(defaultMonth);
-      fetchImportedFiles();
+      fetchImportedFilesAndLogs();
       setUploadStats({ current: 0, total: 0, percentage: 0 });
+      setBatchResults([]);
+      setIsUploading(false);
     }
-  }, [isOpen, defaultCategory, defaultYear, defaultMonth, fetchImportedFiles]);
+  }, [isOpen, defaultCategory, defaultYear, defaultMonth, fetchImportedFilesAndLogs]);
 
   useEffect(() => {
     if (!isOpen) {
       setFiles([]);
       setIsDraggingOver(false);
       setUploadStats({ current: 0, total: 0, percentage: 0 });
+      setBatchResults([]);
+      setIsUploading(false);
     }
   }, [isOpen]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (uploadStats.total === 0) setIsDraggingOver(true);
+    if (!isUploading) setIsDraggingOver(true);
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
@@ -76,7 +112,7 @@ export default function TissueFileUploadModal({
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDraggingOver(false);
-    if (uploadStats.total === 0 && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    if (!isUploading && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().match(/\.(xlsx|xls|csv)$/));
       if (droppedFiles.length > 0) {
         setFiles(prev => [...prev, ...droppedFiles]);
@@ -89,6 +125,7 @@ export default function TissueFileUploadModal({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      e.target.value = "";
     }
   };
 
@@ -100,6 +137,7 @@ export default function TissueFileUploadModal({
   const executeBatchUpload = async () => {
     if (!files || files.length === 0) return;
 
+    setIsUploading(true);
     setUploadStats({ current: 0, total: files.length, percentage: 0 });
     const currentErrors: string[] = [];
     let uploadHasErrors = false;
@@ -113,33 +151,64 @@ export default function TissueFileUploadModal({
     };
     const sortedNewFiles = [...files].sort((a, b) => getFileRank(a.name) - getFileRank(b.name));
 
-    try {
-      const UPLOAD_API_URL = getUploadApiUrl();
+    setBatchResults(sortedNewFiles.map(f => ({ filename: f.name, status: 'PENDING' })));
 
+    try {
       for (let i = 0; i < sortedNewFiles.length; i++) {
         const file = sortedNewFiles[i];
         setUploadStats({
           current: i + 1,
           total: sortedNewFiles.length,
-          percentage: Math.round(((i) / sortedNewFiles.length) * 100)
+          percentage: Math.round((i / sortedNewFiles.length) * 100)
         });
+
+        setBatchResults(prev => prev.map((item, idx) =>
+          idx === i ? { ...item, status: 'UPLOADING', message: 'Traitement en cours...' } : item
+        ));
 
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch(`${UPLOAD_API_URL}/api/tissue-secure-upload/import/1?year=${year}&month=${month}&category=${category}&fileRank=${importedFiles.length + i + 1}`, {
-          method: "POST",
-          body: formData
-        });
+        try {
+          const res = await fetch(`${API_BASE}/api/tissue-secure-upload/import/1?year=${year}&month=${month}&category=${category}&fileRank=${importedFiles.length + i + 1}`, {
+            method: "POST",
+            body: formData
+          });
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: "Erreur serveur inconnue" }));
-          currentErrors.push(`[${file.name}] : ${errorData.error || "Erreur inconnue"}`);
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            const errMsg = data.error || `Erreur serveur (HTTP ${res.status})`;
+            currentErrors.push(`[${file.name}] : ${errMsg}`);
+            uploadHasErrors = true;
+            setBatchResults(prev => prev.map((item, idx) =>
+              idx === i ? { ...item, status: 'ERROR', message: errMsg } : item
+            ));
+          } else {
+            const st = data.status === 'DUPLICATE_ONLY' ? 'DUPLICATE_ONLY' : 'SUCCESS';
+            setBatchResults(prev => prev.map((item, idx) =>
+              idx === i ? {
+                ...item,
+                status: st,
+                totalRows: data.totalRows,
+                insertedRows: data.insertedRows,
+                duplicateRows: data.duplicateRows,
+                routedMonths: data.routedMonths,
+                message: data.message
+              } : item
+            ));
+          }
+        } catch (netErr: any) {
+          const errMsg = netErr?.message || "Erreur réseau";
+          currentErrors.push(`[${file.name}] : ${errMsg}`);
           uploadHasErrors = true;
+          setBatchResults(prev => prev.map((item, idx) =>
+            idx === i ? { ...item, status: 'ERROR', message: errMsg } : item
+          ));
         }
 
         if (i < sortedNewFiles.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 600));
         }
       }
 
@@ -149,15 +218,14 @@ export default function TissueFileUploadModal({
         onSecurityAlert(currentErrors);
       }
 
-      setTimeout(() => {
-        if (onUploadSuccess) onUploadSuccess();
-        fetchImportedFiles();
-        setFiles([]);
-        if (uploadHasErrors) onClose();
-      }, 1000);
-
+      // Refresh parent table + modal lists WITHOUT closing modal so user sees every file's status
+      if (onUploadSuccess) onUploadSuccess(false);
+      fetchImportedFilesAndLogs();
+      setFiles([]);
     } catch (error) {
       console.error("TISSUE BATCH UPLOAD ERROR:", error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -166,7 +234,7 @@ export default function TissueFileUploadModal({
     try {
       const res = await fetch(`${API_BASE}/api/tissue-records/delete-file?category=${category}&year=${year}&month=${month}&filename=${encodeURIComponent(filename)}`, { method: "DELETE" });
       if (res.ok) {
-        fetchImportedFiles();
+        fetchImportedFilesAndLogs();
         if (onFileDeleted) onFileDeleted();
       }
     } catch (error) {
@@ -206,13 +274,49 @@ export default function TissueFileUploadModal({
       });
       if (res.ok) {
         setIsOrderModified(false);
-        if (onUploadSuccess) onUploadSuccess();
+        if (onUploadSuccess) onUploadSuccess(false);
       }
     } catch (error) {
       console.error(error);
     } finally {
       setIsSavingOrder(false);
     }
+  };
+
+  const renderStatusBadge = (status: string) => {
+    if (status === 'SUCCESS') {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7', border: '1px solid rgba(52, 211, 153, 0.45)', whiteSpace: 'nowrap' }}>
+          <CheckCircle size={12} /> PASSÉ
+        </span>
+      );
+    }
+    if (status === 'DUPLICATE_ONLY') {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: 'rgba(245, 158, 11, 0.18)', color: '#fcd34d', border: '1px solid rgba(251, 191, 36, 0.45)', whiteSpace: 'nowrap' }}>
+          <RefreshCw size={12} /> DÉJÀ INTÉGRÉ
+        </span>
+      );
+    }
+    if (status === 'ERROR') {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: 'rgba(244, 63, 94, 0.2)', color: '#fda4af', border: '1px solid rgba(251, 113, 133, 0.45)', whiteSpace: 'nowrap' }}>
+          <XCircle size={12} /> ÉCHEC
+        </span>
+      );
+    }
+    if (status === 'UPLOADING') {
+      return (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: 'rgba(20, 184, 166, 0.22)', color: '#5eead4', border: '1px solid rgba(45, 212, 191, 0.45)', whiteSpace: 'nowrap' }}>
+          <Activity size={12} /> EN COURS...
+        </span>
+      );
+    }
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700, backgroundColor: 'rgba(148, 163, 184, 0.15)', color: '#94a3b8', border: '1px solid rgba(148, 163, 184, 0.3)', whiteSpace: 'nowrap' }}>
+        <Clock size={12} /> EN ATTENTE
+      </span>
+    );
   };
 
   if (!isOpen) return null;
@@ -222,7 +326,7 @@ export default function TissueFileUploadModal({
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(2, 6, 10, 0.72)",
+        backgroundColor: "rgba(2, 6, 10, 0.75)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -243,16 +347,16 @@ export default function TissueFileUploadModal({
       `}</style>
       <div
         style={{
-          background: "linear-gradient(180deg, rgba(6, 22, 20, 0.97) 0%, rgba(4, 12, 14, 0.98) 100%)",
+          background: "linear-gradient(180deg, rgba(6, 22, 20, 0.98) 0%, rgba(4, 12, 14, 0.99) 100%)",
           border: "1px solid rgba(52, 211, 153, 0.35)",
           borderRadius: "22px",
-          width: "660px",
+          width: "720px",
           maxWidth: "95%",
-          padding: "2rem",
+          padding: "1.75rem 2rem",
           boxShadow: "0 28px 60px -12px rgba(0, 0, 0, 0.7), 0 0 36px -10px rgba(16, 185, 129, 0.3)",
           position: "relative",
           overflow: "hidden",
-          maxHeight: "90vh",
+          maxHeight: "92vh",
           display: "flex",
           flexDirection: "column",
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -263,8 +367,8 @@ export default function TissueFileUploadModal({
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "4px", background: "linear-gradient(90deg, #10b981, #14b8a6, #34d399)" }} />
 
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "14px", flexShrink: 0 }}>
-          <h2 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.22rem", display: "flex", alignItems: "center", gap: "11px", fontWeight: 800 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "12px", flexShrink: 0 }}>
+          <h2 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "11px", fontWeight: 800 }}>
             <div style={{ background: "linear-gradient(135deg, #10b981 0%, #0f766e 100%)", padding: "8px", borderRadius: "11px", display: "flex", boxShadow: "0 4px 12px rgba(16, 185, 129, 0.4)" }}>
               <Layers color="#ffffff" size={20} />
             </div>
@@ -272,14 +376,15 @@ export default function TissueFileUploadModal({
           </h2>
           <button
             onClick={onClose}
-            disabled={uploadStats.total > 0 && uploadStats.percentage < 100}
+            disabled={isUploading}
             style={{
               background: "rgba(16, 185, 129, 0.1)",
               border: "1px solid rgba(52, 211, 153, 0.25)",
               color: "#a7f3d0",
               padding: "6px",
               borderRadius: "9px",
-              cursor: "pointer",
+              cursor: isUploading ? "not-allowed" : "pointer",
+              opacity: isUploading ? 0.5 : 1,
               transition: "all 0.15s ease"
             }}
           >
@@ -289,7 +394,7 @@ export default function TissueFileUploadModal({
 
         <div style={{ flex: 1, overflowY: "auto", paddingRight: "4px" }} className="tissue-scroll">
           {/* Active Target & Cycle Pill Bar */}
-          <div style={{ display: "flex", gap: "16px", backgroundColor: "rgba(16, 185, 129, 0.12)", padding: "0.8rem 1.2rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.28)", marginBottom: "1.25rem", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "16px", backgroundColor: "rgba(16, 185, 129, 0.12)", padding: "0.7rem 1.2rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.28)", marginBottom: "1rem", justifyContent: "center", alignItems: "center" }}>
             <span style={{ color: "#a7f3d0", fontSize: "0.86rem", fontWeight: 700 }}>
               TISSUE SECTOR: <strong style={{ color: "#34d399" }}>[{category}]</strong>
             </span>
@@ -299,11 +404,222 @@ export default function TissueFileUploadModal({
             </span>
           </div>
 
-          {/* Integrated Payloads List */}
-          <div style={{ marginBottom: "1.5rem", padding: "1.1rem", background: "rgba(6, 20, 19, 0.7)", borderRadius: "14px", border: "1px solid rgba(52, 211, 153, 0.18)", borderLeft: "4px solid #10b981" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-              <h3 style={{ color: "#ecfdf5", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", margin: 0, fontWeight: 800, letterSpacing: "0.02em" }}>
-                <Terminal size={16} color="#34d399" /> INTEGRATED TISSUE PAYLOADS ({importedFiles.length})
+          {/* LIVE BATCH RESULTS (Current Upload Session) */}
+          {batchResults.length > 0 && (
+            <div style={{ marginBottom: "1rem", padding: "1rem", background: "rgba(6, 20, 19, 0.8)", borderRadius: "14px", border: "1px solid rgba(52, 211, 153, 0.35)", borderLeft: "4px solid #34d399" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Activity size={16} color="#34d399" />
+                  <span style={{ color: "#ecfdf5", fontSize: "0.84rem", fontWeight: 800 }}>
+                    RÉSULTAT D&apos;INJECTION ({uploadStats.current} / {uploadStats.total})
+                  </span>
+                </div>
+                {!isUploading && (
+                  <button
+                    onClick={() => { setBatchResults([]); setUploadStats({ current: 0, total: 0, percentage: 0 }); }}
+                    style={{ background: "rgba(52, 211, 153, 0.15)", border: "1px solid rgba(52, 211, 153, 0.3)", color: "#a7f3d0", padding: "3px 9px", borderRadius: "6px", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    Effacer ce résumé
+                  </button>
+                )}
+              </div>
+
+              {isUploading && (
+                <div style={{ width: "100%", height: "8px", backgroundColor: "rgba(4, 14, 14, 0.9)", borderRadius: "999px", overflow: "hidden", marginBottom: "10px", border: "1px solid rgba(52, 211, 153, 0.2)" }}>
+                  <div style={{ width: `${uploadStats.percentage}%`, height: "100%", background: "linear-gradient(90deg, #0d9488, #10b981, #34d399)", transition: "width 0.35s ease" }} />
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "180px", overflowY: "auto" }} className="tissue-scroll">
+                {batchResults.map((res, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: "9px",
+                      backgroundColor: res.status === 'ERROR' ? 'rgba(244, 63, 94, 0.12)' : res.status === 'SUCCESS' ? 'rgba(16, 185, 129, 0.12)' : res.status === 'DUPLICATE_ONLY' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(10, 28, 25, 0.65)',
+                      border: `1px solid ${res.status === 'ERROR' ? 'rgba(244, 63, 94, 0.4)' : res.status === 'SUCCESS' ? 'rgba(52, 211, 153, 0.35)' : res.status === 'DUPLICATE_ONLY' ? 'rgba(245, 158, 11, 0.35)' : 'rgba(52, 211, 153, 0.18)'}`,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                      <span style={{ color: "#ecfdf5", fontFamily: "monospace", fontSize: "0.8rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {res.filename}
+                      </span>
+                      {renderStatusBadge(res.status)}
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", fontSize: "0.74rem", color: res.status === 'ERROR' ? '#fda4af' : '#94a3b8' }}>
+                      {res.status === 'ERROR' ? (
+                        <span>{res.message}</span>
+                      ) : res.totalRows !== undefined ? (
+                        <>
+                          <span>Lues: <strong style={{ color: '#ecfdf5' }}>{res.totalRows}</strong></span>
+                          <span style={{ color: '#6ee7b7' }}>Nouvelles: <strong>+{res.insertedRows || 0}</strong></span>
+                          <span style={{ color: '#fcd34d' }}>Doublons: <strong>{res.duplicateRows || 0}</strong></span>
+                          {res.routedMonths && (
+                            <span style={{ backgroundColor: 'rgba(20, 184, 166, 0.22)', color: '#5eead4', padding: '1px 6px', borderRadius: '5px', fontWeight: 700 }}>
+                              → {res.routedMonths}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span>{res.message || "En file d'attente..."}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Drag & Drop Zone */}
+          {!isUploading && (
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => files.length === 0 && fileInputRef.current?.click()}
+              style={{
+                border: isDraggingOver ? "2px dashed #34d399" : (files.length > 0 ? "2px solid #10b981" : "2px dashed rgba(52, 211, 153, 0.35)"),
+                borderRadius: "16px",
+                padding: "1.4rem 1.25rem",
+                textAlign: "center",
+                cursor: files.length === 0 ? "pointer" : "default",
+                backgroundColor: isDraggingOver ? "rgba(16, 185, 129, 0.16)" : (files.length > 0 ? "rgba(6, 24, 22, 0.75)" : "rgba(6, 20, 19, 0.5)"),
+                transform: isDraggingOver ? "scale(1.01)" : "scale(1)",
+                transition: "all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+                position: "relative",
+                marginBottom: "0.9rem"
+              }}
+            >
+              <input type="file" ref={fileInputRef} accept=".xlsx, .xls, .csv" multiple style={{ display: 'none' }} onChange={handleFileSelect} />
+
+              {files.length > 0 ? (
+                <div>
+                  <div style={{ position: "relative", width: "40px", height: "40px", margin: "0 auto 8px" }} onClick={() => fileInputRef.current?.click()}>
+                    <Layers size={36} color="#34d399" style={{ cursor: "pointer" }} />
+                    <div style={{ position: "absolute", bottom: "-4px", right: "-10px", background: "#10b981", borderRadius: "999px", padding: "2px 7px", color: "#ffffff", fontSize: "0.72rem", fontWeight: 800 }}>
+                      {files.length}
+                    </div>
+                  </div>
+                  <div className="tissue-scroll" style={{ maxHeight: "105px", overflowY: "auto", textAlign: "left", background: "rgba(4, 14, 14, 0.85)", padding: "8px 10px", borderRadius: "10px", border: "1px solid rgba(52, 211, 153, 0.22)" }}>
+                    {files.map((f, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(52, 211, 153, 0.1)", padding: "5px 4px" }}>
+                        <span style={{ color: "#ecfdf5", fontFamily: "monospace", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "85%" }}>
+                          {f.name}
+                        </span>
+                        <X size={15} color="#fb7185" onClick={(e) => removeFile(e, i)} style={{ cursor: "pointer" }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <UploadCloud size={40} color="#34d399" style={{ margin: "0 auto 6px", transition: "transform 0.2s ease", transform: isDraggingOver ? "translateY(-4px)" : "translateY(0)" }} />
+                  <p style={{ color: "#ecfdf5", margin: "0 0 3px 0", fontSize: "0.92rem", fontWeight: 700 }}>
+                    {isDraggingOver ? "Drop Tissue files to stage batch..." : "Drag & Drop Tissue Excel (.xlsx) or CSV (.csv) files here"}
+                  </p>
+                  <p style={{ color: "#94a3b8", margin: 0, fontSize: "0.76rem" }}>
+                    Supports .xlsx, .xls, and .csv (auto-detects &apos;;&apos; or &apos;,&apos; &amp; UTF-8 / Windows-1252)
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Action Submit Button */}
+          {!isUploading && (
+            <button
+              onClick={executeBatchUpload}
+              disabled={files.length === 0}
+              style={{
+                width: "100%",
+                background: files.length > 0 ? "linear-gradient(135deg, #10b981 0%, #0f766e 100%)" : "rgba(15, 23, 42, 0.5)",
+                color: files.length > 0 ? "#ffffff" : "#64748b",
+                border: files.length > 0 ? "1px solid #34d399" : "1px solid rgba(148, 163, 184, 0.2)",
+                padding: "0.85rem",
+                borderRadius: "12px",
+                cursor: files.length > 0 ? "pointer" : "not-allowed",
+                fontWeight: 800,
+                letterSpacing: "0.02em",
+                marginBottom: "1.15rem",
+                fontSize: "0.9rem",
+                transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                boxShadow: files.length > 0 ? "0 8px 22px rgba(16, 185, 129, 0.35)" : "none"
+              }}
+            >
+              {files.length > 0 ? `Execute Tissue Secure Injection (${files.length} ${files.length === 1 ? 'File' : 'Files'})` : "Select Files to Enable Tissue Uplink"}
+            </button>
+          )}
+
+          {/* PERSISTENT INJECTION HISTORY (EVERY FILE INJECTED) */}
+          <div style={{ marginBottom: "1rem", padding: "1rem", background: "rgba(6, 20, 19, 0.7)", borderRadius: "14px", border: "1px solid rgba(52, 211, 153, 0.2)", borderLeft: "4px solid #14b8a6" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <h3 style={{ color: "#ecfdf5", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "8px", margin: 0, fontWeight: 800, letterSpacing: "0.02em" }}>
+                <History size={15} color="#2dd4bf" /> HISTORIQUE DES INJECTIONS TISSUE ({importLogs.length})
+              </h3>
+            </div>
+
+            {loadingFiles ? (
+              <p style={{ color: "#2dd4bf", fontSize: "0.8rem", margin: 0, fontWeight: 600 }}>Chargement de l&apos;historique...</p>
+            ) : importLogs.length > 0 ? (
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", maxHeight: "170px", overflowY: "auto" }} className="tissue-scroll">
+                {importLogs.map((log) => (
+                  <li
+                    key={log.id}
+                    style={{
+                      padding: "8px 10px",
+                      marginBottom: "5px",
+                      borderRadius: "8px",
+                      backgroundColor: "rgba(10, 28, 25, 0.7)",
+                      border: `1px solid ${log.status === 'ERROR' ? 'rgba(244, 63, 94, 0.35)' : log.status === 'DUPLICATE_ONLY' ? 'rgba(245, 158, 11, 0.32)' : 'rgba(52, 211, 153, 0.18)'}`,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "4px"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+                      <span style={{ color: "#ecfdf5", fontFamily: "monospace", fontSize: "0.78rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {log.filename}
+                      </span>
+                      {renderStatusBadge(log.status)}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px", fontSize: "0.72rem", color: "#94a3b8" }}>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                        {log.status === 'ERROR' ? (
+                          <span style={{ color: "#fda4af", fontWeight: 600 }}>{log.errorMessage}</span>
+                        ) : (
+                          <>
+                            <span>Lues: <strong style={{ color: "#ecfdf5" }}>{log.totalRows ?? 0}</strong></span>
+                            <span style={{ color: "#6ee7b7" }}>+<strong>{log.insertedRows ?? 0}</strong> new</span>
+                            <span style={{ color: "#fcd34d" }}><strong>{log.duplicateRows ?? 0}</strong> dup</span>
+                            {log.routedMonths && (
+                              <span style={{ backgroundColor: "rgba(20, 184, 166, 0.22)", color: "#5eead4", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                                → {log.routedMonths}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.7rem" }}>
+                        {log.importedAt ? new Date(log.importedAt).toLocaleString() : ""}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p style={{ fontSize: "0.8rem", margin: 0, color: "#94a3b8" }}>Aucune tentative d&apos;injection enregistrée pour ce cycle.</p>
+            )}
+          </div>
+
+          {/* Integrated Payloads List (DB Active Files — Drag to Reorder) */}
+          <div style={{ padding: "1rem", background: "rgba(6, 20, 19, 0.7)", borderRadius: "14px", border: "1px solid rgba(52, 211, 153, 0.18)", borderLeft: "4px solid #10b981" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+              <h3 style={{ color: "#ecfdf5", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "8px", margin: 0, fontWeight: 800, letterSpacing: "0.02em" }}>
+                <Terminal size={15} color="#34d399" /> INTEGRATED TISSUE PAYLOADS IN DB ({importedFiles.length})
               </h3>
 
               {isOrderModified && (
@@ -315,8 +631,8 @@ export default function TissueFileUploadModal({
                     color: "#ffffff",
                     border: "none",
                     borderRadius: "8px",
-                    padding: "0.4rem 0.85rem",
-                    fontSize: "0.75rem",
+                    padding: "0.38rem 0.85rem",
+                    fontSize: "0.74rem",
                     fontWeight: 700,
                     display: "flex",
                     gap: "5px",
@@ -331,13 +647,13 @@ export default function TissueFileUploadModal({
             </div>
 
             {loadingFiles ? (
-              <p style={{ color: "#34d399", fontSize: "0.82rem", margin: 0, fontWeight: 600 }}>Scanning integrated Tissue files...</p>
+              <p style={{ color: "#34d399", fontSize: "0.8rem", margin: 0, fontWeight: 600 }}>Scanning integrated Tissue files...</p>
             ) : importedFiles.length > 0 ? (
               <div>
-                <p style={{ color: "#94a3b8", fontSize: "0.75rem", marginBottom: "8px", marginTop: 0 }}>
+                <p style={{ color: "#94a3b8", fontSize: "0.74rem", marginBottom: "8px", marginTop: 0 }}>
                   Drag files below to reorder version sequence:
                 </p>
-                <ul style={{ margin: 0, padding: 0, listStyle: "none", maxHeight: "155px", overflowY: "auto" }} className="tissue-scroll">
+                <ul style={{ margin: 0, padding: 0, listStyle: "none", maxHeight: "140px", overflowY: "auto" }} className="tissue-scroll">
                   {importedFiles.map((f, idx) => (
                     <li
                       key={f}
@@ -347,8 +663,8 @@ export default function TissueFileUploadModal({
                       onDragEnd={handleDragEndImported}
                       style={{
                         color: "#ecfdf5",
-                        fontSize: "0.82rem",
-                        padding: "8px 10px",
+                        fontSize: "0.8rem",
+                        padding: "7px 10px",
                         marginBottom: "5px",
                         border: draggedImportedIndex === idx ? "1px solid #34d399" : "1px solid rgba(52, 211, 153, 0.16)",
                         display: "flex",
@@ -379,121 +695,11 @@ export default function TissueFileUploadModal({
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#94a3b8" }}>
-                <ShieldAlert size={16} color="#34d399" />
-                <p style={{ fontSize: "0.82rem", margin: 0 }}>No Tissue files uploaded for this cycle yet.</p>
+                <ShieldAlert size={15} color="#34d399" />
+                <p style={{ fontSize: "0.8rem", margin: 0 }}>No Tissue files stored in DB for this cycle yet.</p>
               </div>
             )}
           </div>
-
-          {/* Drag & Drop Zone */}
-          {uploadStats.total === 0 && (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => files.length === 0 && fileInputRef.current?.click()}
-              style={{
-                border: isDraggingOver ? "2px dashed #34d399" : (files.length > 0 ? "2px solid #10b981" : "2px dashed rgba(52, 211, 153, 0.35)"),
-                borderRadius: "16px",
-                padding: "1.75rem 1.25rem",
-                textAlign: "center",
-                cursor: files.length === 0 ? "pointer" : "default",
-                backgroundColor: isDraggingOver ? "rgba(16, 185, 129, 0.16)" : (files.length > 0 ? "rgba(6, 24, 22, 0.75)" : "rgba(6, 20, 19, 0.5)"),
-                transform: isDraggingOver ? "scale(1.01)" : "scale(1)",
-                transition: "all 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
-                position: "relative",
-                minHeight: "135px"
-              }}
-            >
-              <input type="file" ref={fileInputRef} accept=".xlsx, .xls, .csv" multiple style={{ display: 'none' }} onChange={handleFileSelect} />
-
-              {files.length > 0 ? (
-                <div>
-                  <div style={{ position: "relative", width: "42px", height: "42px", margin: "0 auto 10px" }} onClick={() => fileInputRef.current?.click()}>
-                    <Layers size={38} color="#34d399" style={{ cursor: "pointer" }} />
-                    <div style={{ position: "absolute", bottom: "-4px", right: "-10px", background: "#10b981", borderRadius: "999px", padding: "2px 7px", color: "#ffffff", fontSize: "0.72rem", fontWeight: 800 }}>
-                      {files.length}
-                    </div>
-                  </div>
-                  <div className="tissue-scroll" style={{ maxHeight: "110px", overflowY: "auto", textAlign: "left", background: "rgba(4, 14, 14, 0.85)", padding: "10px", borderRadius: "10px", border: "1px solid rgba(52, 211, 153, 0.22)" }}>
-                    {files.map((f, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(52, 211, 153, 0.1)", padding: "6px 4px" }}>
-                        <span style={{ color: "#ecfdf5", fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "85%" }}>
-                          {f.name}
-                        </span>
-                        <X size={15} color="#fb7185" onClick={(e) => removeFile(e, i)} style={{ cursor: "pointer" }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div style={{ marginTop: "6px" }}>
-                  <UploadCloud size={44} color="#34d399" style={{ margin: "0 auto 8px", transition: "transform 0.2s ease", transform: isDraggingOver ? "translateY(-4px)" : "translateY(0)" }} />
-                  <p style={{ color: "#ecfdf5", margin: "0 0 4px 0", fontSize: "0.95rem", fontWeight: 700 }}>
-                    {isDraggingOver ? "Drop Tissue files to stage batch..." : "Drag & Drop Tissue Excel or CSV files here"}
-                  </p>
-                  <p style={{ color: "#94a3b8", margin: 0, fontSize: "0.78rem" }}>
-                    Supports .xlsx, .xls, and .csv multi-file batch sequencing
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Upload Progress Bar */}
-          {uploadStats.total > 0 && (
-            <div style={{ marginTop: "16px", padding: "1.25rem", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(52, 211, 153, 0.3)", borderRadius: "12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Activity size={20} color="#34d399" />
-                  <span style={{ color: "#a7f3d0", fontSize: "0.9rem", fontWeight: 800 }}>
-                    {uploadStats.percentage < 100 ? "Injecting Tissue Secure Batch..." : "Tissue Batch Injection Complete"}
-                  </span>
-                </div>
-                <span style={{ color: "#34d399", fontFamily: "monospace", fontSize: "0.95rem", fontWeight: 800 }}>
-                  {uploadStats.current} / {uploadStats.total}
-                </span>
-              </div>
-
-              <div style={{ width: "100%", height: "10px", backgroundColor: "rgba(6, 20, 19, 0.9)", borderRadius: "999px", overflow: "hidden", border: "1px solid rgba(52, 211, 153, 0.2)" }}>
-                <div
-                  style={{
-                    width: `${uploadStats.percentage}%`,
-                    height: "100%",
-                    background: uploadStats.percentage === 100
-                      ? "linear-gradient(90deg, #10b981, #34d399)"
-                      : "linear-gradient(90deg, #0d9488, #10b981, #2dd4bf)",
-                    transition: "width 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Action Submit Button */}
-          {uploadStats.total === 0 && (
-            <button
-              onClick={executeBatchUpload}
-              disabled={files.length === 0}
-              style={{
-                width: "100%",
-                background: files.length > 0 ? "linear-gradient(135deg, #10b981 0%, #0f766e 100%)" : "rgba(15, 23, 42, 0.5)",
-                color: files.length > 0 ? "#ffffff" : "#64748b",
-                border: files.length > 0 ? "1px solid #34d399" : "1px solid rgba(148, 163, 184, 0.2)",
-                padding: "0.95rem",
-                borderRadius: "12px",
-                cursor: files.length > 0 ? "pointer" : "not-allowed",
-                fontWeight: 800,
-                letterSpacing: "0.02em",
-                marginTop: "1.25rem",
-                fontSize: "0.92rem",
-                transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-                boxShadow: files.length > 0 ? "0 8px 22px rgba(16, 185, 129, 0.35)" : "none"
-              }}
-            >
-              {files.length > 0 ? `Execute Tissue Secure Injection (${files.length} ${files.length === 1 ? 'File' : 'Files'})` : "Select Files to Enable Tissue Uplink"}
-            </button>
-          )}
         </div>
       </div>
     </div>

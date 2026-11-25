@@ -2,10 +2,11 @@ package com.kyntus.Workflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.kyntus.Workflow.model.RecordImportLog;
 import com.kyntus.Workflow.model.User;
+import com.kyntus.Workflow.repository.RecordImportLogRepository;
 import com.kyntus.Workflow.repository.UserRepository;
 
-import org.dhatim.fastexcel.reader.ReadableWorkbook;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.DataSource;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,13 +23,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class PilotSecureImportService {
+
+    private static final String DOMAIN = "KYNTUS";
 
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
@@ -37,18 +39,52 @@ public class PilotSecureImportService {
     private final ObjectMapper objectMapper;
     private final ObjectWriter mapWriter;
     private final PilotSecurityService securityService;
+    private final RecordImportLogRepository importLogRepository;
 
-    public PilotSecureImportService(JdbcTemplate jdbcTemplate, DataSource dataSource, UserRepository userRepository, ObjectMapper objectMapper, PilotSecurityService securityService) {
+    public PilotSecureImportService(
+            JdbcTemplate jdbcTemplate,
+            DataSource dataSource,
+            UserRepository userRepository,
+            ObjectMapper objectMapper,
+            PilotSecurityService securityService,
+            RecordImportLogRepository importLogRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.dataSource = dataSource;
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
         this.mapWriter = objectMapper.writerFor(Map.class);
         this.securityService = securityService;
+        this.importLogRepository = importLogRepository;
     }
 
-    // 🔥 THE FIX: 7iydna @PostConstruct li kan kay-dir ALTER TABLE w CREATE INDEX w kay-bloci d-démarrage.
-    // Daba kolchi m-gadd f' PilotRecord.java
+    public List<RecordImportLog> getImportLogs(String category, int year, int month) {
+        return importLogRepository.findTop100ByDomainAndCategoryAndImportYearAndImportMonthOrderByImportedAtDesc(
+                DOMAIN, category, year, month);
+    }
+
+    private void saveImportLog(String category, int year, int month, String filename, String status,
+                               int totalRows, int insertedRows, int duplicateRows, Set<Integer> routedMonths, String errorMessage) {
+        try {
+            RecordImportLog log = new RecordImportLog();
+            log.setDomain(DOMAIN);
+            log.setCategory(category);
+            log.setImportYear(year);
+            log.setImportMonth(month);
+            log.setFilename(filename);
+            log.setStatus(status);
+            log.setTotalRows(totalRows);
+            log.setInsertedRows(insertedRows);
+            log.setDuplicateRows(duplicateRows);
+            if (routedMonths != null && !routedMonths.isEmpty()) {
+                List<Integer> sorted = new ArrayList<>(routedMonths);
+                Collections.sort(sorted);
+                log.setRoutedMonths(sorted.stream().map(m -> String.format("M-%02d", m)).collect(Collectors.joining(", ")));
+            }
+            log.setErrorMessage(errorMessage);
+            log.setImportedAt(new Date());
+            importLogRepository.save(log);
+        } catch (Exception ignored) {}
+    }
 
     @Transactional
     public int fixRetroactiveDuplicates() {
@@ -94,46 +130,44 @@ public class PilotSecureImportService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void importPilotExcelSecure(MultipartFile file, Long pilotId, int year, int month, String category, int ignoredFrontendRank) throws Exception {
+    public Map<String, Object> importPilotExcelSecure(MultipartFile file, Long pilotId, int year, int month, String category, int ignoredFrontendRank) throws Exception {
         long globalStartTime = System.currentTimeMillis();
-        long totalExcelReadTime = 0;
-        long totalProcessingTime = 0;
 
         String safeCategory = category != null ? category.trim() : "";
-        User pilot = userRepository.findAll().stream()
-                .filter(u -> u.getRole().toString().equals("PILOT"))
-                .findFirst().orElseThrow(() -> new RuntimeException("Pilote non trouvé!"));
-        Long resolvedPilotId = pilot.getId();
-
         String filename = new java.io.File(file.getOriginalFilename() != null ? file.getOriginalFilename() : "UNKNOWN").getName();
         System.out.println("\n🚀 --- DÉBUT TRAITEMENT: [" + filename + "] ---");
 
-        Map<Integer, Integer> sessionRankCache = new HashMap<>();
-        Map<Integer, String> sessionFilenameCache = new HashMap<>();
-        Set<String> loadedCaches = new HashSet<>();
+        AtomicInteger totalRowsCounter = new AtomicInteger(0);
+        AtomicInteger insertedRowsCounter = new AtomicInteger(0);
+        AtomicInteger duplicateRowsCounter = new AtomicInteger(0);
+        Set<Integer> routedMonths = Collections.synchronizedSet(new LinkedHashSet<>());
 
-        Map<String, Set<Integer>> memoryShieldCache = new ConcurrentHashMap<>();
+        try {
+            User pilot = userRepository.findAll().stream()
+                    .filter(u -> u.getRole().toString().equals("PILOT"))
+                    .findFirst().orElseThrow(() -> new RuntimeException("Pilote non trouvé!"));
+            Long resolvedPilotId = pilot.getId();
 
-        String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
-        Integer maxRank = jdbcTemplate.queryForObject(rankSql, Integer.class, safeCategory, year, month);
-        sessionRankCache.put(month, (maxRank != null ? maxRank : 0) + 1);
-        sessionFilenameCache.put(month, filename);
+            Map<Integer, Integer> sessionRankCache = new HashMap<>();
+            Map<Integer, String> sessionFilenameCache = new HashMap<>();
+            Set<String> loadedCaches = new HashSet<>();
+            Map<String, Set<Integer>> memoryShieldCache = new ConcurrentHashMap<>();
 
-        AtomicBoolean categoryFoundInFile = new AtomicBoolean(false);
+            String rankSql = "SELECT MAX(file_rank) FROM pilot_records WHERE category = ? AND import_year = ? AND import_month = ?";
+            Integer maxRank = jdbcTemplate.queryForObject(rankSql, Integer.class, safeCategory, year, month);
+            sessionRankCache.put(month, (maxRank != null ? maxRank : 0) + 1);
+            sessionFilenameCache.put(month, filename);
 
-        String upperFilename = filename.toUpperCase().replaceAll("[\\s_\\-]", "");
-        if (safeCategory.equalsIgnoreCase("PRESTA") || safeCategory.equalsIgnoreCase("RZO")) {
-            categoryFoundInFile.set(true);
-        } else if (upperFilename.contains(safeCategory.toUpperCase().replaceAll("[\\s_\\-]", ""))) {
-            categoryFoundInFile.set(true);
-        }
+            AtomicBoolean categoryFoundInFile = new AtomicBoolean(false);
 
-        List<RawRow> buffer = new ArrayList<>(10000);
+            String upperFilename = filename.toUpperCase().replaceAll("[\\s_\\-]", "");
+            if (safeCategory.equalsIgnoreCase("PRESTA") || safeCategory.equalsIgnoreCase("RZO")) {
+                categoryFoundInFile.set(true);
+            } else if (upperFilename.contains(safeCategory.toUpperCase().replaceAll("[\\s_\\-]", ""))) {
+                categoryFoundInFile.set(true);
+            }
 
-        try (InputStream inputStream = file.getInputStream();
-             ReadableWorkbook wb = new ReadableWorkbook(inputStream)) {
-
-            org.dhatim.fastexcel.reader.Sheet sheet = wb.getFirstSheet();
+            List<RawRow> buffer = new ArrayList<>(10000);
 
             try (Connection conn = dataSource.getConnection()) {
                 conn.setAutoCommit(false);
@@ -144,107 +178,130 @@ public class PilotSecureImportService {
                             "source_file VARCHAR, file_rank INTEGER) ON COMMIT PRESERVE ROWS");
                 }
 
-                long readStart = System.currentTimeMillis();
-                try (Stream<org.dhatim.fastexcel.reader.Row> rowStream = sheet.openStream()) {
-                    Iterator<org.dhatim.fastexcel.reader.Row> rowIterator = rowStream.iterator();
-                    if (!rowIterator.hasNext()) return;
+                Map<Integer, String> colMap = new HashMap<>();
+                int[] headerIdx = new int[] { -1, -1, -1 }; // 0=eps, 1=typeIntervention, 2=periode
+                AtomicBoolean headerParsed = new AtomicBoolean(false);
+                Exception[] streamError = new Exception[1];
 
-                    org.dhatim.fastexcel.reader.Row headerRow = rowIterator.next();
-                    Map<Integer, String> colMap = new HashMap<>();
-                    int epsColIndex = -1, typeInterventionColIndex = -1, periodeColIndex = -1;
+                try {
+                    TabularFileReader.readRows(file, cells -> {
+                        if (streamError[0] != null) return;
+                        try {
+                            if (!headerParsed.get()) {
+                                headerParsed.set(true);
+                                for (int i = 0; i < cells.size(); i++) {
+                                    String colName = cells.get(i);
+                                    if (colName != null && !colName.trim().isEmpty()) {
+                                        colName = colName.trim();
+                                        String checkName = colName.toLowerCase().replaceAll("[\\s'’_\\-]", "");
 
-                    for (int i = 0; i < headerRow.getCellCount(); i++) {
-                        String colName = headerRow.getCellText(i);
-                        if (colName != null && !colName.trim().isEmpty()) {
-                            colName = colName.trim();
-                            String checkName = colName.toLowerCase().replaceAll("[\\s'’_\\-]", "");
-
-                            if (checkName.equals("idintervention") || checkName.equals("eps")) {
-                                if (epsColIndex == -1) epsColIndex = i;
-                            }
-                            else if (checkName.equals("typeintervention") || checkName.equals("typedintervention")) {
-                                if (typeInterventionColIndex == -1) {
-                                    typeInterventionColIndex = i;
-                                    colMap.put(i, colName);
+                                        if (checkName.equals("idintervention") || checkName.equals("eps")) {
+                                            if (headerIdx[0] == -1) headerIdx[0] = i;
+                                        } else if (checkName.equals("typeintervention") || checkName.equals("typedintervention")) {
+                                            if (headerIdx[1] == -1) {
+                                                headerIdx[1] = i;
+                                                colMap.put(i, colName);
+                                            }
+                                        } else if (checkName.equals("periode") || checkName.equals("période") || checkName.equals("priode")) {
+                                            if (headerIdx[2] == -1) {
+                                                headerIdx[2] = i;
+                                                colMap.put(i, colName);
+                                            }
+                                        } else if (!checkName.equals("importdate") && !checkName.equals("ver") && !checkName.equals("version")) {
+                                            colMap.put(i, colName);
+                                        }
+                                    }
                                 }
+                                return;
                             }
-                            else if (checkName.equals("periode") || checkName.equals("période") || checkName.equals("priode")) {
-                                if (periodeColIndex == -1) {
-                                    periodeColIndex = i;
-                                    colMap.put(i, colName);
-                                }
+
+                            int epsColIndex = headerIdx[0];
+                            int typeInterventionColIndex = headerIdx[1];
+                            int periodeColIndex = headerIdx[2];
+
+                            String eps = "", rowTypeIntervention = "", rowPeriode = "";
+                            Map<String, String> data = new HashMap<>(colMap.size());
+                            boolean rowIsEmpty = true;
+
+                            for (int i = 0; i < cells.size(); i++) {
+                                String val = cells.get(i);
+                                String cleanVal = (val != null) ? val.trim() : "";
+
+                                if (i == epsColIndex) { eps = cleanVal.toUpperCase(); if (!eps.isEmpty()) rowIsEmpty = false; continue; }
+                                if (i == typeInterventionColIndex) rowTypeIntervention = cleanVal;
+                                if (i == periodeColIndex) rowPeriode = cleanVal;
+
+                                String colName = colMap.get(i);
+                                if (colName == null) continue;
+                                if (!cleanVal.isEmpty()) rowIsEmpty = false;
+                                data.put(colName, cleanVal);
                             }
-                            else if (!checkName.equals("importdate") && !checkName.equals("ver") && !checkName.equals("version")) {
-                                colMap.put(i, colName);
+
+                            if (rowIsEmpty) return;
+                            totalRowsCounter.incrementAndGet();
+                            buffer.add(new RawRow(eps, rowTypeIntervention, rowPeriode, data));
+
+                            if (buffer.size() >= 10000) {
+                                processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename,
+                                        sessionRankCache, sessionFilenameCache, categoryFoundInFile, loadedCaches,
+                                        memoryShieldCache, insertedRowsCounter, duplicateRowsCounter, routedMonths);
+                                buffer.clear();
                             }
+                        } catch (Exception ex) {
+                            streamError[0] = ex;
                         }
-                    }
+                    });
 
-                    while (rowIterator.hasNext()) {
-                        org.dhatim.fastexcel.reader.Row row = rowIterator.next();
-                        String eps = "", rowTypeIntervention = "", rowPeriode = "";
-                        Map<String, String> data = new HashMap<>(colMap.size());
-                        boolean rowIsEmpty = true;
-
-                        for (int i = 0; i < row.getCellCount(); i++) {
-                            String val = row.getCellText(i);
-                            String cleanVal = (val != null) ? val.trim() : "";
-
-                            if (i == epsColIndex) { eps = cleanVal.toUpperCase(); if (!eps.isEmpty()) rowIsEmpty = false; continue; }
-                            if (i == typeInterventionColIndex) rowTypeIntervention = cleanVal;
-                            if (i == periodeColIndex) rowPeriode = cleanVal;
-
-                            String colName = colMap.get(i);
-                            if (colName == null) continue;
-                            if (!cleanVal.isEmpty()) rowIsEmpty = false;
-                            data.put(colName, cleanVal);
-                        }
-
-                        if (rowIsEmpty) continue;
-                        buffer.add(new RawRow(eps, rowTypeIntervention, rowPeriode, data));
-
-                        if (buffer.size() >= 10000) {
-                            totalExcelReadTime += (System.currentTimeMillis() - readStart);
-
-                            long processStart = System.currentTimeMillis();
-                            processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile, loadedCaches, memoryShieldCache);
-                            totalProcessingTime += (System.currentTimeMillis() - processStart);
-
-                            buffer.clear();
-                            readStart = System.currentTimeMillis();
-                        }
-                    }
+                    if (streamError[0] != null) throw streamError[0];
 
                     if (!buffer.isEmpty()) {
-                        totalExcelReadTime += (System.currentTimeMillis() - readStart);
-
-                        long processStart = System.currentTimeMillis();
-                        processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename, sessionRankCache, sessionFilenameCache, categoryFoundInFile, loadedCaches, memoryShieldCache);
-                        totalProcessingTime += (System.currentTimeMillis() - processStart);
-
+                        processBufferChunk(conn, buffer, resolvedPilotId, year, month, safeCategory, filename,
+                                sessionRankCache, sessionFilenameCache, categoryFoundInFile, loadedCaches,
+                                memoryShieldCache, insertedRowsCounter, duplicateRowsCounter, routedMonths);
                         buffer.clear();
                     }
 
                     if (!categoryFoundInFile.get()) {
-                        throw new RuntimeException("🚨 SECURITY BREACH: Le fichier ["+filename+"] ne contient aucune intervention valide.");
+                        throw new RuntimeException("🚨 SECURITY BREACH: Le fichier [" + filename + "] ne contient aucune intervention valide.");
                     }
 
                 } catch (Exception e) {
                     conn.rollback();
                     throw e;
                 } finally {
-                    try (Statement st = conn.createStatement()) { st.execute("DROP TABLE IF EXISTS temp_pilot_records"); } catch(Exception ignored){}
+                    try (Statement st = conn.createStatement()) { st.execute("DROP TABLE IF EXISTS temp_pilot_records"); } catch (Exception ignored) {}
                     System.gc();
                 }
             }
-        }
 
-        long globalEndTime = System.currentTimeMillis();
-        System.out.println("📊 --- BILAN DE PERFORMANCE POUR [" + filename + "] ---");
-        System.out.println("⏱️ Temps total Backend: " + (globalEndTime - globalStartTime) + " ms");
-        System.out.println("📖 Temps de lecture Excel (FastExcel): " + totalExcelReadTime + " ms");
-        System.out.println("⚙️ Temps de traitement (Hash + RAM + SQL): " + totalProcessingTime + " ms");
-        System.out.println("------------------------------------------------------\n");
+            int totalRows = totalRowsCounter.get();
+            int insertedRows = insertedRowsCounter.get();
+            int duplicateRows = duplicateRowsCounter.get();
+            String status = insertedRows > 0 ? "SUCCESS" : "DUPLICATE_ONLY";
+            String routedStr = routedMonths.stream().sorted().map(m -> String.format("M-%02d", m)).collect(Collectors.joining(", "));
+
+            saveImportLog(safeCategory, year, month, filename, status, totalRows, insertedRows, duplicateRows, routedMonths, null);
+
+            long globalEndTime = System.currentTimeMillis();
+            System.out.println("📊 --- BILAN [" + filename + "] : " + totalRows + " lues | +" + insertedRows + " insérées | " + duplicateRows + " doublons | " + (globalEndTime - globalStartTime) + " ms ---");
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("message", insertedRows > 0
+                    ? "Fichier intégré avec succès (+" + insertedRows + " nouvelles lignes)"
+                    : "Fichier scanné : toutes les lignes (" + duplicateRows + ") existaient déjà.");
+            result.put("filename", filename);
+            result.put("status", status);
+            result.put("totalRows", totalRows);
+            result.put("insertedRows", insertedRows);
+            result.put("duplicateRows", duplicateRows);
+            result.put("routedMonths", routedStr);
+            return result;
+
+        } catch (Exception e) {
+            saveImportLog(safeCategory, year, month, filename, "ERROR",
+                    totalRowsCounter.get(), insertedRowsCounter.get(), duplicateRowsCounter.get(), routedMonths, e.getMessage());
+            throw e;
+        }
     }
 
     private void ensureCacheLoaded(Connection conn, String category, int year, int month, Set<String> loadedCaches, Map<String, Set<Integer>> memoryShieldCache) throws Exception {
@@ -269,9 +326,13 @@ public class PilotSecureImportService {
         }
     }
 
-    private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth, String category, String originalFilename, Map<Integer, Integer> sessionRankCache, Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile, Set<String> loadedCaches, Map<String, Set<Integer>> memoryShieldCache) throws Exception {
+    private void processBufferChunk(Connection conn, List<RawRow> buffer, Long pilotId, int defaultYear, int defaultMonth,
+                                    String category, String originalFilename, Map<Integer, Integer> sessionRankCache,
+                                    Map<Integer, String> sessionFilenameCache, AtomicBoolean categoryFoundInFile,
+                                    Set<String> loadedCaches, Map<String, Set<Integer>> memoryShieldCache,
+                                    AtomicInteger insertedRowsCounter, AtomicInteger duplicateRowsCounter,
+                                    Set<Integer> routedMonths) throws Exception {
 
-        long startHash = System.currentTimeMillis();
         List<SecureEpsRecord> processed = buffer.stream().map(r -> {
             if (!categoryFoundInFile.get() && securityService.isExpectedCategory(r.typeIntervention, category)) {
                 categoryFoundInFile.set(true);
@@ -291,7 +352,6 @@ public class PilotSecureImportService {
 
             return new SecureEpsRecord(finalEps, cleanData, calculatedHash, defaultYear, targetMonth);
         }).collect(Collectors.toList());
-        long hashTime = System.currentTimeMillis() - startHash;
 
         Map<String, List<SecureEpsRecord>> groupedBatch = processed.stream()
                 .collect(Collectors.groupingBy(r -> r.targetYear + "-" + r.targetMonth));
@@ -301,6 +361,7 @@ public class PilotSecureImportService {
         for (List<SecureEpsRecord> group : groupedBatch.values()) {
             int gYear = group.get(0).targetYear;
             int gMonth = group.get(0).targetMonth;
+            routedMonths.add(gMonth);
             String cacheKeyMap = gYear + "-" + gMonth;
 
             ensureCacheLoaded(conn, category, gYear, gMonth, loadedCaches, memoryShieldCache);
@@ -313,7 +374,6 @@ public class PilotSecureImportService {
             int rowFileRank = sessionRankCache.get(gMonth);
             String rowFilename = sessionFilenameCache.get(gMonth);
 
-            long startFilter = System.currentTimeMillis();
             List<SecureEpsRecord> pureNewData = group.stream().filter(rec -> {
                 String fullKey = rec.eps + "_" + cacheKeyMap;
                 Set<Integer> existingHashes = memoryShieldCache.get(fullKey);
@@ -322,17 +382,17 @@ public class PilotSecureImportService {
                 rec.sourceFile = rowFilename;
                 return true;
             }).collect(Collectors.toList());
-            long filterTime = System.currentTimeMillis() - startFilter;
+
+            int skippedInMemory = group.size() - pureNewData.size();
+            duplicateRowsCounter.addAndGet(skippedInMemory);
 
             if (pureNewData.isEmpty()) {
-                System.out.println("⏩ [KYNTUS SHIELD] RAM Filter: Bloc de " + group.size() + " doublons (Historique) ignoré en " + filterTime + "ms (Hashing: " + hashTime + "ms)");
                 continue;
             }
 
-            long startSql = System.currentTimeMillis();
-            executePureSqlMerge(conn, pureNewData, pilotId, gYear, gMonth, category);
-            long sqlTime = System.currentTimeMillis() - startSql;
-            System.out.println("💾 [SQL MERGE] " + pureNewData.size() + " nouvelles lignes insérées en " + sqlTime + "ms");
+            int actuallyInserted = executePureSqlMerge(conn, pureNewData, pilotId, gYear, gMonth, category);
+            insertedRowsCounter.addAndGet(actuallyInserted);
+            duplicateRowsCounter.addAndGet(Math.max(0, pureNewData.size() - actuallyInserted));
 
             for (SecureEpsRecord rec : pureNewData) {
                 memoryShieldCache.computeIfAbsent(rec.eps + "_" + cacheKeyMap, k -> new HashSet<>()).add(rec.dataHash);
@@ -340,7 +400,7 @@ public class PilotSecureImportService {
         }
     }
 
-    private void executePureSqlMerge(Connection conn, List<SecureEpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
+    private int executePureSqlMerge(Connection conn, List<SecureEpsRecord> batch, Long pilotId, int year, int month, String category) throws Exception {
         try (Statement st = conn.createStatement()) {
             st.execute("TRUNCATE temp_pilot_records");
         }
@@ -383,6 +443,7 @@ public class PilotSecureImportService {
                         "      AND p2.category = ? AND p2.import_year = ? AND p2.import_month = ? " +
                         ")";
 
+        int inserted;
         try (PreparedStatement psMerge = conn.prepareStatement(megaMergeSql)) {
             psMerge.setString(1, category);
             psMerge.setInt(2, year);
@@ -395,10 +456,11 @@ public class PilotSecureImportService {
             psMerge.setString(9, category);
             psMerge.setInt(10, year);
             psMerge.setInt(11, month);
-            psMerge.executeUpdate();
+            inserted = psMerge.executeUpdate();
         }
 
         conn.commit();
+        return inserted;
     }
 
     @Transactional
