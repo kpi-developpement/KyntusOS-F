@@ -1,11 +1,11 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-27 14:39 · 30 files · ~10,637 tokens_
+_llm_extractor v3.0 · 2026-11-27 15:13 · 30 files · ~10,547 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion, GSAP, Axios
-**Files:** tsx 140, java 109, css 55, ts 5, md 3, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Files:** tsx 141, java 111, css 56, ts 5, md 3, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
 **Manifests:**
 - `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, @tanstack/react-table@8.21.3, @tsparticles/react@3.0.0, @tsparticles/slim@3.9.1, animejs@4.3.6, axios@1.13.4, d3-scale@4.0.2, framer-motion@12.38.0, gsap@3.14.2, lucide-react@0.563.0, net@1.0.2, next@16.1.6, react@19.2.3, react-dom@19.2.3, recharts@3.7.0, sockjs-client@1.6.1, stompjs@2.3.3, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
@@ -15,6 +15,7 @@ _llm_extractor v3.0 · 2026-11-27 14:39 · 30 files · ~10,637 tokens_
 - **BytelApiController**: POST /api/bytel/sync (synchroniser) · GET /api/bytel/sync/status (syncStatus) · POST /api/bytel/sync/annuler (syncAnnuler) · GET /api/bytel/sync/etats (syncEtats) · GET /api/bytel/live (live) · GET /api/bytel/qualifications (lister) · POST /api/bytel/qualifications/recherche (listerPost) · GET /api/bytel/versions (versions) · POST /api/bytel/versions/recherche (versionsPost) · POST /api/bytel/versions/par-eps (versionsParEps) · POST /api/bytel/export (exporter) · POST /api/bytel/export/equipe (exporterEquipe) · GET /api/bytel/export/{id}/status (exportStatus) · GET /api/bytel/export/{id}/fichier (exportFichier) · GET /api/bytel/timeline/{eps} (timeline) · GET /api/bytel/history/eps/{eps} (decisionsDeLEps) · GET /api/bytel/eps/{eps}/versions (versionsDeLEps) · GET /api/bytel/eps/{eps} (detailEps) · GET /api/bytel/etats (etats) · GET /api/bytel/types (types) · GET /api/bytel/types-qualification (typesQualification) · GET /api/bytel/periodes (periodes) · GET /api/bytel/stats (stats) · POST /api/bytel/actions (agir) · GET /api/bytel/actions/apercu (apercu) · POST /api/bytel/actions/lot (agirEnLot) · GET /api/bytel/historique (historique) · GET /api/bytel/config (config) · GET /api/bytel/alertes (alertes) · DELETE /api/bytel/purge (purger) · POST /api/bytel/omni (omni) · POST /api/bytel/omni/export (omniExport)
 - **BytelDiagController**: GET /api/bytel/diag (diag)
 - **BytelLocaliserController**: POST /api/bytel/localiser (localiser)
+- **ContestationController**: POST /api/contestation/generate (generate)
 - **DispatchController**: POST /api/dispatch/execute (executeDispatch)
 - **ExportController**: GET /api/export/{templateId} (exportTemplate)
 - **FactureController**: POST /api/facture/generate (generateFacture)
@@ -36,7 +37,7 @@ _llm_extractor v3.0 · 2026-11-27 14:39 · 30 files · ~10,637 tokens_
 - **WorkflowTemplateController**: ANY /api/templates (js) · GET / (getTemplates) · POST / (create)
 
 ### Front routes
-- pages: `/` · `/admin/audit` · `/admin/check` · `/admin/data` · `/admin/eps-tracer` · `/admin/export` · `/admin/kanban` · `/admin/live-board` · `/admin/stats` · `/admin/strategic` · `/admin/tasks` · `/admin/templates` · `/admin/users` · `/import` · `/login` · `/pilot/api` · `/pilot/board` · `/pilot/facture` · `/pilot/history` · `/pilot/home` · `/pilot/kanban` · `/pilot/parametrage` · `/pilot/recorde` · `/pilot/tissue-records` · `/pilot/ventilation` · `/portal`
+- pages: `/` · `/admin/audit` · `/admin/check` · `/admin/data` · `/admin/eps-tracer` · `/admin/export` · `/admin/kanban` · `/admin/live-board` · `/admin/stats` · `/admin/strategic` · `/admin/tasks` · `/admin/templates` · `/admin/users` · `/import` · `/login` · `/pilot/api` · `/pilot/board` · `/pilot/contestation` · `/pilot/facture` · `/pilot/history` · `/pilot/home` · `/pilot/kanban` · `/pilot/parametrage` · `/pilot/recorde` · `/pilot/tissue-records` · `/pilot/ventilation` · `/portal`
 
 ### Data models
 BytelIntervention, BytelSyncEtat, Batch, FieldDefinition, PilotRecord, PointLog, RecordImportLog, Task, TissueRecord, User, VentilationData, WorkflowTemplate
@@ -68,6 +69,7 @@ KyntusOS-F/
             AdminController.java [sig]
             AuthController.java [sig]
             ChatController.java [sig]
+            ContestationController.java [sig]
             DispatchController.java [sig]
             ExportController.java [sig]
             HealthController.java [sig]
@@ -89,7 +91,7 @@ KyntusOS-F/
           dto/ (8 files omitted)
           model/ (13 files omitted)
           repository/ (9 files omitted)
-          service/ (30 files omitted)
+          service/ (31 files omitted)
           WorkflowApplication.java
           DataSeeder.java [omitted]
         resources/ (1 files omitted)
@@ -105,16 +107,17 @@ KyntusOS-F/
         pilot/
           api/
             components/
-              DataGrid.tsx [sig]
               NexusModal.tsx [sig]
               TimelineModal.tsx [sig]
               AlertBanners.tsx [omitted]
+              DataGrid.tsx [omitted]
               NexusSelect.tsx [omitted]
               NexusStyles.tsx [omitted]
             lib/
               apiUtils.ts [sig]
             page.tsx [omitted]
           board/ (23 files omitted)
+          contestation/ (2 files omitted)
           facture/ (3 files omitted)
           history/ (7 files omitted)
           home/ (7 files omitted)
@@ -300,6 +303,27 @@ public class ChatController {
     @SendTo("/topic/public")
     public ChatMessage addUser(@Payload ChatMessage chatMessage,
                                SimpMessageHeaderAccessor headerAccessor) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/ContestationController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/contestation")
+public class ContestationController {
+
+    private final ContestationService service;
+    private final Semaphore slot = new Semaphore(1, true);
+
+    public ContestationController(ContestationService service) { … }
+
+    @PostMapping("/generate")
+    public ResponseEntity<byte[]> generate(
+            @RequestParam("fichierGlobal") MultipartFile fichierGlobal,
+            @RequestParam("fichierFacture") MultipartFile fichierFacture,
+            @RequestParam(value = "fichierCa", required = false) MultipartFile fichierCa) { … }
+
+    private static ResponseEntity<byte[]> error(HttpStatus status, String msg) { … }
 }
 ```
 
@@ -698,67 +722,6 @@ import { apiJsonOr } from "@/lib/api";
 export default function CommandPage() { … }
 ```
 
-### frontend/src/app/pilot/api/components/DataGrid.tsx · signatures only
-```tsx
-"use client";
-
-import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Database, Rows3, Rows4, Search, X } from "lucide-react";
-import NexusSelect from "./NexusSelect";
-
-interface Props {
-  titre: string;
-  icone?: React.ReactNode;
-  accent?: string;
-  badgeLive?: React.ReactNode;
-  total: number;
-  unite: string;
-  outils?: React.ReactNode;
-  chargement: boolean;
-  messageChargement?: React.ReactNode;
-  vide: boolean;
-  messageVide: React.ReactNode;
-  sousMessageVide?: React.ReactNode;
-  page: number;
-  totalPages: number;
-  setPage: (p: number) => void;
-  taille?: number;
-  setTaille?: (t: number) => void;
-  options?: number[];
-  density?: "comfort" | "compact";
-  setDensity?: (d: "comfort" | "compact") => void;
-  quickFilter?: string;
-  setQuickFilter?: (q: string) => void;
-  children: React.ReactNode;
-}
-
-export default function DataGrid({
-  titre,
-  icone,
-  accent = "#2563eb",
-  badgeLive,
-  total,
-  unite,
-  outils,
-  chargement,
-  messageChargement,
-  vide,
-  messageVide,
-  sousMessageVide,
-  page,
-  totalPages,
-  setPage,
-  taille,
-  setTaille,
-  options = [25, 50, 100, 200],
-  density,
-  setDensity,
-  quickFilter,
-  setQuickFilter,
-  children,
-}: Props) { … }
-```
-
 ### frontend/src/app/pilot/api/components/NexusModal.tsx · signatures only
 ```tsx
 "use client";
@@ -922,4 +885,4 @@ interface ProcessChart3DProps {
 export default function ProcessChart3D({ projects }: ProcessChart3DProps) { … }
 ```
 ## Not included
-- omitted (budget): 291 files — see `[omitted]` in Structure
+- omitted (budget): 295 files — see `[omitted]` in Structure
