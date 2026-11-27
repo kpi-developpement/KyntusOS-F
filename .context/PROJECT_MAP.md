@@ -1,5 +1,5 @@
-# Project: kyntus-workflow-main
-_llm_extractor v3.0 · 2026-11-27 14:37 · 30 files · ~10,639 tokens_
+# Project: KyntusOS-F
+_llm_extractor v3.0 · 2026-11-27 14:39 · 30 files · ~10,637 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
@@ -43,7 +43,7 @@ BytelIntervention, BytelSyncEtat, Batch, FieldDefinition, PilotRecord, PointLog,
 
 ## Structure
 ```
-kyntus-workflow-main/
+KyntusOS-F/
   .github/workflows/ (1 files omitted)
   Workflow/
     src/
