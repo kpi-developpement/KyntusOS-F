@@ -1,11 +1,11 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-27 18:02 · 28 files · ~12,717 tokens_
+_llm_extractor v3.0 · 2026-11-27 18:09 · 28 files · ~12,717 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion
-**Files:** java 107, tsx 88, css 44, ts 6, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Files:** java 107, tsx 83, css 40, ts 6, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
 **Manifests:**
 - `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
@@ -114,7 +114,7 @@ KyntusOS-F/
             page.tsx [omitted]
           board/ (19 files omitted)
           contestation/ (2 files omitted)
-          facture/ (3 files omitted)
+          facture/ (2 files omitted)
           history/ (2 files omitted)
           home/ (3 files omitted)
           kanban/ (4 files omitted)
@@ -135,8 +135,8 @@ KyntusOS-F/
         kx/
           index.tsx [sig]
           Kx.module.css [omitted]
-        layout/ (11 files omitted)
-        ui/ (14 files omitted)
+        layout/ (7 files omitted)
+        ui/ (10 files omitted)
       context/ (1 files omitted)
       lib/ (1 files omitted)
       types/ (1 files omitted)
@@ -1024,4 +1024,4 @@ export function KxTable({
 }
 ```
 ## Not included
-- omitted (budget): 228 files — see `[omitted]` in Structure
+- omitted (budget): 219 files — see `[omitted]` in Structure
