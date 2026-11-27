@@ -1,13 +1,13 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-27 17:38 · 30 files · ~11,591 tokens_
+_llm_extractor v3.0 · 2026-11-27 17:46 · 30 files · ~11,516 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
-**Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion, GSAP, Axios
-**Files:** tsx 113, java 111, css 56, ts 5, md 3, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion
+**Files:** java 107, tsx 100, css 47, ts 5, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
 **Manifests:**
-- `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, @tanstack/react-table@8.21.3, @tsparticles/react@3.0.0, @tsparticles/slim@3.9.1, animejs@4.3.6, axios@1.13.4, d3-scale@4.0.2, framer-motion@12.38.0, gsap@3.14.2, lucide-react@0.563.0, net@1.0.2, next@16.1.6, react@19.2.3, react-dom@19.2.3, recharts@3.7.0, sockjs-client@1.6.1, stompjs@2.3.3, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
+- `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
 ### API endpoints
 - **AdminController**: GET /api/admin/search (searchByEps) · POST /api/admin/eps-tracer (traceEps) · POST /api/admin/flag-error/{taskId} (flagError) · POST /api/admin/points (manualPointsAdjustment) · GET /api/admin/points/history/{pilotId} (getPointsHistory)
@@ -56,8 +56,8 @@ KyntusOS-F/
               BytelLocaliserController.java [sig]
               BytelApiController.java [omitted]
             model/ (4 files omitted)
-            repository/ (4 files omitted)
-            service/ (8 files omitted)
+            repository/ (3 files omitted)
+            service/ (7 files omitted)
           config/
             ApiExceptionHandler.java [sig]
             CorsConfig.java [omitted]
@@ -89,8 +89,8 @@ KyntusOS-F/
             StatsController.java [omitted]
             TissueRecordController.java [omitted]
           dto/ (8 files omitted)
-          model/ (13 files omitted)
-          repository/ (9 files omitted)
+          model/ (12 files omitted)
+          repository/ (8 files omitted)
           service/ (31 files omitted)
           WorkflowApplication.java
           DataSeeder.java [omitted]
@@ -101,7 +101,7 @@ KyntusOS-F/
   frontend/
     src/
       app/
-        admin/ (34 files omitted)
+        admin/ (33 files omitted)
         import/ (2 files omitted)
         login/ (2 files omitted)
         pilot/
@@ -112,14 +112,14 @@ KyntusOS-F/
             lib/
               apiUtils.ts [sig]
             page.tsx [omitted]
-          board/ (23 files omitted)
+          board/ (19 files omitted)
           contestation/ (2 files omitted)
           facture/ (3 files omitted)
           history/ (2 files omitted)
           home/ (3 files omitted)
           kanban/ (4 files omitted)
           parametrage/ (1 files omitted)
-          recorde/ (8 files omitted)
+          recorde/ (5 files omitted)
           tissue-records/ (5 files omitted)
           ventilation/ (2 files omitted)
           PilotLayout.module.css [omitted]
@@ -147,17 +147,15 @@ KyntusOS-F/
             Chart3D.module.css [omitted]
             Experience.tsx [omitted]
           … +6 files omitted
-        features/ (11 files omitted)
+        features/ (6 files omitted)
         kx/
           index.tsx [sig]
           Kx.module.css [omitted]
-        layout/ (11 files omitted)
-        ui/ (20 files omitted)
-        LuxChart.css [omitted]
-        ProtectedRoute.tsx [omitted]
+        layout/ (10 files omitted)
+        ui/ (14 files omitted)
       context/ (1 files omitted)
       lib/ (1 files omitted)
-    … +6 files omitted
+    … +5 files omitted
   AGENTS.md [omitted]
   MAINTENANCE.md [omitted]
   docker-compose.yml [omitted]
@@ -964,4 +962,4 @@ export function KxTable({
 }
 ```
 ## Not included
-- omitted (budget): 267 files — see `[omitted]` in Structure
+- omitted (budget): 240 files — see `[omitted]` in Structure
