@@ -213,6 +213,10 @@
   overflow-x: auto;
   scrollbar-width: none;
   transition: all 0.3s ease;
+  /* S'adapte à l'espace dispo entre la marque et l'utilisateur */
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0 16px;
 }
 .navZone::-webkit-scrollbar {
   display: none;
@@ -336,4 +340,51 @@
 @keyframes pulseDot {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.25); opacity: 0.75; }
+}
+/* ==========================================================================
+   RESPONSIVE : 11 modules -> la navbar se compacte au lieu de déborder
+   ========================================================================== */
+.navLabel,
+.pilotName {
+  display: inline;
+}
+
+.navLink:focus-visible,
+.logoutBtn:focus-visible {
+  outline: 2px solid var(--argon-core);
+  outline-offset: 2px;
+}
+
+/* 1. Écrans larges mais pas immenses : liens plus serrés */
+@media (max-width: 2100px) {
+  .navbarBody { padding: 0 20px; }
+  .navZone { gap: 3px; padding: 5px 6px; margin: 0 12px; }
+  .navLink { padding: 8px 10px; font-size: 0.72rem; letter-spacing: 0.4px; gap: 6px; }
+  .logoText { font-size: 1.2rem; }
+}
+
+/* 2. 11 modules ne tiennent jamais en entier : icônes seules partout,
+      le module actif garde son libellé (tooltip natif au survol) */
+.navLink { padding: 9px 11px; }
+.navLink:not(.activeLink) .navLabel { display: none; }
+
+/* 3. Petit laptop / tablette : on libère la marque et le badge */
+@media (max-width: 1100px) {
+  .logoText { display: none; }
+  .pilotName { display: none; }
+  .navZone { margin: 0 8px; }
+  .brandZone, .userZone { gap: 8px; }
+}
+
+/* 4. Mobile : tout en icônes, défilement horizontal du dock */
+@media (max-width: 760px) {
+  .navbarWrapper { width: calc(100% - 16px); top: 8px; height: 64px; }
+  .navbarBody { padding: 0 10px; border-radius: 16px; transform: none; }
+  .navbarWrapper:hover .navbarBody { transform: none; }
+  .screw { display: none; }
+  .logoHex { width: 36px; height: 36px; }
+  .navLink .navLabel { display: none; }
+  .navLink { padding: 8px 9px; }
+  .pilotBadge { display: none; }
+  .logoutBtn { width: 36px; height: 36px; }
 }

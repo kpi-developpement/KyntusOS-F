@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutList, KanbanSquare, History, LogOut, Terminal, 
-  Database, Cpu, BarChart2, Receipt, Cloud, Layers 
+  Database, Cpu, BarChart2, Receipt, Cloud, Layers, Scale 
 } from "lucide-react";
 import styles from "./PilotNavbar.module.css";
 import { useEffect, useState, MouseEvent } from "react";
@@ -42,6 +42,7 @@ export default function PilotNavbar() {
     { href: "/pilot/parametrage", label: "Paramétrage", icon: Cpu },
     { href: "/pilot/ventilation", label: "Ventilation", icon: BarChart2 },
     { href: "/pilot/facture", label: "Facturation", icon: Receipt },
+    { href: "/pilot/contestation", label: "Contestation", icon: Scale },
     { href: "/pilot/history", label: "Archive", icon: History },
   ];
 
@@ -78,9 +79,12 @@ export default function PilotNavbar() {
                 key={item.href}
                 href={item.href}
                 className={`${styles.navLink} ${isActive ? styles.activeLink : ""}`}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
               >
                 <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-                <span>{item.label}</span>
+                <span className={styles.navLabel}>{item.label}</span>
               </Link>
             );
           })}
@@ -90,7 +94,7 @@ export default function PilotNavbar() {
         <div className={styles.userZone}>
           <div className={styles.pilotBadge}>
             <div className={styles.statusDot}></div>
-            <span>OP: {user?.username || "GUEST"}</span>
+            <span className={styles.pilotName}>OP: {user?.username || "GUEST"}</span>
           </div>
           <button 
             onClick={handleLogout} 

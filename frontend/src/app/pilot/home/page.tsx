@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Terminal, LayoutDashboard, Database, Cpu, 
-  Settings, History, Layers, ShieldCheck 
+  Settings, History, Layers, ShieldCheck, Scale 
 } from "lucide-react";
 
 import HolographicCard from "./components/HolographicCard";
@@ -70,6 +70,16 @@ export default function PilotHomePage() {
       desc: "Moteur de calcul et génération des factures.", 
       status: "ONLINE", 
       model: "ENGINE_X" 
+    },
+    { 
+      id: "contestation", 
+      title: "Contestation", 
+      path: "/pilot/contestation", 
+      icon: Scale, 
+      color: "#f43f5e", 
+      desc: "Croisement Global · Facture · CA et détection des anomalies.", 
+      status: "ONLINE", 
+      model: "DISPUTE_X" 
     },
     { 
       id: "recorde", 
