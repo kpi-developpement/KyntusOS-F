@@ -1,11 +1,11 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-27 17:46 · 30 files · ~11,516 tokens_
+_llm_extractor v3.0 · 2026-11-27 18:02 · 28 files · ~12,717 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion
-**Files:** java 107, tsx 100, css 47, ts 5, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Files:** java 107, tsx 88, css 44, ts 6, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
 **Manifests:**
 - `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
@@ -101,7 +101,7 @@ KyntusOS-F/
   frontend/
     src/
       app/
-        admin/ (33 files omitted)
+        admin/ (31 files omitted)
         import/ (2 files omitted)
         login/ (2 files omitted)
         pilot/
@@ -130,31 +130,16 @@ KyntusOS-F/
         globals.css [omitted]
         page.module.css [omitted]
       components/
-        3d/
-          HeroScene/
-            index.tsx [sig]
-            HyperText.tsx [omitted]
-            WarpStars.tsx [omitted]
-          DataTerrain.tsx [omitted]
-          Tooltip.tsx [omitted]
-          Workflow3DChart.tsx [omitted]
-          types.ts [omitted]
-        dashboard/
-          3d-chart/
-            index.tsx [sig]
-            Axes.tsx [omitted]
-            BarPillar.tsx [omitted]
-            Chart3D.module.css [omitted]
-            Experience.tsx [omitted]
-          … +6 files omitted
+        3d/ (4 files omitted)
         features/ (6 files omitted)
         kx/
           index.tsx [sig]
           Kx.module.css [omitted]
-        layout/ (10 files omitted)
+        layout/ (11 files omitted)
         ui/ (14 files omitted)
       context/ (1 files omitted)
       lib/ (1 files omitted)
+      types/ (1 files omitted)
     … +5 files omitted
   AGENTS.md [omitted]
   MAINTENANCE.md [omitted]
@@ -678,45 +663,136 @@ public class WorkflowTemplateController {
 
 ### frontend/src/app/layout.tsx · signatures only
 ```tsx
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/context/AuthContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const sans = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-serif", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Kyntus Workflow",
-  description: "Système de gestion de workflow Kyntus",
+  title: "Kyntus OS",
+  description: "Système de pilotage opérationnel Kyntus",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) { … }
+export const viewport: Viewport = {
+  themeColor: "#f5f9ff",
+};
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { … }
 ```
 
 ### frontend/src/app/page.tsx · signatures only
 ```tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Layers, ChevronsDown } from "lucide-react";
-import styles from "./page.module.css";
-import AuthGuard from "@/components/layout/AuthGuard";
-import AdminLoader from "@/components/ui/AdminLoader";
+import { useCallback, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LayoutGrid, Clock, Zap, CheckCircle2, ShieldCheck, ChevronDown, Layers, Loader2, Wifi, WifiOff } from "lucide-react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
-import ProcessChart3D from "@/components/dashboard/3d-chart";
-
-import CommandHeader from "@/components/dashboard/CommandHeader";
-import HudStats from "@/components/dashboard/HudStats";
-import ProjectRow from "@/components/dashboard/ProjectRow";
+import AuthGuard from "@/components/layout/AuthGuard";
+import { KxHeader, KxStats, KxStat, KxCount, KxCard, KxEmpty } from "@/components/kx";
 import { apiJsonOr } from "@/lib/api";
+import styles from "./page.module.css";
 
-export default function CommandPage() { … }
+type Project = { templateId: number; templateName: string; totalTasks: number; progress: number; countActive: number; countValid: number };
+type Pilot = { pilotId: number; pilotName: string; completionRate: number; todoCount: number; inProgressCount: number; doneCount: number; validCount: number };
+type Dashboard = { global?: { totalToDo?: number; totalInProgress?: number; totalDone?: number; totalValid?: number }; projects?: Project[] };
+
+const STAGES = [
+  { key: "totalToDo", label: "À faire", color: "#cbd5e1" },
+  { key: "totalInProgress", label: "En cours", color: "#93c5fd" },
+  { key: "totalDone", label: "Terminées", color: "#3b82f6" },
+  { key: "totalValid", label: "Validées", color: "#1e40af" },
+] as const;
+
+export default function CommandPage() {
+  const [data, setData] = useState<Dashboard | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [pilots, setPilots] = useState<Record<number, Pilot[]>>({});
+  const [connected, setConnected] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+
+  const fetchPilots = useCallback(async (id: number) => { … }, []);
+
+  const fetchDashboard = useCallback(async () => { … }, []);
+
+  useEffect(() => { … }, [fetchDashboard]);
+
+  useEffect(() => { … }, [fetchDashboard]);
+
+  useEffect(() => { … }, [lastUpdate, expandedId, fetchPilots]);
+
+  const toggle = (id: number) => { … };
+
+  const g = data?.global || {};
+  const totals = STAGES.map((s) => ( … ));
+  const sum = totals.reduce((a, b) => a + b.value, 0);
+  const projects = data?.projects || [];
+
+  return (
+    <AuthGuard>
+      <main className="kx-page">
+        <KxHeader
+          icon={LayoutGrid}
+          eyebrow="Administration"
+          title={<>Centre de <em>commande</em></>}
+          subtitle="Vue en direct de toutes les opérations, projet par projet."
+          actions={
+            <span className={`${styles.live} ${connected ? styles.liveOn : ""}`}>
+              {connected ? <Wifi size={14} /> : <WifiOff size={14} />}
+              {connected ? "Temps réel" : "Reconnexion…"}
+              {lastUpdate && <small>· {lastUpdate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</small>}
+            </span>
+          }
+        />
+
+        <KxStats>
+          <KxStat icon={Clock} label="À faire" value={loading ? "—" : <KxCount value={totals[0].value} />} tone="warn" />
+          <KxStat icon={Zap} label="En cours" value={loading ? "—" : <KxCount value={totals[1].value} />} tone="sky" delay={0.05} />
+          <KxStat icon={CheckCircle2} label="Terminées" value={loading ? "—" : <KxCount value={totals[2].value} />} delay={0.1} />
+          <KxStat icon={ShieldCheck} label="Validées" value={loading ? "—" : <KxCount value={totals[3].value} />} tone="ok" delay={0.15} />
+        </KxStats>
+
+        {}
+        <KxCard title="Répartition des tâches" icon={Layers} count={sum.toLocaleString("fr-FR")}>
+          {sum === 0 ? (
+            <p className={styles.muted}>{loading ? "Chargement…" : "Aucune tâche pour le moment."}</p>
+          ) : (
+            <>
+              <div className={styles.stack} role="img" aria-label={totals.map((t) => `${t.label} ${t.value}`).join(", ")}>
+                {totals.filter((t) => t.value > 0).map((t) => ( … )} %
+                      </span>
+                    )}
+                  </motion.span>
+                ))}
+              </div>
+              <ul className={styles.legend}>
+                {totals.map((t) => ( … ))}
+              </ul>
+            </>
+          )}
+        </KxCard>
+
+        {}
+        <section className={styles.projects}>
+          <h2 className={styles.sectionTitle}>Opérations actives <span>{projects.length}</span></h2>
+          {loading && Array.from({ length: 3 }).map((_, i) => <div key={i} className={`kx-skeleton ${styles.skel}`} />)}
+          {!loading && projects.length === 0 && (
+            <KxCard><KxEmpty icon={Layers} title="Aucune opération active"><span>Les projets apparaîtront ici dès qu&apos;une tâche sera dispatchée.</span></KxEmpty></KxCard>
+          )}
+          {projects.map((p, i) => { … })}
+        </section>
+      </main>
+    </AuthGuard>
+  );
+}
 ```
 
 ### frontend/src/app/pilot/api/components/NexusModal.tsx · signatures only
@@ -818,53 +894,11 @@ export const telechargerUrl = (url: string, nom: string) => { … };
 export const auteurCourant = () => { … };
 ```
 
-### frontend/src/components/3d/HeroScene/index.tsx · signatures only
-```tsx
-"use client";
-
-import React, { Suspense } from "react";
-import { Canvas } from "@react-three/fiber";
-import * as THREE from "three";
-
-import { HyperText } from "./HyperText";
-import { WarpStars } from "./WarpStars";
-
-interface SceneProps {
-  isHovered?: boolean;
-}
-
-export default function HeroScene({ isHovered = false }: SceneProps) { … }
-```
-
-### frontend/src/components/dashboard/3d-chart/index.tsx · signatures only
-```tsx
-"use client";
-
-import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
-import { BarChart3, Zap } from "lucide-react";
-import { Experience } from "./Experience";
-import styles from "./Chart3D.module.css";
-import * as THREE from "three";
-
-interface ProjectData {
-  templateName: string;
-  progress: number;
-  templateId: number;
-}
-
-interface ProcessChart3DProps {
-  projects: ProjectData[];
-}
-
-export default function ProcessChart3D({ projects }: ProcessChart3DProps) { … }
-```
-
 ### frontend/src/components/kx/index.tsx · signatures only
 ```tsx
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   UploadCloud, Loader2, CheckCircle2, AlertTriangle, Info, Search, ChevronLeft, ChevronRight,
   Inbox, type LucideIcon,
@@ -892,7 +926,33 @@ export function KxDropzone({
 }: {
   onFile: (f: File) => void; busy?: boolean; disabled?: boolean; title?: string; hint?: string;
   busyTitle?: string; busyHint?: string; accept?: string; icon?: LucideIcon;
-}) { … }
+}) {
+  const [over, setOver] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  const locked = busy || disabled;
+  return (
+    <button
+      type="button"
+      onPointerMove={trackGlow}
+      className={cx(s.drop, over && s.dropActive, busy && s.dropBusy, disabled && !busy && s.dropDisabled)}
+      onClick={() => !locked && input.current?.click()}
+      onDragOver={(e) => { … }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => { … }}
+      aria-busy={busy}
+      disabled={disabled && !busy}
+    >
+      <input
+        ref={input} type="file" accept={accept} hidden
+        onChange={(e) => { … }}
+      />
+      <span className={s.dropIcon}>{busy ? <Loader2 size={30} className="kx-spin" /> : <Icon size={30} />}</span>
+      <span className={s.dropTitle}>{busy ? busyTitle : over ? "Relâchez pour importer" : title}</span>
+      <span className={s.dropHint}>{busy ? busyHint : hint}</span>
+      {busy && <span className={s.dropBar} />}
+    </button>
+  );
+}
 
 export function KxAlert({ tone, children, icon }: { tone: "ok" | "bad" | "info"; children: React.ReactNode; icon?: React.ReactNode }) {
   const I = tone === "ok" ? CheckCircle2 : tone === "bad" ? AlertTriangle : Info;
@@ -903,6 +963,8 @@ export function KxAlert({ tone, children, icon }: { tone: "ok" | "bad" | "info";
     </div>
   );
 }
+
+export function KxCount({ value, suffix = "", decimals = 0 }: { value: number; suffix?: string; decimals?: number }) { … }
 
 export function KxStats({ children }: { children: React.ReactNode }) { … }
 
@@ -962,4 +1024,4 @@ export function KxTable({
 }
 ```
 ## Not included
-- omitted (budget): 240 files — see `[omitted]` in Structure
+- omitted (budget): 228 files — see `[omitted]` in Structure
