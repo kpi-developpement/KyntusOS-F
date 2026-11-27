@@ -1,60 +1,26 @@
-.overlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
-  z-index: 10000;
-  display: flex; justify-content: center; align-items: center;
-  animation: fadeIn 0.2s ease;
-}
-
-.modal {
-  width: 450px;
-  background: #0a0f15;
-  border: 1px solid #00f2ea;
-  border-radius: 16px;
-  box-shadow: 0 0 50px rgba(0, 242, 234, 0.2);
-  overflow: hidden;
-  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.header {
-  background: rgba(0, 242, 234, 0.1);
-  padding: 15px 20px;
-  display: flex; justify-content: space-between; align-items: center;
-  border-bottom: 1px solid rgba(0, 242, 234, 0.2);
-}
-
-.header h3 { margin: 0; color: #00f2ea; letter-spacing: 2px; font-size: 1rem; }
-.closeBtn { background: none; border: none; color: #666; cursor: pointer; }
-.closeBtn:hover { color: white; }
-
-.body { padding: 25px; display: flex; flex-direction: column; gap: 20px; }
-
-.target { font-family: monospace; color: #888; border-bottom: 1px dashed #333; padding-bottom: 10px; }
-
-.inputGroup label {
-  display: block; font-size: 0.7rem; color: #00f2ea; margin-bottom: 8px; font-weight: bold;
-}
-
-.input, .textarea {
-  width: 100%; background: #050505; border: 1px solid #333;
-  color: white; padding: 12px; border-radius: 8px; outline: none;
-  font-family: monospace; transition: 0.3s;
-}
-
-.input:focus, .textarea:focus { border-color: #00f2ea; box-shadow: 0 0 10px rgba(0, 242, 234, 0.1); }
-.textarea { min-height: 80px; resize: none; }
-
-.footer { padding: 20px; text-align: center; }
-
+.overlay { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center; padding: 16px; background: rgba(15, 30, 61, 0.24); backdrop-filter: blur(6px); animation: fade 0.2s ease both; }
+.modal { width: min(440px, 100%); border-radius: 22px; overflow: hidden; background: #fff; border: 1px solid rgba(15, 30, 61, 0.08); box-shadow: var(--k-shadow-xl); animation: pop 0.35s var(--k-ease) both; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--k-border); background: var(--k-grad-soft); }
+.header h3 { font-size: 1.08rem; font-weight: 650; letter-spacing: -0.02em; }
+.closeBtn { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--k-border); background: #fff; color: var(--k-muted); cursor: pointer; transition: transform 0.3s var(--k-spring), color 0.2s ease; }
+.closeBtn:hover { color: var(--k-bad); transform: rotate(90deg); }
+.body { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; }
+.target { font-size: 0.9rem; color: var(--k-muted); }
+.target b { color: var(--k-navy); font-weight: 650; }
+.inputGroup { display: flex; flex-direction: column; gap: 6px; }
+.inputGroup label { font-size: 0.82rem; font-weight: 600; color: var(--k-text-2); }
+.input, .textarea { width: 100%; padding: 11px 13px; border-radius: 12px; font: inherit; font-size: 0.92rem; }
+.textarea { min-height: 96px; resize: vertical; }
+.footer { padding: 0 20px 20px; }
 .confirmBtn {
-  width: 100%; padding: 15px; background: #00f2ea; color: black;
-  border: none; border-radius: 8px; font-weight: 900; cursor: pointer;
-  display: flex; justify-content: center; align-items: center; gap: 10px;
-  transition: 0.3s;
+  width: 100%; height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 14px; border: 1px solid rgba(29, 78, 216, 0.6); cursor: pointer;
+  font: inherit; font-weight: 600; color: #fff;
+  background: linear-gradient(180deg, #3b82f6, #2563eb 55%, #1d4ed8);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 12px 24px -12px rgba(29, 78, 216, 0.8);
+  transition: transform 0.25s var(--k-spring), opacity 0.2s ease;
 }
-.confirmBtn:hover { background: white; box-shadow: 0 0 20px #00f2ea; }
-.confirmBtn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.confirmBtn:hover:not(:disabled) { transform: translateY(-2px); }
+.confirmBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+@keyframes fade { from { opacity: 0; } }
+@keyframes pop { from { opacity: 0; transform: translateY(12px) scale(0.97); } }

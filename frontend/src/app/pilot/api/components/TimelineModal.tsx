@@ -20,7 +20,7 @@ const champ = (label: string, valeur: React.ReactNode, couleur = "#0f2557") => (
       gap: 6,
       alignItems: "baseline",
       padding: "3px 9px",
-      borderRadius: 8,
+      borderRadius: 12,
       background: "#f8fbff",
       border: "1px solid #e2ecf8",
     }}
@@ -50,7 +50,7 @@ export default function TimelineModal({ eps, periode, entrees, chargement, onClo
           <span
             style={{
               color: "#dbeafe",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--k-font-mono)",
             }}
           >
             {eps}
@@ -102,7 +102,7 @@ export default function TimelineModal({ eps, periode, entrees, chargement, onClo
               top: 14,
               bottom: 14,
               width: 2.5,
-              borderRadius: 4,
+              borderRadius: 8,
               background: "linear-gradient(to bottom, #93c5fd, #2563eb, #059669)",
             }}
           />
@@ -226,7 +226,7 @@ export default function TimelineModal({ eps, periode, entrees, chargement, onClo
                     style={{
                       color: "#334e7b",
                       fontSize: "0.75rem",
-                      fontFamily: "'JetBrains Mono', monospace",
+                      fontFamily: "var(--k-font-mono)",
                       fontWeight: 700,
                     }}
                   >
@@ -237,11 +237,11 @@ export default function TimelineModal({ eps, periode, entrees, chargement, onClo
                     style={{
                       color: "#647a9e",
                       fontSize: "0.66rem",
-                      fontFamily: "monospace",
+                      fontFamily: "var(--k-font-mono)",
                       marginLeft: "auto",
                       background: "#f1f5f9",
                       padding: "2px 7px",
-                      borderRadius: 6,
+                      borderRadius: 10,
                     }}
                     title={e.qualificationId}
                   >

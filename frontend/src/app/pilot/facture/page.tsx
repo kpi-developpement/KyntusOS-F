@@ -249,7 +249,7 @@ export default function FacturePage() {
           --ok:#059669; --ok-bg:#ecfdf5; --warn:#dc2626; --warn-bg:#fef2f2;
           --ease:cubic-bezier(.22,1,.36,1);
           padding: 2.25rem 2rem 4rem; min-height: 100vh; position: relative; color: var(--ink);
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: var(--k-font-display);
         }
         .fx-root *, .fx-root *::before, .fx-root *::after { box-sizing: border-box; }
         .fx-wrap { max-width: 1420px; margin: 0 auto; position: relative; z-index: 10; display: flex; flex-direction: column; gap: 1.4rem; }
@@ -258,17 +258,17 @@ export default function FacturePage() {
         .fx-hero { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.5rem;
           padding: 1.4rem 1.6rem; border-radius: 26px; background: rgba(255,255,255,.88); backdrop-filter: blur(20px);
           box-shadow: 0 0 0 1px var(--line), 0 30px 60px -32px rgba(29,78,216,.45), inset 0 1px 0 #fff; overflow: hidden; }
-        .fx-hero::before { content:""; position:absolute; left:24px; right:24px; top:0; height:3px; border-radius:0 0 6px 6px;
+        .fx-hero::before { content:""; position:absolute; left:24px; right:24px; top:0; height:3px; border-radius: 0 0 10px 10px;
           background: linear-gradient(90deg, var(--b-300), var(--b-700) 45%, var(--b-400) 70%, var(--b-200)); background-size:200% 100%;
           animation: fxStripe 6s linear infinite; }
         .fx-logo { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; color: #fff;
           background: linear-gradient(140deg, var(--b-500), var(--b-800)); box-shadow: 0 16px 30px -12px rgba(29,78,216,.75); }
         .fx-kicker { display:inline-block; font-size:.64rem; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color: var(--b-600); }
-        .fx-title { margin: 2px 0 0; font-size: 2.1rem; font-weight: 900; letter-spacing: -.03em; color: var(--ink); line-height: 1.05; }
+        .fx-title { margin: 2px 0 0; font-size: 2.1rem; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); line-height: 1.05; }
         .fx-title span { background: linear-gradient(90deg, var(--b-600), var(--b-800)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .fx-hero-stats { display:flex; gap:.6rem; flex-wrap:wrap; justify-content:flex-end; }
-        .fx-stat { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:14px; background:#fff; border:1px solid var(--line); min-width: 150px; }
-        .fx-stat-icon { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; background: var(--b-50); color: var(--b-700); flex-shrink:0; }
+        .fx-stat { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius: 14px; background:#fff; border:1px solid var(--line); min-width: 150px; }
+        .fx-stat-icon { width:34px; height:34px; border-radius: 10px; display:grid; place-items:center; background: var(--b-50); color: var(--b-700); flex-shrink:0; }
         .fx-stat small { display:block; font-size:.62rem; font-weight:800; color: var(--muted); text-transform:uppercase; letter-spacing:.6px; }
         .fx-stat b { font-size:.95rem; font-weight:900; color: var(--ink); }
         .fx-stat-active { background: var(--b-50); border-color: var(--b-200); }
@@ -282,20 +282,20 @@ export default function FacturePage() {
         .fx-type:hover { transform: translateY(-2px); border-color: var(--b-300); box-shadow: 0 16px 32px -20px rgba(29,78,216,.6); }
         .fx-type-active { border-color: var(--b-600); background: linear-gradient(120deg, var(--b-50), #fff 70%);
           box-shadow: 0 0 0 4px rgba(37,99,235,.12), 0 18px 36px -22px rgba(29,78,216,.7); }
-        .fx-type-icon { width:48px; height:48px; border-radius:15px; display:grid; place-items:center; background: var(--b-50); color: var(--b-700); flex-shrink:0; transition: all .25s; }
+        .fx-type-icon { width:48px; height:48px; border-radius: 15px; display:grid; place-items:center; background: var(--b-50); color: var(--b-700); flex-shrink:0; transition: all .25s; }
         .fx-type-active .fx-type-icon { background: linear-gradient(140deg, var(--b-500), var(--b-800)); color:#fff; box-shadow: 0 10px 22px -10px rgba(29,78,216,.8); }
         .fx-type-name { font-size: 1.02rem; font-weight: 900; color: var(--ink); }
         .fx-type-desc { font-size: .78rem; font-weight: 500; color: var(--muted); margin-top: 2px; }
-        .fx-radio { margin-left:auto; width:22px; height:22px; border-radius:50%; border:2px solid var(--b-300); display:grid; place-items:center; flex-shrink:0; }
+        .fx-radio { margin-left:auto; width:22px; height:22px; border-radius: 50%; border:2px solid var(--b-300); display:grid; place-items:center; flex-shrink:0; }
         .fx-type-active .fx-radio { border-color: var(--b-700); }
-        .fx-radio i { width:10px; height:10px; border-radius:50%; background: var(--b-700); }
+        .fx-radio i { width:10px; height:10px; border-radius: 50%; background: var(--b-700); }
 
         .fx-grid-preview { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:.75rem; padding: 1rem; border-radius: 18px;
           background:#fff; border:1px dashed var(--b-300); }
         .fx-grid-block h4 { margin:0 0 6px; font-size:.66rem; font-weight:900; letter-spacing:.8px; text-transform:uppercase; color: var(--b-700); }
-        .fx-grid-row { display:flex; justify-content:space-between; gap:8px; padding:4px 8px; border-radius:7px; font-size:.72rem; font-weight:600; color: var(--ink-2); }
+        .fx-grid-row { display:flex; justify-content:space-between; gap:8px; padding:4px 8px; border-radius: 7px; font-size:.72rem; font-weight:600; color: var(--ink-2); }
         .fx-grid-row:nth-child(odd) { background: var(--surface); }
-        .fx-grid-row b { color: var(--b-800); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size:.7rem; white-space:nowrap; }
+        .fx-grid-row b { color: var(--b-800); font-family: var(--k-font-mono); font-size:.7rem; white-space:nowrap; }
 
         /* CARDS */
         .fx-cols { display:grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 1.4rem; }
@@ -303,20 +303,20 @@ export default function FacturePage() {
           box-shadow: 0 0 0 1px var(--line), 0 24px 50px -30px rgba(29,78,216,.35); display:flex; flex-direction:column; }
         .fx-card-head { display:flex; justify-content:space-between; align-items:center; gap:10px; padding-bottom: 14px; margin-bottom: 16px; border-bottom:1px solid var(--line); }
         .fx-card-title { display:flex; align-items:center; gap:10px; margin:0; font-size:1rem; font-weight:900; color: var(--ink); }
-        .fx-card-title i { width:36px; height:36px; border-radius:11px; display:grid; place-items:center; background: var(--b-50); color: var(--b-700); font-style: normal; }
+        .fx-card-title i { width:36px; height:36px; border-radius: 11px; display:grid; place-items:center; background: var(--b-50); color: var(--b-700); font-style: normal; }
         .fx-chip { padding: 4px 10px; border-radius: 99px; font-size:.72rem; font-weight:800; background: var(--b-50); color: var(--b-700); border:1px solid var(--b-100); }
 
         .fx-drop { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; padding: 1.8rem 1.2rem;
           border: 2px dashed var(--b-300); border-radius: 18px; cursor:pointer; margin-bottom: 1rem;
           background: linear-gradient(180deg, var(--b-50), #fff); transition: all .2s var(--ease); }
         .fx-drop:hover, .fx-drop-active { border-color: var(--b-600); background: linear-gradient(180deg, var(--b-100), #fff); transform: translateY(-2px); }
-        .fx-drop-icon { width:58px; height:58px; border-radius:18px; display:grid; place-items:center; color:#fff; margin-bottom:6px;
+        .fx-drop-icon { width:58px; height:58px; border-radius: 18px; display:grid; place-items:center; color:#fff; margin-bottom:6px;
           background: linear-gradient(140deg, var(--b-500), var(--b-800)); box-shadow: 0 12px 26px -10px rgba(29,78,216,.75); }
         .fx-drop strong { font-size:.95rem; font-weight:900; color: var(--ink); }
         .fx-drop span { font-size:.78rem; color: var(--muted); font-weight:500; }
 
-        .fx-progress { height:6px; border-radius:99px; background: var(--b-50); overflow:hidden; margin-bottom: 1rem; }
-        .fx-progress div { height:100%; border-radius:99px; background: linear-gradient(90deg, var(--b-400), var(--b-700)); transition: width .4s var(--ease); }
+        .fx-progress { height:6px; border-radius: 99px; background: var(--b-50); overflow:hidden; margin-bottom: 1rem; }
+        .fx-progress div { height:100%; border-radius: 99px; background: linear-gradient(90deg, var(--b-400), var(--b-700)); transition: width .4s var(--ease); }
 
         .fx-files { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
         .fx-file { display:flex; align-items:center; gap:10px; padding: 10px 12px; border-radius: 14px; background: var(--surface); border:1px solid var(--line); min-width:0; transition: all .2s; }
@@ -326,23 +326,23 @@ export default function FacturePage() {
         .fx-file-label em { color: var(--b-600); font-style: normal; }
         .fx-file-name { font-size:.68rem; font-weight:600; color: var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .fx-file-ok .fx-file-name { color: var(--b-700); }
-        .fx-file-x { width:24px; height:24px; border-radius:7px; border:none; background: transparent; color: var(--muted); display:grid; place-items:center; cursor:pointer; flex-shrink:0; }
+        .fx-file-x { width:24px; height:24px; border-radius: 7px; border:none; background: transparent; color: var(--muted); display:grid; place-items:center; cursor:pointer; flex-shrink:0; }
         .fx-file-x:hover { background: var(--warn-bg); color: var(--warn); }
 
         .fx-devis-form { display:flex; gap:8px; margin-bottom: 14px; }
         .fx-input { height: 46px; padding: 0 14px; border-radius: 13px; border:1px solid var(--line-2); background: var(--surface); color: var(--ink);
           font-family: inherit; font-size:.88rem; font-weight:600; outline:none; transition: all .2s; min-width: 0; }
         .fx-input:focus { background:#fff; border-color: var(--b-600); box-shadow: 0 0 0 4px rgba(37,99,235,.13); }
-        .fx-add { width:46px; height:46px; border-radius:13px; border:none; display:grid; place-items:center; cursor:pointer; color:#fff; flex-shrink:0;
+        .fx-add { width:46px; height:46px; border-radius: 13px; border:none; display:grid; place-items:center; cursor:pointer; color:#fff; flex-shrink:0;
           background: linear-gradient(140deg, var(--b-500), var(--b-800)); box-shadow: 0 10px 22px -10px rgba(29,78,216,.8); }
         .fx-devis-list { flex:1; min-height: 190px; max-height: 280px; overflow-y:auto; padding: 10px; border-radius: 16px; background: var(--surface); border:1px solid var(--line); }
         .fx-devis-empty { height:100%; min-height: 160px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color: var(--muted); text-align:center; }
         .fx-devis-empty b { font-size:.85rem; color: var(--ink-2); }
         .fx-devis-empty span { font-size:.74rem; }
         .fx-devis-item { display:flex; justify-content:space-between; align-items:center; gap:10px; padding: 10px 12px; border-radius: 12px; background:#fff; border:1px solid var(--b-100); margin-bottom:8px; }
-        .fx-devis-eps { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight:800; font-size:.86rem; color: var(--b-800); }
-        .fx-devis-val { padding: 4px 10px; border-radius: 8px; background: var(--b-50); color: var(--b-800); font-weight:900; font-size:.82rem; }
-        .fx-devis-del { width:28px; height:28px; border-radius:8px; border:none; background:transparent; color: var(--warn); display:grid; place-items:center; cursor:pointer; }
+        .fx-devis-eps { font-family: var(--k-font-mono); font-weight:800; font-size:.86rem; color: var(--b-800); }
+        .fx-devis-val { padding: 4px 10px; border-radius: 12px; background: var(--b-50); color: var(--b-800); font-weight:900; font-size:.82rem; }
+        .fx-devis-del { width:28px; height:28px; border-radius: 12px; border:none; background:transparent; color: var(--warn); display:grid; place-items:center; cursor:pointer; }
         .fx-devis-del:hover { background: var(--warn-bg); }
 
         /* ERROR */
@@ -357,11 +357,11 @@ export default function FacturePage() {
           box-shadow: 0 22px 40px -20px rgba(29,78,216,.9); transition: background-position .6s var(--ease), transform .2s; }
         .fx-generate:hover:not(:disabled) { background-position: 100% 0; }
         .fx-generate:disabled { cursor:not-allowed; color: var(--ink-2); background: var(--b-100); box-shadow:none; }
-        .fx-generate small { font-size:.7rem; font-weight:800; padding: 4px 10px; border-radius:99px; background: rgba(255,255,255,.18); letter-spacing:.08em; }
+        .fx-generate small { font-size:.7rem; font-weight:800; padding: 4px 10px; border-radius: 99px; background: rgba(255,255,255,.18); letter-spacing:.08em; }
         .fx-generate:disabled small { background: rgba(29,78,216,.1); }
 
         .fx-success { display:flex; justify-content:center; }
-        .fx-success div { display:flex; align-items:center; gap:10px; padding: 10px 22px; border-radius:99px; background:#fff; border:1px solid var(--b-200);
+        .fx-success div { display:flex; align-items:center; gap:10px; padding: 10px 22px; border-radius: 99px; background:#fff; border:1px solid var(--b-200);
           color: var(--b-700); font-weight:800; font-size:.84rem; box-shadow: 0 14px 28px -18px rgba(29,78,216,.7); }
 
         @keyframes fxStripe { from { background-position: 0 0; } to { background-position: 200% 0; } }

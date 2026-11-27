@@ -18,8 +18,8 @@
 }
 
 .textZone { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.statusText { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--k-blue-700); }
-.progressBar { width: 160px; height: 4px; border-radius: 4px; background: var(--k-blue-100); overflow: hidden; }
+.statusText { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-blue-700); }
+.progressBar { width: 160px; height: 4px; border-radius: 8px; background: var(--k-blue-100); overflow: hidden; }
 .progressFill { height: 100%; width: 0; border-radius: inherit; background: var(--k-grad); animation: fill 1.2s var(--k-ease) forwards; }
 
 @keyframes rot { to { transform: rotate(360deg); } }

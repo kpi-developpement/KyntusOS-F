@@ -1,266 +1,68 @@
-/* frontend/src/app/import/Import.module.css */
-
-.container {
-  min-height: 100vh;
-  width: 100%;
+.card {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 100px 20px 40px;
-  position: relative;
-  z-index: 10;
+  flex-direction: column;
+  gap: 22px;
+  padding: 26px;
+  border-radius: var(--k-radius-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+  border: 1px solid var(--k-hairline);
+  box-shadow: var(--k-shadow-lg), var(--k-inner);
+  backdrop-filter: blur(18px) saturate(170%);
+  animation: kx-rise 0.6s var(--k-ease) 0.06s both;
 }
 
-/* --- THE TERMINAL (Main Card) --- */
-.terminal {
-  width: 100%;
-  max-width: 850px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  border-radius: 24px;
-  padding: 50px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 
-    0 30px 60px rgba(15, 30, 61, 0.18),
-    inset 0 0 30px rgba(37, 99, 235, 0.03);
-  transform: perspective(1000px) rotateX(2deg);
-  transition: transform 0.4s ease;
-}
-
-.terminal:hover {
-  transform: perspective(1000px) rotateX(0deg);
-  border-color: rgba(37, 99, 235, 0.4);
-  box-shadow: 
-    0 30px 60px rgba(15, 30, 61, 0.18),
-    0 0 40px rgba(37, 99, 235, 0.06),
-    inset 0 0 30px rgba(37, 99, 235, 0.06);
-}
-
-/* Scanline Effect */
-.terminal::before {
+.step { display: grid; grid-template-columns: 36px 1fr; gap: 16px; position: relative; }
+.step + .step::before {
   content: "";
   position: absolute;
-  top: -100%; left: 0; width: 100%; height: 50%;
-  background: linear-gradient(to bottom, transparent, rgba(37, 99, 235, 0.1), transparent);
-  animation: scan 4s linear infinite;
-  pointer-events: none;
-  z-index: 0;
+  left: 17px;
+  top: -22px;
+  height: 22px;
+  width: 2px;
+  background: linear-gradient(var(--k-blue-100), var(--k-blue-200));
 }
-
-/* --- HEADER --- */
-.header {
-  text-align: center;
-  margin-bottom: 40px;
-  position: relative;
-  z-index: 2;
-}
-
-.title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 3rem;
-  font-weight: 900;
-  color: #0f1e3d;
-  letter-spacing: 4px;
-  margin: 0 0 10px 0;
-  text-transform: uppercase;
-  text-shadow: 0 0 20px transparent;
-}
-
-.title span {
-  color: #0052cc;
-}
-
-.subtitle {
-  font-family: monospace;
-  color: #0753c5;
-  font-size: 0.9rem;
-  letter-spacing: 3px;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-/* --- STEPS (Inputs) --- */
-.stepBox {
-  margin-bottom: 30px;
-  position: relative;
-  z-index: 2;
-}
-
-.stepLabel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: monospace;
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #475569;
-  margin-bottom: 12px;
-  letter-spacing: 1px;
-}
-
-.stepNumber {
-  background: rgba(37, 99, 235, 0.1);
-  color: #0052cc;
-  width: 24px; height: 24px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 4px;
-  border: 1px solid rgba(37, 99, 235, 0.3);
-}
-
-/* Custom Select */
-.cyberSelect {
-  width: 100%;
-  padding: 18px 20px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+.num {
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
-  color: #0f1e3d;
-  font-family: 'Inter', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300f0ff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat;
-  background-position: right 20px top 50%;
-  background-size: 12px auto;
+  display: grid;
+  place-items: center;
+  font-weight: 650;
+  font-size: 0.9rem;
+  color: var(--k-blue-700);
+  background: var(--k-blue-50);
+  border: 1px solid var(--k-blue-100);
+  transition: background 0.3s ease, color 0.3s ease, transform 0.4s var(--k-spring);
 }
+.numDone { color: #fff; background: var(--k-grad); border-color: transparent; transform: scale(1.06); }
+.stepBody { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.stepBody h2 { font-size: 1.02rem; font-weight: 650; letter-spacing: -0.02em; }
+.stepBody p { font-size: 0.85rem; color: var(--k-muted); margin-bottom: 8px; }
+.select { max-width: 420px; }
 
-.cyberSelect:focus {
-  border-color: #0066ff;
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.12), inset 0 0 10px rgba(37, 99, 235, 0.06);
-  background-color: rgba(37, 99, 235, 0.02);
-}
-
-.cyberSelect option {
-  background: #ffffff;
-  color: #0f1e3d;
-  padding: 10px;
-}
-
-/* --- THE REACTOR DROPZONE --- */
-.dropzone {
-  border: 2px dashed rgba(37, 99, 235, 0.3);
+.file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 14px;
   border-radius: 16px;
-  padding: 50px 20px;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--k-blue-50);
+  border: 1px solid var(--k-blue-100);
+}
+.fileIcon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: var(--k-grad); flex-shrink: 0; }
+.fileMeta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.fileMeta b { font-size: 0.9rem; font-weight: 600; color: var(--k-navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fileMeta small { font-size: 0.78rem; color: var(--k-muted); }
+.file button {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--k-border);
+  background: #fff;
+  color: var(--k-muted);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
-
-.dropzone::after {
-  content: ""; position: absolute; inset: 0;
-  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
-  opacity: 0; transition: 0.3s;
-}
-
-.dropzone:hover, .dropzone.active {
-  border-color: #0066ff;
-  background: rgba(37, 99, 235, 0.05);
-  transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.09);
-}
-
-.dropzone:hover::after, .dropzone.active::after { opacity: 1; }
-
-.dropIcon {
-  margin-bottom: 20px;
-  filter: none;
-  transition: 0.3s;
-}
-.dropzone:hover .dropIcon { transform: translateY(-5px); filter: none; }
-
-.dropTitle {
-  color: #0f1e3d; font-family: monospace; font-size: 1.2rem; font-weight: bold; margin: 0 0 10px 0;
-}
-.dropSub {
-  color: #64748b; font-size: 0.9rem; margin: 0;
-}
-
-.fileReady {
-  display: flex; flex-direction: column; align-items: center; gap: 15px;
-}
-.fileName {
-  color: #20cc00; font-family: monospace; font-weight: bold; font-size: 1.1rem;
-  background: rgba(16, 185, 129, 0.1); padding: 8px 16px; border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.12);
-}
-
-/* --- ACTION BUTTON --- */
-.injectBtn {
-  width: 100%;
-  padding: 22px;
-  background: linear-gradient(90deg, #2563eb, #b026ff);
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-family: monospace;
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: 4px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex; align-items: center; justify-content: center; gap: 15px;
-  box-shadow: 0 10px 30px rgba(176, 38, 255, 0.18);
-  z-index: 2;
-}
-
-.injectBtn::before {
-  content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-  transform: skewX(-20deg); transition: 0.5s;
-}
-
-.injectBtn:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 40px rgba(37, 99, 235, 0.25);
-}
-.injectBtn:hover:not(:disabled)::before { left: 200%; transition: 0.7s; }
-
-.injectBtn:disabled {
-  background: #ffffff; color: #64748b; cursor: not-allowed; box-shadow: none;
-}
-
-/* --- TERMINAL LOGS (Messages) --- */
-.terminalLog {
-  margin-top: 25px;
-  padding: 20px;
-  border-radius: 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.9rem;
-  display: flex; align-items: flex-start; gap: 15px;
-  animation: slideUp 0.3s ease-out;
-  position: relative;
-  z-index: 2;
-}
-
-.logSuccess {
-  background: rgba(16, 185, 129, 0.1); border: 1px solid #28ff00; color: #20cc00;
-  box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.06);
-}
-
-.logError {
-  background: rgba(255, 0, 85, 0.1); border: 1px solid #ff0055; color: #cc0044;
-  box-shadow: inset 0 0 15px rgba(255, 0, 85, 0.06);
-}
-
-/* --- ANIMATIONS --- */
-@keyframes scan { 0% { top: -100%; } 100% { top: 200%; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulseNeon { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
+.file button:hover { color: var(--k-bad); border-color: #fecdd3; }

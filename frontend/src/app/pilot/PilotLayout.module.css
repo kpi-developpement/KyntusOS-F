@@ -1,38 +1,25 @@
-/* Le "Space Suit" : Conteneur Global Noir */
-.pilotShell {
+.shell {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  /* Fond Noir Profond (Base) */
-  background-color: var(--k-bg);
   color: var(--k-text);
-  font-family: 'Inter', sans-serif;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
-/* ❌ SUPPRIMÉ : L'Grid l9dima (::before) li kant mghetya 3la particles */
-/* Daba ghan-khlliw ghir l'couleur k7la + InteractiveBackground (React) yban */
-
-/* Wrapper du contenu des pages */
-.contentWrapper {
+.contentWrapper,
+.homeWrapper {
   position: relative;
-  z-index: 10; /* Yji fo9 Particles */
-  
-  /* Espace pour la Navbar Fixe (3D Rail) */
-  padding-top: 120px; 
-  
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   width: 100%;
-  max-width: 1600px;
   margin: 0 auto;
 }
-.contentWrapper {
-  position: relative;
-  /* ⚠️ Z-index sghir bach l-Modifier Panel (li fih fixed & 999,999,999) y-ban foqo ⚠️ */
-  z-index: 1; 
-  padding-top: 120px; 
-  min-height: 100vh;
-  width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
+.contentWrapper { max-width: 1600px; padding-top: 92px; }
+
+.page { flex: 1; display: flex; flex-direction: column; }
+
+@media (max-width: 640px) {
+  .contentWrapper { padding-top: 72px; }
 }

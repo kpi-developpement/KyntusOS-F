@@ -1,0 +1,16 @@
+.full,
+.withSidebar {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+}
+.withSidebar { margin-left: 100px; padding-right: 8px; }
+
+.pageIn { animation: kx-page-in 0.5s var(--k-ease) both; }
+
+@media (max-width: 640px) {
+  .withSidebar { margin-left: 0; padding-right: 0; padding-bottom: 84px; }
+}
+
+/* Laisse la place à la cloche de notifications (fixe en haut à droite) */
+.withSidebar :global(.kx-page) > header:first-child { padding-right: 60px; }

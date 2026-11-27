@@ -1,23 +1,22 @@
 "use client";
 
-import React, { useState, useRef, MouseEvent } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  User,
-  Lock,
-  Fingerprint,
-  ScanEye,
-  ShieldCheck,
-  AlertTriangle,
-  Eye,
-  EyeOff,
-  Cpu,
-  Shield,
+  User, Lock, Eye, EyeOff, ArrowRight, Check, Loader2, AlertTriangle, Terminal,
+  ShieldCheck, Activity, Scale, Sparkles,
 } from "lucide-react";
 import styles from "./LoginPage.module.css";
 import { useAuth } from "@/context/AuthContext";
 
 type AuthStatus = "IDLE" | "SCANNING" | "SUCCESS" | "ERROR";
+
+const FLOATERS = [
+  { icon: Activity, title: "Analyse EPS", sub: "synchronisée avec Bytel", x: "9%", y: "24%", d: 0 },
+  { icon: ShieldCheck, title: "Validation", sub: "suivie pilote par pilote", x: "38%", y: "40%", d: 0.15 },
+  { icon: Scale, title: "Contestation", sub: "générée en un clic", x: "56%", y: "13%", d: 0.3 },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,285 +25,213 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
   const [status, setStatus] = useState<AuthStatus>("IDLE");
   const [errorMsg, setErrorMsg] = useState("");
+  const [shake, setShake] = useState(0);
+  const sceneRef = useRef<HTMLDivElement>(null);
 
-  const stageRef = useRef<HTMLDivElement>(null);
-  const chassisRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!stageRef.current || !chassisRef.current || status === "SUCCESS") return;
-
-    const rect = chassisRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -3.5;
-    const rotateY = ((x - centerX) / centerX) * 3.5;
-
-    stageRef.current.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-    chassisRef.current.style.setProperty("--mouse-x", `${x}px`);
-    chassisRef.current.style.setProperty("--mouse-y", `${y}px`);
+  // Parallaxe douce du panneau de gauche
+  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = sceneRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--px", `${((e.clientX - r.left) / r.width - 0.5).toFixed(3)}`);
+    el.style.setProperty("--py", `${((e.clientY - r.top) / r.height - 0.5).toFixed(3)}`);
   };
 
-  const handleMouseLeave = () => {
-    if (!stageRef.current) return;
-    stageRef.current.style.transition =
-      "transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)";
-    stageRef.current.style.transform = "rotateX(0deg) rotateY(0deg)";
-    setTimeout(() => {
-      if (stageRef.current) stageRef.current.style.transition = "";
-    }, 550);
+  const fail = (msg: string) => {
+    setStatus("ERROR");
+    setErrorMsg(msg);
+    setShake((n) => n + 1);
+    setTimeout(() => setStatus("IDLE"), 2600);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password) return;
-
+    if (!username.trim() || !password || status === "SCANNING" || status === "SUCCESS") return;
     setStatus("SCANNING");
     setErrorMsg("");
 
-    if (stageRef.current) {
-      stageRef.current.style.transition = "transform 0.4s ease";
-      stageRef.current.style.transform = "rotateX(0deg) rotateY(0deg)";
-    }
-
     try {
-      await new Promise((r) => setTimeout(r, 500));
-
       const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: username.trim(),
-          password,
-        }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       if (res.ok) {
         const user = await res.json();
         setStatus("SUCCESS");
         login(user);
-
         setTimeout(() => {
-          if (user.role === "ADMIN") {
-            router.push("/portal");
-          } else if (user.role === "PILOT") {
-            router.push("/pilot/home");
-          } else {
-            router.push("/");
-          }
-        }, 900);
+          if (user.role === "ADMIN") router.push("/portal");
+          else if (user.role === "PILOT") router.push("/pilot/home");
+          else router.push("/");
+        }, 850);
       } else {
-        let serverMessage = "ACCÈS REFUSÉ // IDENTIFIANTS INCORRECTS";
+        let msg = "Identifiant ou mot de passe incorrect.";
         try {
-          const errJson = await res.json();
-          if (errJson?.error) serverMessage = errJson.error.toUpperCase();
+          const j = await res.json();
+          if (j?.error) msg = String(j.error);
         } catch {
-          if (res.status === 403) {
-            serverMessage = "COMPTE DÉSACTIVÉ PAR L'ADMINISTRATEUR";
-          } else if (res.status >= 500) {
-            serverMessage = "SERVEUR BACKEND EN COURS D'INITIALISATION (500)";
-          }
+          if (res.status === 403) msg = "Ce compte a été désactivé par un administrateur.";
+          else if (res.status >= 500) msg = "Le serveur démarre encore. Réessayez dans quelques secondes.";
         }
-        setStatus("ERROR");
-        setErrorMsg(serverMessage);
-        setTimeout(() => setStatus("IDLE"), 3000);
+        fail(msg);
       }
     } catch {
-      setStatus("ERROR");
-      setErrorMsg("ERREUR RÉSEAU // SERVEUR INJOIGNABLE");
-      setTimeout(() => setStatus("IDLE"), 3000);
+      fail("Serveur injoignable. Vérifiez votre connexion puis réessayez.");
     }
   };
 
+  const busy = status === "SCANNING";
+  const done = status === "SUCCESS";
+
   return (
-    <div
-      className={styles.viewport}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className={styles.topLaserBeam} />
-      <div className={styles.orbPrimary} />
-      <div className={styles.orbSecondary} />
-      <div className={styles.horizonGrid} />
+    <div className={styles.page}>
+      {/* ---------- PANNEAU ÉDITORIAL ---------- */}
+      <section className={styles.story} ref={sceneRef} onPointerMove={onMove} aria-hidden="true">
+        <div className={styles.storyBg} />
+        <div className={styles.storyGrid} />
 
-      <div ref={stageRef} className={styles.cockpitTiltStage}>
-        <div
-          ref={chassisRef}
-          className={`${styles.cockpitChassis} ${
-            status === "SUCCESS" ? styles.cockpitSuccess : ""
-          }`}
-        >
-          <div className={styles.specularGlare} />
-          <div className={styles.scannerLine} />
-
-          {/* LEFT WING: 3D HOLOGRAPHIC TESSERACT */}
-          <div className={styles.showcaseWing}>
-            <div className={styles.wingTopBar}>
-              <div className={styles.protocolTag}>
-                <span className={styles.liveDot} />
-                <span>KYNTUS QUANTUM CORE</span>
-              </div>
-              <span className={styles.versionBadge}>v2026.4</span>
-            </div>
-
-            <div className={styles.holoStage}>
-              <div className={styles.orbitalRingOuter} />
-              <div className={styles.orbitalRingMid} />
-              <div className={styles.cubeContainer}>
-                <div className={`${styles.face} ${styles.front}`} />
-                <div className={`${styles.face} ${styles.back}`} />
-                <div className={`${styles.face} ${styles.right}`} />
-                <div className={`${styles.face} ${styles.left}`} />
-                <div className={`${styles.face} ${styles.top}`} />
-                <div className={`${styles.face} ${styles.bottom}`} />
-                <div className={styles.innerCube} />
-              </div>
-            </div>
-
-            <div className={styles.heroTextBlock}>
-              <h1 className={styles.brandName}>
-                <span>KYNTUS</span>
-                <span className={styles.osTag}>OS</span>
-              </h1>
-              <p className={styles.heroDesc}>
-                Système Central de Pilotage Opérationnel &amp; Synchronisation
-                Haute Fréquence. Accès strictement réservé aux opérateurs
-                habilités.
-              </p>
-            </div>
-
-            <div className={styles.telemetryGrid}>
-              <div className={styles.telemetryTile}>
-                <span className={styles.tileLabel}>SÉCURITÉ</span>
-                <span className={styles.tileValue}>
-                  <Shield size={13} />
-                  <span>ZERO-TRUST // ACTIF</span>
-                </span>
-              </div>
-              <div className={styles.telemetryTile}>
-                <span className={styles.tileLabel}>CHIFFREMENT</span>
-                <span className={styles.tileValue}>
-                  <Cpu size={13} />
-                  <span>BCRYPT // TLS</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT WING: AUTHENTICATION FORM */}
-          <div className={styles.authWing}>
-            <div className={styles.authHeader}>
-              <div className={styles.authTitleRow}>
-                <h2 className={styles.authTitle}>Authentification</h2>
-                <div className={styles.shieldIconBadge}>
-                  <ShieldCheck size={20} />
-                </div>
-              </div>
-
-              <div
-                className={`${styles.statusPill} ${
-                  status === "SCANNING"
-                    ? styles.statusScanning
-                    : status === "SUCCESS"
-                    ? styles.statusSuccess
-                    : status === "ERROR"
-                    ? styles.statusError
-                    : styles.statusIdle
-                }`}
-              >
-                {status === "IDLE" && "TERMINAL VERROUILLÉ // EN ATTENTE"}
-                {status === "SCANNING" && "VÉRIFICATION DES HABILITATIONS..."}
-                {status === "SUCCESS" && "IDENTITÉ CONFIRMÉE // REDIRECTION"}
-                {status === "ERROR" && "ALERTE SÉCURITÉ // ACCÈS REFUSÉ"}
-              </div>
-            </div>
-
-            {errorMsg && (
-              <div className={`${styles.alertBox} ${styles.alertError}`}>
-                <AlertTriangle size={17} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className={styles.formStack}>
-              <div className={styles.fieldWrapper}>
-                <label className={styles.fieldLabel}>
-                  <span>Identifiant Opérateur</span>
-                  <span>REQUIS</span>
-                </label>
-                <div className={styles.inputGroup}>
-                  <User size={18} className={styles.inputIcon} />
-                  <input
-                    type="text"
-                    className={styles.inputField}
-                    placeholder="Saisir votre identifiant..."
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    disabled={status === "SCANNING" || status === "SUCCESS"}
-                    autoComplete="username"
-                  />
-                </div>
-              </div>
-
-              <div className={styles.fieldWrapper}>
-                <label className={styles.fieldLabel}>
-                  <span>Code d&apos;Accès</span>
-                  <span>CRYPTÉ</span>
-                </label>
-                <div className={styles.inputGroup}>
-                  <Lock size={18} className={styles.inputIcon} />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    className={styles.inputField}
-                    placeholder="Saisir votre code d'accès..."
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={status === "SCANNING" || status === "SUCCESS"}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className={styles.eyeToggleBtn}
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className={`${styles.loginBtn} ${
-                  status === "SUCCESS" ? styles.loginBtnSuccess : ""
-                }`}
-                disabled={status === "SCANNING" || status === "SUCCESS"}
-              >
-                {status === "SCANNING" ? (
-                  <>
-                    <ScanEye size={19} className={styles.spin} />
-                    <span>VÉRIFICATION...</span>
-                  </>
-                ) : status === "SUCCESS" ? (
-                  <>
-                    <ShieldCheck size={19} />
-                    <span>ACCÈS AUTORISÉ</span>
-                  </>
-                ) : (
-                  <>
-                    <Fingerprint size={19} />
-                    <span>CONNEXION SÉCURISÉE</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
+        <div className={styles.brand}>
+          <span className={styles.mark}><Terminal size={18} strokeWidth={2.6} /></span>
+          <span className={styles.word}>Kyntus<b>OS</b></span>
         </div>
-      </div>
+
+        <div className={styles.storyText}>
+          <motion.span className={styles.eyebrow} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <Sparkles size={13} /> Pilotage opérationnel
+          </motion.span>
+          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}>
+            Chaque intervention,<br />
+            <em>maîtrisée</em> de bout en bout.
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}>
+            Analyse, facturation, contestation et suivi des équipes réunis dans un seul espace de travail.
+          </motion.p>
+        </div>
+
+        <div className={styles.floaters}>
+          {FLOATERS.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div
+                key={f.title}
+                className={styles.floater}
+                style={{ left: f.x, top: f.y, "--depth": `${(i + 1) * 14}px` } as React.CSSProperties}
+                initial={{ opacity: 0, y: 24, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.35 + f.d, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <span className={styles.floaterIcon}><Icon size={17} /></span>
+                <span><b>{f.title}</b><small>{f.sub}</small></span>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <p className={styles.storyFoot}>© {new Date().getFullYear()} Kyntus · Accès réservé aux opérateurs habilités</p>
+      </section>
+
+      {/* ---------- FORMULAIRE ---------- */}
+      <section className={styles.formSide}>
+        <motion.div
+          key={shake}
+          className={`${styles.card} ${done ? styles.cardDone : ""}`}
+          initial={shake ? { x: 0 } : { opacity: 0, y: 18 }}
+          animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : { opacity: 1, y: 0 }}
+          transition={shake ? { duration: 0.45 } : { duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className={styles.cardHead}>
+            <span className={styles.lockBadge}><Lock size={18} /></span>
+            <h2>Connexion</h2>
+            <p>Entrez vos identifiants pour accéder à votre espace.</p>
+          </div>
+
+          <form onSubmit={handleLogin} className={styles.form} noValidate>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Identifiant</span>
+              <span className={styles.inputWrap}>
+                <User size={17} className={styles.inputIcon} />
+                <input
+                  type="text"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="prenom.nom"
+                  disabled={busy || done}
+                  autoFocus
+                  required
+                />
+              </span>
+            </label>
+
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>
+                Mot de passe
+                {capsLock && <span className={styles.caps}>Verr. Maj activé</span>}
+              </span>
+              <span className={styles.inputWrap}>
+                <Lock size={17} className={styles.inputIcon} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyUp={(e) => setCapsLock(e.getModifierState?.("CapsLock") ?? false)}
+                  placeholder="••••••••"
+                  disabled={busy || done}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.eye}
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </span>
+            </label>
+
+            <AnimatePresence>
+              {status === "ERROR" && errorMsg && (
+                <motion.div
+                  className={styles.error}
+                  role="alert"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <AlertTriangle size={16} /> <span>{errorMsg}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <button type="submit" className={`${styles.submit} ${done ? styles.submitDone : ""}`} disabled={busy || done || !username.trim() || !password}>
+              <AnimatePresence mode="wait" initial={false}>
+                {done ? (
+                  <motion.span key="ok" className={styles.submitInner} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                    <Check size={18} strokeWidth={3} /> Bienvenue
+                  </motion.span>
+                ) : busy ? (
+                  <motion.span key="busy" className={styles.submitInner} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <Loader2 size={18} className="kx-spin" /> Vérification…
+                  </motion.span>
+                ) : (
+                  <motion.span key="idle" className={styles.submitInner} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    Se connecter <ArrowRight size={17} className={styles.arrow} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </button>
+          </form>
+
+          <p className={styles.help}>Mot de passe oublié ? Contactez votre administrateur.</p>
+        </motion.div>
+      </section>
     </div>
   );
 }

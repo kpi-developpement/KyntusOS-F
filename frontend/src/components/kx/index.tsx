@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   UploadCloud, Loader2, CheckCircle2, AlertTriangle, Info, Search, ChevronLeft, ChevronRight,
   Inbox, type LucideIcon,
@@ -69,6 +69,7 @@ export function KxDropzone({
   return (
     <button
       type="button"
+      onPointerMove={trackGlow}
       className={cx(s.drop, over && s.dropActive, busy && s.dropBusy, disabled && !busy && s.dropDisabled)}
       onClick={() => !locked && input.current?.click()}
       onDragOver={(e) => { e.preventDefault(); if (!locked) setOver(true); }}
@@ -85,11 +86,10 @@ export function KxDropzone({
         ref={input} type="file" accept={accept} hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
       />
-      <span className={s.dropIcon}>{busy ? <Loader2 size={30} className="kx-spin" style={{ animation: "spin-r 0.9s linear infinite" }} /> : <Icon size={30} />}</span>
+      <span className={s.dropIcon}>{busy ? <Loader2 size={30} className="kx-spin" /> : <Icon size={30} />}</span>
       <span className={s.dropTitle}>{busy ? busyTitle : over ? "Relâchez pour importer" : title}</span>
       <span className={s.dropHint}>{busy ? busyHint : hint}</span>
       {busy && <span className={s.dropBar} />}
-      <style>{`@keyframes spin-r { to { transform: rotate(360deg); } }`}</style>
     </button>
   );
 }
@@ -102,6 +102,31 @@ export function KxAlert({ tone, children, icon }: { tone: "ok" | "bad" | "info";
       <div className={s.alertBody}>{children}</div>
     </div>
   );
+}
+
+/** Nombre qui s'anime jusqu'à sa valeur (ease-out), respecte reduced-motion. */
+export function KxCount({ value, suffix = "", decimals = 0 }: { value: number; suffix?: string; decimals?: number }) {
+  const [shown, setShown] = useState(0);
+  const from = useRef(0);
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0;
+    if (reduce) {
+      raf = requestAnimationFrame(() => { setShown(value); from.current = value; });
+      return () => cancelAnimationFrame(raf);
+    }
+    const start = performance.now();
+    const a = from.current;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / 900);
+      const e = 1 - Math.pow(1 - p, 3);
+      setShown(a + (value - a) * e);
+      if (p < 1) raf = requestAnimationFrame(tick); else from.current = value;
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return <>{shown.toLocaleString("fr-FR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</>;
 }
 
 export function KxStats({ children }: { children: React.ReactNode }) {

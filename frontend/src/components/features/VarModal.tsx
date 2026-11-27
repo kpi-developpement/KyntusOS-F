@@ -25,18 +25,18 @@ export default function VarModal({ isOpen, onClose, pilotName, onSubmit }: VarMo
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-label={`Ajuster les points de ${pilotName}`} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <h3>⚖️ VAR DECISION</h3>
-          <button onClick={onClose} className={styles.closeBtn}><X size={20}/></button>
+          <h3>Ajustement de points</h3>
+          <button type="button" onClick={onClose} className={styles.closeBtn} aria-label="Fermer"><X size={18}/></button>
         </div>
         
         <div className={styles.body}>
-          <p className={styles.target}>CIBLE : <span style={{color:"#00f2ea"}}>{pilotName}</span></p>
+          <p className={styles.target}>Pilote <b>{pilotName}</b></p>
           
           <div className={styles.inputGroup}>
-            <label>AJUSTEMENT POINTS (+/-)</label>
+            <label>Points (+ bonus / − pénalité)</label>
             <input 
               type="number" 
               className={styles.input} 
@@ -47,7 +47,7 @@ export default function VarModal({ isOpen, onClose, pilotName, onSubmit }: VarMo
           </div>
 
           <div className={styles.inputGroup}>
-            <label>JUSTIFICATION (OBLIGATOIRE)</label>
+            <label>Justification</label>
             <textarea 
               className={styles.textarea} 
               value={reason} 
@@ -59,7 +59,7 @@ export default function VarModal({ isOpen, onClose, pilotName, onSubmit }: VarMo
 
         <div className={styles.footer}>
           <button className={styles.confirmBtn} onClick={handleSubmit} disabled={!points || !reason}>
-            <CheckCircle size={18} /> CONFIRMER SANCTION/BONUS
+            <CheckCircle size={18} /> Appliquer {points && points !== "0" ? `${Number(points) > 0 ? "+" : ""}${points} pts` : "l'ajustement"}
           </button>
         </div>
       </div>

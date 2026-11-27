@@ -19,7 +19,7 @@
 .row:hover { transform: translateX(4px); border-color: var(--k-blue-300); box-shadow: var(--k-shadow); }
 .row:focus-visible { outline: 2px solid var(--k-blue-600); outline-offset: 2px; }
 .name { font-weight: 700; color: var(--k-navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.82rem; color: var(--k-text-2); }
+.mono { font-family: var(--k-font-mono); font-size: 0.82rem; color: var(--k-text-2); }
 .date { font-size: 0.82rem; color: var(--k-muted); font-variant-numeric: tabular-nums; }
 .eye { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--k-blue-600); background: var(--k-blue-50); transition: background-color 0.2s ease, color 0.2s ease; }
 .row:hover .eye { background: var(--k-blue-600); color: #fff; }

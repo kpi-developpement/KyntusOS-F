@@ -1,206 +1,111 @@
-/* src/components/features/PilotStatsGrid.module.css */
+.container { display: flex; flex-direction: column; gap: 22px; }
 
-/* =========================================
-   1. GLOBAL CONTAINER
-   ========================================= */
-.container {
-  padding-bottom: 80px;
-  perspective: 1200px;
-  max-width: 1400px;
-  margin: 0 auto;
+.rules {
+  position: relative; display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 14px;
+  border-radius: 13px; font-size: 0.86rem; font-weight: 600; color: var(--k-blue-700); cursor: help;
+  background: #fff; border: 1px solid var(--k-border-strong);
 }
-
-/* =========================================
-   2. HEADER
-   ========================================= */
-.headerTitle {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px;
-}
-
-.titleGroup { display: flex; align-items: center; gap: 15px; }
-
-.titleMain {
-  font-size: 2rem; font-weight: 900; letter-spacing: 3px; color: white; text-transform: uppercase;
-  background: linear-gradient(120deg, #1d4ed8, #0ea5e9); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-
-.refreshBtn {
-  background: rgba(37, 99, 235, 0.07); border: 1px solid rgba(37, 99, 235, 0.18);
-  color: #0052cc; padding: 12px; border-radius: 50%; cursor: pointer;
-  transition: all 0.3s;
-}
-.refreshBtn:hover {
-  background: #2563eb; color: black; transform: rotate(180deg); box-shadow: 0 0 20px rgba(37, 99, 235, 0.24);
-}
-
-/* Rules Tooltip */
-.rulesTrigger { position: relative; cursor: help; display: flex; align-items: center; }
-.infoIcon { color: #666; transition: 0.3s; }
-.rulesTrigger:hover .infoIcon { color: #0052cc; transform: scale(1.1); }
-
 .rulesPopup {
-  position: absolute; top: 100%; left: 0; width: 280px;
-  background: #ffffff; border: 1px solid #0061f2; border-radius: 8px; padding: 20px;
-  box-shadow: 0 20px 50px rgba(15, 30, 61, 0.18); opacity: 0; visibility: hidden;
-  transform: translateY(10px); transition: 0.2s; z-index: 100; pointer-events: none;
+  position: absolute; top: calc(100% + 10px); right: 0; z-index: 20; width: 260px;
+  display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 16px;
+  background: var(--k-navy); color: #e2e8f0; font-size: 0.82rem; font-weight: 500;
+  box-shadow: var(--k-shadow-xl); opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.25s var(--k-ease);
 }
-.rulesTrigger:hover .rulesPopup { opacity: 1; visibility: visible; transform: translateY(15px); }
-.rulesPopup ul { padding: 0; list-style: none; margin: 10px 0; color: #475569; font-size: 0.75rem; display: flex; flex-direction: column; gap: 8px; }
-.formula { background: rgba(37, 99, 235,0.1); color: #0052cc; padding: 10px; text-align: center; font-weight: bold; font-size: 0.7rem; border-radius: 4px; }
+.rulesPopup b { color: #fff; font-size: 0.9rem; }
+.rulesPopup code { margin-top: 4px; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); font-size: 0.76rem; }
+.rules:hover .rulesPopup, .rules:focus .rulesPopup { opacity: 1; transform: none; }
 
-/* =========================================
-   3. THE PODIUM (TOP 3)
-   ========================================= */
-.podiumGrid {
-  display: flex; justify-content: center; align-items: flex-end; gap: 30px; margin-bottom: 80px;
+.skels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.emptyCard { border-radius: var(--k-radius-lg); background: rgba(255, 255, 255, 0.85); border: 1px dashed var(--k-border-strong); }
+
+/* ---------- Podium ---------- */
+.podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: end; padding-top: 10px; }
+.mono {
+  --m: #94a3b8;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 26px 20px 20px; border-radius: 26px; text-align: center; cursor: pointer;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--m) 14%, #fff) 0%, #ffffff 55%);
+  border: 1px solid color-mix(in srgb, var(--m) 35%, transparent);
+  box-shadow: var(--k-shadow), var(--k-inner);
+  transition: transform 0.4s var(--k-spring), box-shadow 0.35s ease;
 }
-
-.podiumCard {
-  position: relative; width: 300px;
-  background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(37, 99, 235, 0.13);
-  backdrop-filter: blur(10px); border-radius: 4px;
-  display: flex; flex-direction: column; align-items: center; padding: 30px;
-  transition: all 0.4s; cursor: pointer; overflow: hidden;
-  box-shadow: 0 20px 40px rgba(15, 30, 61, 0.18);
+.mono:hover { transform: translateY(-6px); box-shadow: 0 30px 60px -28px color-mix(in srgb, var(--m) 70%, transparent), var(--k-inner); }
+.gold { --m: #f59e0b; order: 2; padding-top: 38px; }
+.silver { --m: #64748b; order: 1; }
+.bronze { --m: #c2410c; order: 3; }
+.rankBadge {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  min-width: 34px; height: 28px; padding: 0 10px; border-radius: 999px; display: grid; place-items: center;
+  font-size: 0.8rem; font-weight: 700; color: #fff; background: var(--m);
+  box-shadow: 0 8px 16px -8px var(--m);
 }
-
-.podiumCard:hover {
-  transform: translateY(-10px); background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 30px 60px rgba(15, 30, 61, 0.18); border-color: rgba(37, 99, 235, 0.28);
+.monoAvatar {
+  width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center;
+  font-weight: 700; font-size: 1.1rem; color: #fff;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--m) 70%, #fff), var(--m));
+  box-shadow: 0 14px 28px -14px var(--m);
 }
-
-.rank1 { height: 460px; border-top: 3px solid #ffd700; background: linear-gradient(180deg, rgba(255,215,0,0.05), transparent); }
-.rank2 { height: 400px; border-top: 3px solid #c0c0c0; }
-.rank3 { height: 380px; border-top: 3px solid #cd7f32; }
-
-.crownContainer { position: absolute; top: 15px; color: #0f1e3d; filter: none; }
-
-.avatarBox {
-  width: 80px; height: 80px; border-radius: 50%; background: #ffffff;
-  display: flex; justify-content: center; align-items: center;
-  font-size: 2rem; font-weight: 900; color: #0f1e3d; border: 2px solid; margin-bottom: 20px;
+.gold .monoAvatar { width: 76px; height: 76px; font-size: 1.3rem; }
+.monoName { margin-top: 6px; font-size: 1.05rem; font-weight: 650; color: var(--k-navy); }
+.monoScore { font-size: 2.6rem; font-weight: 600; letter-spacing: -0.05em; line-height: 1; color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.gold .monoScore { font-size: 3.2rem; }
+.monoLabel { font-size: 0.76rem; color: var(--k-muted); }
+.monoStats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin-top: 8px; }
+.monoStats span { display: flex; flex-direction: column; padding: 8px; border-radius: 12px; background: var(--k-surface-2); font-size: 0.72rem; color: var(--k-muted); }
+.monoStats b { font-size: 0.95rem; font-weight: 650; color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.monoVar {
+  margin-top: 8px; width: 100%; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 12px; border: 1px solid var(--k-border-strong); background: #fff; color: var(--k-blue-700);
+  font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;
 }
+.monoVar:hover { background: var(--k-blue-50); }
 
-.pilotName { font-size: 1.2rem; font-weight: 800; text-transform: uppercase; color: #0f1e3d; margin-bottom: 5px; }
-.bigScore { font-size: 4rem; font-weight: 200; color: #0f1e3d; line-height: 1; letter-spacing: -2px; }
-.scoreLabel { font-size: 0.6rem; color: #0052cc; letter-spacing: 3px; margin-bottom: 30px; opacity: 0.7; }
-
-.statsRow {
-  display: flex; gap: 20px; width: 100%; justify-content: center;
-  border-top: 1px solid rgba(37, 99, 235, 0.13); padding-top: 20px; margin-bottom: 20px;
+/* ---------- Liste ---------- */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.listTitle { font-size: 1rem; font-weight: 650; margin: 8px 0 4px; }
+.row {
+  display: grid; grid-template-columns: 32px 40px minmax(140px, 1fr) minmax(100px, 1.4fr) 80px 36px; align-items: center; gap: 14px;
+  padding: 10px 14px; border-radius: 16px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.9); border: 1px solid var(--k-hairline); box-shadow: var(--k-shadow-sm);
+  transition: transform 0.3s var(--k-spring), box-shadow 0.3s ease, border-color 0.2s ease;
 }
-.statItem { text-align: center; color: #475569; font-size: 0.8rem; font-family: monospace; }
-.statVal { display: block; font-weight: bold; font-size: 1rem; margin-bottom: 2px; }
+.row:hover { transform: translateX(4px); border-color: var(--k-blue-200); box-shadow: var(--k-shadow); }
+.rank { font-size: 0.86rem; font-weight: 650; color: var(--k-faint); text-align: center; font-variant-numeric: tabular-nums; }
+.avatar { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 0.78rem; font-weight: 700; color: #fff; background: linear-gradient(145deg, #38bdf8, #2563eb); }
+.who { display: flex; flex-direction: column; min-width: 0; }
+.who b { font-weight: 600; color: var(--k-navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who small { display: inline-flex; align-items: center; gap: 4px; font-size: 0.76rem; color: var(--k-muted); }
+.track { height: 6px; border-radius: 999px; background: var(--k-blue-50); overflow: hidden; }
+.track span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #93c5fd, #2563eb); transition: width 0.9s var(--k-ease); }
+.pts { text-align: right; font-weight: 650; font-size: 1.05rem; color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.pts small { margin-left: 3px; font-size: 0.7rem; font-weight: 500; color: var(--k-muted); }
+.varBtn { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--k-border); background: #fff; color: var(--k-blue-700); cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease; }
+.varBtn:hover { background: var(--k-blue-600); color: #fff; }
 
-/* Bouton VAR Podium */
-.varAction {
-  margin-top: auto; width: 100%; background: rgba(37, 99, 235, 0.05); border: 1px solid rgba(37, 99, 235, 0.18);
-  color: #888; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;
-  display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;
+/* ---------- Profil ---------- */
+.overlay { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 16px; background: rgba(15, 30, 61, 0.24); backdrop-filter: blur(6px); }
+.profile { position: relative; width: min(520px, 100%); padding: 24px; border-radius: 24px; background: #fff; border: 1px solid rgba(15, 30, 61, 0.08); box-shadow: var(--k-shadow-xl); }
+.close { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--k-border); background: #fff; color: var(--k-muted); cursor: pointer; transition: transform 0.3s var(--k-spring), color 0.2s ease; }
+.close:hover { color: var(--k-bad); transform: rotate(90deg); }
+.profileHead { display: flex; align-items: center; gap: 14px; padding-right: 40px; }
+.profileHead h2 { font-size: 1.3rem; font-weight: 650; }
+.bigAvatar { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; font-size: 1.1rem; font-weight: 700; color: #fff; background: linear-gradient(145deg, #38bdf8, #2563eb); flex-shrink: 0; }
+.tier { font-size: 0.78rem; font-weight: 600; color: var(--k-blue-700); background: var(--k-blue-50); padding: 2px 8px; border-radius: 999px; }
+.profileScore { margin-left: auto; text-align: right; font-size: 1.9rem; font-weight: 600; letter-spacing: -0.04em; color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.profileScore small { display: block; font-size: 0.72rem; font-weight: 500; letter-spacing: 0; color: var(--k-muted); }
+.profileGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 18px; }
+.profileGrid div { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; padding: 12px; border-radius: 14px; background: var(--k-surface-2); border: 1px solid var(--k-border); color: var(--k-blue-600); }
+.profileGrid svg { grid-row: span 2; }
+.profileGrid small { font-size: 0.72rem; color: var(--k-muted); }
+.profileGrid b { font-size: 1.15rem; font-weight: 650; color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.okTxt { color: var(--k-ok) !important; }
+.badTxt { color: var(--k-bad) !important; }
+.balance { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--k-blue-50); font-size: 0.86rem; color: var(--k-text-2); }
+
+@media (max-width: 860px) {
+  .podium, .skels { grid-template-columns: 1fr; }
+  .gold, .silver, .bronze { order: 0; }
+  .row { grid-template-columns: 28px 40px 1fr 70px 34px; }
+  .track { display: none; }
 }
-.varAction:hover { background: #2563eb; color: black; border-color: #0061f2; }
-
-/* =========================================
-   4. SQUAD LIST (THE CLEAN DATA STRIP)
-   ========================================= */
-.divider {
-  display: flex; align-items: center; margin: 40px 0 20px;
-}
-.divider span {
-  font-family: 'JetBrains Mono', monospace; color: #666; font-size: 0.7rem; letter-spacing: 3px; font-weight: 800;
-  text-transform: uppercase; padding-right: 20px;
-}
-.divider::after {
-  content: ''; flex: 1; height: 1px; background: rgba(37, 99, 235, 0.1);
-}
-
-.squadList {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 15px;
-}
-
-/* LA CARTE RAFFINÉE */
-.squadCard {
-  position: relative;
-  display: flex; align-items: center;
-  height: 80px;
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.04) 0%, transparent 100%);
-  border: 1px solid rgba(37, 99, 235, 0.13);
-  /* Bordure gauche dynamique via variable */
-  border-left: 3px solid var(--card-color); 
-  border-radius: 0 6px 6px 0; /* Coin carré à gauche, rond à droite */
-  padding: 0 20px;
-  transition: all 0.2s ease-out;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.squadCard:hover {
-  transform: translateX(10px);
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.08) 0%, transparent 100%);
-  border-color: rgba(37, 99, 235, 0.18);
-}
-
-/* Le Rang (Gros chiffre) */
-.rankNumber {
-  font-size: 1.8rem; font-weight: 900; 
-  color: var(--card-color); /* Utilise la couleur dynamique */
-  opacity: 0.3; width: 50px; text-align: center;
-  font-variant-numeric: tabular-nums;
-  margin-right: 15px;
-  transition: 0.3s;
-}
-.squadCard:hover .rankNumber { opacity: 1; transform: scale(1.1); }
-
-/* Infos Pilote */
-.squadInfo { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-
-.squadName {
-  font-size: 1rem; font-weight: 700; color: #0f1e3d; 
-  text-transform: uppercase; letter-spacing: 1px;
-}
-
-.miniMetrics {
-  display: flex; gap: 15px; margin-top: 4px;
-  font-size: 0.7rem; font-family: monospace; color: #666;
-}
-.metricItem { display: flex; align-items: center; gap: 5px; }
-
-/* Score */
-.squadScore {
-  text-align: right; margin-right: 20px;
-}
-.scoreVal { font-size: 1.4rem; font-weight: 300; color: #0f1e3d; display: block; line-height: 1; }
-.scoreUnit { font-size: 0.6rem; color: #555; text-transform: uppercase; letter-spacing: 1px; }
-
-/* Bouton VAR (Intégré) */
-.miniVarBtn {
-  width: 36px; height: 36px; border-radius: 6px;
-  background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(37, 99, 235, 0.18);
-  color: #666; display: flex; justify-content: center; align-items: center;
-  cursor: pointer; transition: 0.2s; opacity: 0; transform: translateX(10px);
-}
-
-/* Apparait seulement au hover */
-.squadCard:hover .miniVarBtn { opacity: 1; transform: translateX(0); }
-.miniVarBtn:hover { background: var(--card-color); color: black; border-color: var(--card-color); }
-
-/* =========================================
-   5. PROFILE MODAL
-   ========================================= */
-/* (Garde le style existant pour le profil, il est bien) */
-.profileOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.92); z-index: 2000; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.2s; }
-.profileModal { width: 500px; background: #ffffff; border: 1px solid rgba(37, 99, 235, 0.14); border-radius: 12px; box-shadow: 0 0 100px rgba(15, 30, 61, 0.18); position: relative; overflow: hidden; animation: slideUp 0.3s; }
-.closeProfile { position: absolute; top: 15px; right: 15px; background: none; border: none; color: #666; cursor: pointer; transition: 0.2s; }
-.closeProfile:hover { color: #0f1e3d; }
-.profileHeader { padding: 30px; background: rgba(37, 99, 235, 0.04); display: flex; align-items: center; gap: 20px; border-bottom: 1px solid rgba(37, 99, 235, 0.14); }
-.bigAvatar { width: 70px; height: 70px; border-radius: 50%; background: #ffffff; border: 2px solid #0061f2; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: #0f1e3d; font-weight: 900; }
-.profileScore { margin-left: auto; text-align: right; font-size: 2rem; font-weight: 900; color: #0f1e3d; }
-.profileGrid { padding: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.pCard { background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid rgba(37, 99, 235, 0.14); }
-.pCard label { font-size: 0.6rem; color: #666; font-weight: bold; display: block; margin-bottom: 5px; text-transform: uppercase; }
-.pValue { font-size: 1.4rem; font-weight: 900; color: #0f1e3d; }
-.varHistory { padding: 0 30px 30px; }
-.varRow { display: flex; justify-content: space-between; font-size: 0.8rem; color: #475569; border-top: 1px dashed rgba(37, 99, 235, 0.14); padding-top: 15px; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

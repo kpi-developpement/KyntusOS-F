@@ -186,8 +186,8 @@ const TissueSelect = React.memo(({
                 100% { opacity: 1; transform: scale(1) translateY(0); }
               }
               .tissue-select-portal-menu::-webkit-scrollbar { width: 5px; }
-              .tissue-select-portal-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.85); border-radius: 8px; }
-              .tissue-select-portal-menu::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.35); border-radius: 8px; }
+              .tissue-select-portal-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.85); border-radius: 12px; }
+              .tissue-select-portal-menu::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.35); border-radius: 12px; }
               .tissue-select-portal-menu::-webkit-scrollbar-thumb:hover { background: #34d399; }
               .tissue-select-option {
                 display: flex;
@@ -195,7 +195,7 @@ const TissueSelect = React.memo(({
                 justify-content: space-between;
                 padding: 0.55rem 0.78rem;
                 border-radius: 9px;
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-family: var(--k-font-display);
                 font-size: 0.82rem;
                 cursor: pointer;
                 transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
@@ -264,7 +264,7 @@ const TissueSelect = React.memo(({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "var(--k-font-display)",
           fontSize: "0.82rem",
           fontWeight: 600,
           transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",

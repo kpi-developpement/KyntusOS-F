@@ -1,109 +1,83 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Fingerprint, Key, ScanFace, Shield, CheckCircle, XCircle } from "lucide-react";
-import { CyberTypography } from "./CyberTypography";
-import styles from "../Nexus.module.css";
+import { User, Key, ScanFace, Shield, UserPlus, Loader2, Eye, EyeOff } from "lucide-react";
+import { KxAlert } from "@/components/kx";
+import styles from "../Users.module.css";
+
+const ROLES = [
+  { id: "PILOT", label: "Pilote", desc: "Traite les tâches qui lui sont assignées.", icon: ScanFace },
+  { id: "ADMIN", label: "Administrateur", desc: "Dispatch, contrôle et configuration.", icon: Shield },
+];
 
 export default function UnitCreationTab() {
-  const [formData, setFormData] = useState({ username: "", password: "", role: "PILOT" });
-  const [status, setStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+  const [form, setForm] = useState({ username: "", password: "", role: "PILOT" });
+  const [show, setShow] = useState(false);
+  const [status, setStatus] = useState<{ type: "ok" | "bad"; msg: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus(null); setLoading(true);
+    setStatus(null);
+    setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 800)); 
-      const res = await fetch("/api/auth/register", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch("/api/auth/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       if (res.ok) {
-        setStatus({ type: 'success', msg: `[SUCCESS] UNIT ${formData.username} DEPLOYED.` });
-        setFormData({ username: "", password: "", role: "PILOT" });
+        setStatus({ type: "ok", msg: `Compte « ${form.username} » créé.` });
+        setForm({ username: "", password: "", role: "PILOT" });
       } else {
-        const data = await res.json();
-        setStatus({ type: 'error', msg: `[ERROR] ${data.error}` });
+        const data = await res.json().catch(() => ({}));
+        setStatus({ type: "bad", msg: data?.error || "La création du compte a échoué." });
       }
-    } catch (error) {
-      setStatus({ type: 'error', msg: "[FATAL] CONNECTION LOST." });
+    } catch {
+      setStatus({ type: "bad", msg: "Serveur injoignable." });
     } finally {
       setLoading(false);
     }
   };
 
-  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
-  const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
-
   return (
-    <motion.form variants={containerVariants} initial="hidden" animate="visible" onSubmit={handleSubmit}>
-      
+    <form onSubmit={submit} className={styles.panel}>
       <div className={styles.formGrid}>
-        <motion.div variants={itemVariants} className={styles.inputWrapper}>
-          <CyberTypography>IDENTITY_HANDLE</CyberTypography>
-          <div style={{position: 'relative'}}>
-            <Fingerprint className={styles.inputIcon} size={20} />
-            <input 
-              type="text" required value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className={styles.cyberInput} placeholder="AGENT_NAME" 
-            />
-          </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants} className={styles.inputWrapper}>
-          <CyberTypography>CLEARANCE_KEY</CyberTypography>
-          <div style={{position: 'relative'}}>
-            <Key className={styles.inputIcon} size={20} />
-            <input 
-              type="text" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className={styles.cyberInput} placeholder="********" 
-            />
-          </div>
-        </motion.div>
+        <label className={styles.field}>
+          <span>Identifiant</span>
+          <span className={styles.inputWrap}>
+            <User size={17} />
+            <input required value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="prenom.nom" autoComplete="off" />
+          </span>
+        </label>
+        <label className={styles.field}>
+          <span>Mot de passe</span>
+          <span className={styles.inputWrap}>
+            <Key size={17} />
+            <input required type={show ? "text" : "password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Au moins 8 caractères" autoComplete="new-password" />
+            <button type="button" className={styles.eye} onClick={() => setShow((v) => !v)} aria-label={show ? "Masquer" : "Afficher"}>{show ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+          </span>
+        </label>
       </div>
 
-      <motion.div variants={itemVariants}>
-        <CyberTypography>ASSIGN_RANK</CyberTypography>
-        <div className={styles.roleGrid}>
-          <motion.div 
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-            onClick={() => setFormData({ ...formData, role: "PILOT" })} 
-            className={`${styles.roleCard} ${formData.role === "PILOT" ? styles.roleCardActivePilot : ""}`}
-          >
-            <ScanFace size={48} />
-            <span style={{letterSpacing:'0.2em', fontWeight:'bold'}}>PILOT</span>
-          </motion.div>
-
-          <motion.div 
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-            onClick={() => setFormData({ ...formData, role: "ADMIN" })} 
-            className={`${styles.roleCard} ${formData.role === "ADMIN" ? styles.roleCardActiveAdmin : ""}`}
-          >
-            <Shield size={48} />
-            <span style={{letterSpacing:'0.2em', fontWeight:'bold'}}>OVERSEER</span>
-          </motion.div>
+      <div className={styles.field}>
+        <span>Rôle</span>
+        <div className={styles.roles} role="radiogroup" aria-label="Rôle">
+          {ROLES.map((r) => {
+            const Icon = r.icon;
+            const on = form.role === r.id;
+            return (
+              <button key={r.id} type="button" role="radio" aria-checked={on} className={`${styles.role} ${on ? styles.roleOn : ""}`} onClick={() => setForm({ ...form, role: r.id })}>
+                <span className={styles.roleIcon}><Icon size={22} /></span>
+                <span className={styles.roleText}><b>{r.label}</b><small>{r.desc}</small></span>
+                <span className={styles.radio} />
+              </button>
+            );
+          })}
         </div>
-      </motion.div>
+      </div>
 
-      <motion.button 
-        variants={itemVariants}
-        disabled={loading}
-        className={styles.deployBtn}
-      >
-        {loading ? "PROCESSING..." : "DEPLOY UNIT"}
-      </motion.button>
+      <AnimatePresence>{status && <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}><KxAlert tone={status.type}>{status.msg}</KxAlert></motion.div>}</AnimatePresence>
 
-      <AnimatePresence>
-        {status && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} 
-            className={`${styles.statusBox} ${status.type === 'success' ? styles.statusSuccess : styles.statusError}`}
-          >
-            {status.type === 'success' ? <CheckCircle size={20} /> : <XCircle size={20} />}
-            <span>{status.msg}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.form>
+      <button type="submit" className="kx-btn kx-btn-lg" disabled={loading || !form.username || !form.password}>
+        {loading ? <Loader2 size={18} className="kx-spin" /> : <UserPlus size={18} />}
+        {loading ? "Création…" : `Créer le compte ${form.role === "ADMIN" ? "administrateur" : "pilote"}`}
+      </button>
+    </form>
   );
 }

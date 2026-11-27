@@ -4,7 +4,7 @@
 
 .luxeBtn {
   position: relative; display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 16px;
-  border-radius: 13px; font-family: "Inter", system-ui, -apple-system, sans-serif; font-size: 0.74rem; font-weight: 800;
+  border-radius: 13px; font-family: var(--k-font-display); font-size: 0.74rem; font-weight: 800;
   letter-spacing: 0.4px; text-transform: uppercase; white-space: nowrap; cursor: pointer; outline: none; overflow: hidden;
   user-select: none; box-sizing: border-box; transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
 }

@@ -4,38 +4,26 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import NotificationCenter from "@/components/features/NotificationCenter";
 import InteractiveBackground from "@/components/ui/InteractiveBackground";
+import styles from "./AppShell.module.css";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // \ud83d\udd0d LISTE DES PAGES SANS SIDEBAR (Login + Portal)
+  // Pages sans sidebar : connexion, portail, et toute la zone pilote (elle a sa navbar)
   const isPublicPage = pathname === "/login" || pathname === "/portal";
-  
-  // Pilot a son propre layout, donc on cache aussi
   const isPilotSection = pathname?.startsWith("/pilot");
-
   const showSidebar = !isPublicPage && !isPilotSection;
 
   return (
     <>
-      {/* Background global sauf si la page a le sien */}
-      <div style={{zIndex: -1}}>
-          <InteractiveBackground />
-      </div>
+      {/* La zone pilote rend son propre fond */}
+      {!isPilotSection && <InteractiveBackground />}
 
       {showSidebar && <Sidebar />}
 
-      <main 
-        style={{ 
-          marginLeft: showSidebar ? "80px" : "0px", 
-          minHeight: "100vh",
-          position: "relative",
-          zIndex: 10,
-          transition: "margin-left 0.3s ease"
-        }}
-      >
-        {!isPublicPage && !isPilotSection && <NotificationCenter />}
-        {children}
+      <main className={showSidebar ? styles.withSidebar : styles.full}>
+        {showSidebar && <NotificationCenter />}
+        <div key={pathname} className={showSidebar ? styles.pageIn : undefined}>{children}</div>
       </main>
     </>
   );

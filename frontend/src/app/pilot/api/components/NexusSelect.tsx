@@ -188,7 +188,7 @@ const NexusSelect = React.memo(({
               zIndex: 2147483647,
               transformOrigin: coords.openUpward ? "bottom center" : "top center",
               animation: "nxDropdownPortalIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards",
-              fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+              fontFamily: "var(--k-font-display)",
             }}
           >
             <style>{`
@@ -198,7 +198,7 @@ const NexusSelect = React.memo(({
               }
               .nx-select-list::-webkit-scrollbar { width: 6px; }
               .nx-select-list::-webkit-scrollbar-track { background: #f8fbff; }
-              .nx-select-list::-webkit-scrollbar-thumb { background: #bfdbfe; border-radius: 8px; }
+              .nx-select-list::-webkit-scrollbar-thumb { background: #bfdbfe; border-radius: 12px; }
               .nx-select-list::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
             `}</style>
 
@@ -433,7 +433,7 @@ const NexusSelect = React.memo(({
           justifyContent: "space-between",
           alignItems: "center",
           gap: 8,
-          fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+          fontFamily: "var(--k-font-display)",
           fontSize: "0.79rem",
           fontWeight: 700,
           transition: "all 0.18s cubic-bezier(0.22, 1, 0.36, 1)",
@@ -463,7 +463,7 @@ const NexusSelect = React.memo(({
               style={{
                 flexShrink: 0,
                 padding: "2px 7px",
-                borderRadius: 6,
+                borderRadius: 10,
                 fontSize: "0.6rem",
                 fontWeight: 900,
                 letterSpacing: "0.06em",

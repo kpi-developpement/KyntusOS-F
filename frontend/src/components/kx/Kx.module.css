@@ -3,29 +3,39 @@
 /* ---------- HEADER ---------- */
 .header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; animation: kx-rise 0.6s var(--k-ease) both; }
 .headerIcon {
-  width: 54px; height: 54px; border-radius: 17px; flex-shrink: 0;
-  display: grid; place-items: center; color: #fff; background: var(--k-grad);
-  box-shadow: 0 12px 26px -10px rgba(29, 78, 216, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  position: relative;
+  width: 56px; height: 56px; border-radius: 18px; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff;
+  background: linear-gradient(145deg, #60a5fa 0%, #2563eb 45%, #1e40af 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 -2px 0 rgba(15, 30, 61, 0.18) inset, 0 16px 30px -12px rgba(29, 78, 216, 0.7);
   transition: transform 0.55s var(--k-spring);
 }
+.headerIcon::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 22px; z-index: -1;
+  background: radial-gradient(closest-side, rgba(59, 130, 246, 0.25), transparent);
+  animation: halo 3.2s ease-in-out infinite;
+}
+@keyframes halo { 50% { transform: scale(1.15); opacity: 0.4; } }
 .header:hover .headerIcon { transform: rotate(-10deg) scale(1.07); }
 .headerText { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 4px; }
 .eyebrow {
   align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
-  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--k-blue-600); background: var(--k-blue-50); border: 1px solid var(--k-blue-100);
-  padding: 3px 9px; border-radius: 999px;
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--k-blue-700); background: rgba(255, 255, 255, 0.85); border: 1px solid var(--k-blue-100);
+  padding: 3px 10px 3px 8px; border-radius: 999px; box-shadow: var(--k-shadow-sm);
 }
-.title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.025em; line-height: 1.15; color: var(--k-navy); }
-.title em { font-style: normal; background: var(--k-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--k-blue-500); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18); }
+.title { font-size: clamp(1.65rem, 2.6vw, 2.25rem); font-weight: 700; letter-spacing: -0.038em; line-height: 1.06; color: var(--k-navy); }
+.title em { font-family: var(--k-font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; color: var(--k-blue-600); padding-right: 0.06em; }
 .subtitle { color: var(--k-muted); font-size: 0.92rem; line-height: 1.5; }
 .headerActions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 /* ---------- CARD ---------- */
 .card {
   position: relative; overflow: hidden;
-  background: var(--k-surface); border: 1px solid var(--k-border); border-radius: 18px;
-  box-shadow: var(--k-shadow);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.8));
+  border: 1px solid var(--k-hairline); border-radius: var(--k-radius-lg);
+  box-shadow: var(--k-shadow), var(--k-inner);
   backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
   animation: kx-rise 0.6s var(--k-ease) both;
 }
@@ -35,10 +45,10 @@
   transition: opacity 0.4s ease;
 }
 .card:hover::before { opacity: 1; }
-.cardPad { padding: 20px; }
+.cardPad { padding: 22px; }
 .cardHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-.cardTitle { display: flex; align-items: center; gap: 10px; font-size: 1.02rem; font-weight: 800; color: var(--k-navy); }
-.cardTitleIcon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--k-blue-600); background: var(--k-blue-50); }
+.cardTitle { display: flex; align-items: center; gap: 10px; font-size: 1.02rem; font-weight: 650; letter-spacing: -0.02em; color: var(--k-navy); }
+.cardTitleIcon { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: var(--k-blue-600); background: linear-gradient(180deg, #ffffff, var(--k-blue-50)); border: 1px solid var(--k-blue-100); box-shadow: var(--k-shadow-sm); }
 .count { font-size: 0.74rem; font-weight: 700; color: var(--k-blue-700); background: var(--k-blue-50); border: 1px solid var(--k-blue-100); padding: 3px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; }
 
 /* ---------- DROPZONE ---------- */
@@ -52,6 +62,12 @@
   transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.35s var(--k-ease), box-shadow 0.35s var(--k-ease);
   animation: kx-rise 0.6s var(--k-ease) 0.08s both;
 }
+.drop::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), rgba(59, 130, 246, 0.12), transparent 60%);
+  opacity: 0; transition: opacity 0.35s ease;
+}
+.drop:hover::before { opacity: 1; }
 .drop:hover { border-color: var(--k-blue-400); transform: translateY(-2px); box-shadow: var(--k-shadow-lg); }
 .drop:focus-visible { outline: 3px solid var(--k-blue-500); outline-offset: 3px; }
 .dropActive { border-color: var(--k-blue-600); border-style: solid; background: var(--k-blue-50); transform: scale(1.01); box-shadow: var(--k-ring), var(--k-shadow-lg); }
@@ -65,7 +81,7 @@
 }
 .drop:hover .dropIcon, .dropActive .dropIcon { transform: translateY(-6px) rotate(-6deg) scale(1.06); }
 .dropBusy .dropIcon { animation: kx-float 1.6s ease-in-out infinite; }
-.dropTitle { font-size: 1.05rem; font-weight: 800; color: var(--k-navy); }
+.dropTitle { font-size: 1.1rem; font-weight: 650; letter-spacing: -0.02em; color: var(--k-navy); }
 .dropHint { font-size: 0.84rem; color: var(--k-muted); }
 .dropBar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--k-blue-100); overflow: hidden; }
 .dropBar::after {
@@ -97,9 +113,10 @@
   transition: transform 0.35s var(--k-spring), box-shadow 0.3s ease;
   animation: kx-rise 0.6s var(--k-ease) both;
 }
+.stat::after { content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 2px; border-radius: 0 0 6px 6px; background: linear-gradient(90deg, transparent, var(--t), transparent); opacity: 0.55; }
 .stat:hover { transform: translateY(-3px); box-shadow: var(--k-shadow-lg); }
 .statIcon { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; flex-shrink: 0; color: var(--t); background: color-mix(in srgb, var(--t) 12%, #fff); }
-.statValue { font-size: 1.45rem; font-weight: 800; color: var(--k-navy); font-variant-numeric: tabular-nums; line-height: 1.15; }
+.statValue { font-size: 1.6rem; font-weight: 650; letter-spacing: -0.03em; color: var(--k-navy); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .statLabel { font-size: 0.78rem; font-weight: 600; color: var(--k-muted); }
 .stat_ok { --t: var(--k-ok); } .stat_bad { --t: var(--k-bad); } .stat_warn { --t: var(--k-warn); } .stat_sky { --t: var(--k-sky); }
 
@@ -117,8 +134,8 @@
 .table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; }
 .table th {
   position: sticky; top: 0; z-index: 1; text-align: left; white-space: nowrap;
-  padding: 11px 14px; background: #f5f9ff; color: var(--k-text-2); font-weight: 700;
-  font-size: 0.74rem; letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 11px 14px; background: rgba(245, 249, 255, 0.96); color: var(--k-muted); font-weight: 600;
+  font-size: 0.74rem; letter-spacing: 0.01em; backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--k-border);
 }
 .table td { padding: 10px 14px; white-space: nowrap; color: var(--k-text); border-bottom: 1px solid rgba(37, 99, 235, 0.06); }
@@ -148,7 +165,7 @@
   padding: 48px 20px; text-align: center; color: var(--k-muted);
 }
 .emptyIcon { width: 60px; height: 60px; border-radius: 20px; display: grid; place-items: center; color: var(--k-blue-500); background: var(--k-blue-50); animation: kx-float 3s ease-in-out infinite; }
-.emptyTitle { font-weight: 800; color: var(--k-navy); font-size: 1rem; }
+.emptyTitle { font-weight: 650; letter-spacing: -0.02em; color: var(--k-navy); font-size: 1.02rem; }
 
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 

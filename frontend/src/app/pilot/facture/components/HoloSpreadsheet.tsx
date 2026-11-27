@@ -127,7 +127,7 @@ export default function HoloSpreadsheet({ sheetsData, onDownload }: HoloSpreadsh
           color: #0F172A;
           padding: 12px 18px;
           text-align: left;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          font-family: var(--k-font-display);
           font-size: 0.76rem;
           font-weight: 800;
           text-transform: uppercase;
@@ -142,7 +142,7 @@ export default function HoloSpreadsheet({ sheetsData, onDownload }: HoloSpreadsh
           height: ${ROW_HEIGHT}px;
           padding: 0 18px;
           color: #1E293B;
-          font-family: 'JetBrains Mono', monospace;
+          font-family: var(--k-font-mono);
           font-size: 0.82rem;
           border-bottom: 1px solid #F1F5F9;
           white-space: nowrap;

@@ -1,0 +1,24 @@
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 18px; align-items: start; }
+.searchRow { display: flex; gap: 10px; }
+.msg { margin-top: 14px; }
+.result { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: var(--k-surface-2); border: 1px solid var(--k-border); }
+.resultHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 1.05rem; font-weight: 650; color: var(--k-blue-700); }
+.status { font-size: 0.74rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; color: var(--k-blue-700); background: #fff; border: 1px solid var(--k-blue-100); }
+.assignee { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; color: var(--k-text-2); }
+.data { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.data div { padding: 8px 10px; border-radius: 10px; background: #fff; border: 1px solid var(--k-border); min-width: 0; }
+.data dt { font-size: 0.7rem; color: var(--k-muted); }
+.data dd { font-size: 0.84rem; font-weight: 600; color: var(--k-navy); overflow-wrap: anywhere; }
+.flagged { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; color: #9f1239; background: #fff1f2; border: 1px solid #fecdd3; }
+.confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.86rem; font-weight: 600; color: #9f1239; }
+
+.board { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.board li { display: grid; grid-template-columns: 34px minmax(90px, 1fr) minmax(80px, 1.2fr) 36px; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; transition: background-color 0.2s ease; }
+.board li:hover { background: var(--k-blue-50); }
+.avatar { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 0.74rem; font-weight: 700; color: #fff; background: linear-gradient(145deg, #38bdf8, #2563eb); }
+.name { font-weight: 600; font-size: 0.9rem; color: var(--k-navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar { height: 6px; border-radius: 999px; background: var(--k-blue-50); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #fda4af, #e11d48); transition: width 0.8s var(--k-ease); }
+.board b { text-align: right; font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bad { color: var(--k-bad); }
+.good { color: var(--k-ok); }

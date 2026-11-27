@@ -8,7 +8,7 @@
   width: 100%;
   background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 55%, #e0f2fe 100%);
   color: #0f172a;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--k-font-display);
   padding: 2.5rem 3rem;
   overflow-x: hidden;
 }
@@ -111,15 +111,15 @@
 
 .title {
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #0f172a;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03em;
   margin: 0;
 }
 
 .subtitle {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--k-font-mono);
   font-size: 0.78rem;
   font-weight: 700;
   color: #0284c7;
@@ -210,9 +210,9 @@
 
 .complexityValue {
   font-size: 1.3rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #0284c7;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--k-font-display);
 }
 
 /* Dynamic Fields Modules (Pills) */
@@ -388,12 +388,12 @@
 
 .cartridgesGrid::-webkit-scrollbar-track {
   background: #f1f5f9;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .cartridgesGrid::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .cartridgesGrid::-webkit-scrollbar-thumb:hover {
@@ -469,13 +469,13 @@
 }
 
 .idRef {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--k-font-mono);
   font-size: 0.75rem;
   font-weight: 800;
   color: #0284c7;
   background: #e0f2fe;
   padding: 3px 10px;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .cName {
@@ -504,7 +504,7 @@
   background: #f1f5f9;
   color: #334155;
   padding: 4px 10px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 0.72rem;
   font-weight: 700;
   border: 1px solid #e2e8f0;

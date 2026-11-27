@@ -9,7 +9,6 @@ import AuthGuard from "@/components/layout/AuthGuard";
 import AdminLoader from "@/components/ui/AdminLoader";
 import LuxSelect from "@/components/ui/LuxSelect"; // Import du select custom
 import { toast } from "@/components/ui/Toaster";
-import InteractiveBackground from "@/components/ui/InteractiveBackground"; // 🔥 L'ambiance
 
 type DispatchMode = 'MANUAL' | 'BATCH' | 'FILTER';
 
@@ -148,7 +147,6 @@ export default function TaskDispatchPage() {
             pointerEvents: 'none',
             opacity: 0.6 // Ajuste l'opacité pour que ça soit bien visible
         }}>
-            <InteractiveBackground />
         </div>
 
         <AdminLoader isLoading={loading || isDispatching} />
@@ -213,7 +211,7 @@ export default function TaskDispatchPage() {
                     <div className={styles.multiWrapper} ref={multiRef}>
                         <span className={styles.multiLabel}>3. VALEURS (MULTI)</span>
                         <div className={styles.multiTrigger} onClick={() => selectedColumnKey && setIsMultiOpen(!isMultiOpen)}>
-                            {selectedFilterValues.length === 0 ? <span style={{color:"#666", fontSize:"0.8rem", fontFamily:"monospace"}}>Choisir valeurs...</span> : 
+                            {selectedFilterValues.length === 0 ? <span style={{color:"#666", fontSize:"0.8rem", fontFamily: "var(--k-font-mono)"}}>Choisir valeurs...</span> : 
                                 selectedFilterValues.map(v => (
                                     <div key={v} className={styles.chip}>
                                         {v} <X size={10} className={styles.removeChip} onClick={(e)=>{e.stopPropagation(); toggleVal(v)}}/>

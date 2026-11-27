@@ -188,11 +188,11 @@ const CyberSelect = React.memo(({
               }
               .cyber-select-portal-menu::-webkit-scrollbar-track {
                 background: rgba(255, 255, 255, 0.75);
-                border-radius: 8px;
+                border-radius: 12px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-thumb {
                 background: rgba(56, 189, 248, 0.3);
-                border-radius: 8px;
+                border-radius: 12px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-thumb:hover {
                 background: #38bdf8;
@@ -202,8 +202,8 @@ const CyberSelect = React.memo(({
                 align-items: center;
                 justify-content: space-between;
                 padding: 0.55rem 0.75rem;
-                border-radius: 8px;
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                border-radius: 12px;
+                font-family: var(--k-font-display);
                 font-size: 0.82rem;
                 cursor: pointer;
                 transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
@@ -274,7 +274,7 @@ const CyberSelect = React.memo(({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "var(--k-font-display)",
           fontSize: "0.82rem",
           fontWeight: 600,
           transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",

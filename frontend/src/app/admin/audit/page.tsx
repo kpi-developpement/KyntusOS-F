@@ -1,172 +1,129 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Container from "@/components/layout/Container";
-import Card from "@/components/layout/Card";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+import { useCallback, useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShieldAlert, Search, Flag, Trophy, User, Loader2 } from "lucide-react";
+import { KxHeader, KxCard, KxAlert, KxEmpty } from "@/components/kx";
+import styles from "./Audit.module.css";
+
+type Task = { id: number; epsReference: string; status: string; flaggedError?: boolean; assignee?: { username: string }; dynamicData?: Record<string, unknown> };
+type Pilot = { id: number; username: string; role: string; errorCount: number };
 
 export default function AuditPage() {
-  const [epsSearch, setEpsSearch] = useState("");
-  const [foundTask, setFoundTask] = useState<any>(null);
-  const [pilots, setPilots] = useState<any[]>([]);
-  const [msg, setMsg] = useState("");
+  const [eps, setEps] = useState("");
+  const [task, setTask] = useState<Task | null>(null);
+  const [pilots, setPilots] = useState<Pilot[]>([]);
+  const [msg, setMsg] = useState<{ tone: "ok" | "bad"; text: string } | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
-  // 1. Charger le tableau des scores (Leaderboard)
-  const loadStats = () => {
+  const loadStats = useCallback(() => {
     fetch("/api/admin/pilots-stats")
-      .then(res => res.json())
-      .then(data => {
-          // On ne garde que les pilotes
-          const filtered = data.filter((u:any) => u.role === "PILOT");
-          setPilots(filtered);
-      })
-      .catch(err => console.error(err));
-  };
-
-  useEffect(() => {
-    loadStats();
+      .then((r) => r.json())
+      .then((d) => setPilots(Array.isArray(d) ? d.filter((u: Pilot) => u.role === "PILOT").sort((a: Pilot, b: Pilot) => b.errorCount - a.errorCount) : []))
+      .catch((e) => console.error(e));
   }, []);
 
-  // 2. Recherche par EPS
-  const handleSearch = async (e: React.FormEvent) => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement initial
+  useEffect(() => { loadStats(); }, [loadStats]);
+
+  const search = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg("");
-    setFoundTask(null);
-
+    if (!eps.trim()) return;
+    setMsg(null); setTask(null); setConfirming(false); setSearching(true);
     try {
-        const res = await fetch(`/api/admin/search?eps=${epsSearch}`);
-        if (res.ok) {
-            const data = await res.json();
-            setFoundTask(data);
-        } else {
-            setMsg("❌ EPS introuvable");
-        }
-    } catch (err) {
-        console.error(err);
-        setMsg("Erreur connexion");
+      const res = await fetch(`/api/admin/search?eps=${encodeURIComponent(eps.trim())}`);
+      if (res.ok) setTask(await res.json());
+      else setMsg({ tone: "bad", text: `Aucune tâche trouvée pour « ${eps.trim()} ».` });
+    } catch {
+      setMsg({ tone: "bad", text: "Serveur injoignable." });
+    } finally {
+      setSearching(false);
     }
   };
 
-  // 3. Signaler une Erreur (Le Blâme)
-  const handleFlagError = async () => {
-    if (!foundTask) return;
-    if (!confirm(`Voulez-vous signaler une erreur sur ${foundTask.epsReference} ? \nCela ajoutera +1 erreur au pilote ${foundTask.assignee?.username}.`)) return;
-
+  const flag = async () => {
+    if (!task) return;
+    setConfirming(false);
     try {
-        const res = await fetch(`/api/admin/flag-error/${foundTask.id}`, {
-            method: "POST"
-        });
-        
-        if (res.ok) {
-            alert("✅ Erreur enregistrée !");
-            // On met à jour l'affichage local pour montrer que c'est fait
-            setFoundTask({ ...foundTask, flaggedError: true }); 
-            // On recharge le tableau des scores pour voir le +1
-            loadStats(); 
-        } else {
-            const txt = await res.text();
-            alert("Erreur: " + txt);
-        }
-    } catch (e) {
-        console.error(e);
+      const res = await fetch(`/api/admin/flag-error/${task.id}`, { method: "POST" });
+      if (res.ok) {
+        setTask({ ...task, flaggedError: true });
+        setMsg({ tone: "ok", text: `Erreur enregistrée sur ${task.epsReference}.` });
+        loadStats();
+      } else {
+        setMsg({ tone: "bad", text: (await res.text()) || "Impossible d'enregistrer l'erreur." });
+      }
+    } catch {
+      setMsg({ tone: "bad", text: "Serveur injoignable." });
     }
   };
+
+  const maxErr = Math.max(1, ...pilots.map((p) => p.errorCount));
 
   return (
-    <Container>
-      <h1 style={{margin: "30px 0"}}>🕵️ Audit & Qualité</h1>
+    <main className="kx-page">
+      <KxHeader icon={ShieldAlert} eyebrow="Qualité" title={<>Audit &amp; <em>qualité</em></>} subtitle="Retrouvez une tâche par sa référence EPS et signalez une erreur au pilote concerné." />
 
-      <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "30px"}}>
-        
-        {/* COLONNE 1 : RECHERCHE & FLAG */}
-        <div style={{display:"flex", flexDirection:"column", gap: 20}}>
-            <Card>
-                <h3>🔎 Recherche par EPS (Key)</h3>
-                <form onSubmit={handleSearch} style={{display: "flex", gap: 10, marginBottom: 20}}>
-                    <Input 
-                        placeholder="Ex: EPS-001641086" 
-                        value={epsSearch} 
-                        onChange={(e) => setEpsSearch(e.target.value)}
-                    />
-                    <Button type="submit">Chercher</Button>
-                </form>
-                {msg && <p style={{color: "red", fontWeight: "bold"}}>{msg}</p>}
+      <div className={styles.grid}>
+        <KxCard title="Recherche par EPS" icon={Search}>
+          <form onSubmit={search} className={styles.searchRow}>
+            <input className="kx-input" value={eps} onChange={(e) => setEps(e.target.value)} placeholder="EPS-0021045162" aria-label="Référence EPS" />
+            <button type="submit" className="kx-btn" disabled={!eps.trim() || searching}>
+              {searching ? <Loader2 size={16} className="kx-spin" /> : <Search size={16} />} Chercher
+            </button>
+          </form>
 
-                {foundTask && (
-                    <div style={{background: "#f9f9f9", padding: 20, borderRadius: 8, border: "1px solid #eee"}}>
-                        <div style={{marginBottom: 10}}>
-                            <span style={{fontSize: "1.2rem", fontWeight: "bold", color: "#005ecc"}}>{foundTask.epsReference}</span>
-                        </div>
-                        <p><strong>Pilote:</strong> {foundTask.assignee ? `👤 ${foundTask.assignee.username}` : "Non assigné"}</p>
-                        <p><strong>Status:</strong> {foundTask.status}</p>
-                        
-                        {/* Data JSON (Aperçu) */}
-                        <div style={{marginTop: 15, background: "white", padding: 10, borderRadius: 4, fontSize: "0.85rem", color: "#555", border: "1px solid #eee"}}>
-                            {foundTask.dynamicData && Object.entries(foundTask.dynamicData).map(([k, v]) => (
-                                <div key={k} style={{marginBottom: 4}}><b>{k}:</b> {String(v)}</div>
-                            ))}
-                        </div>
+          {msg && <div className={styles.msg}><KxAlert tone={msg.tone}>{msg.text}</KxAlert></div>}
 
-                        <div style={{marginTop: 20}}>
-                            {foundTask.flaggedError ? (
-                                <div style={{
-                                    background: "#ffebee", color: "#aa2222", 
-                                    padding: 10, borderRadius: 4, textAlign: "center", fontWeight: "bold"
-                                }}>
-                                    🚨 DÉJÀ SIGNALÉ COMME ERREUR
-                                </div>
-                            ) : (
-                                <Button variant="danger" onClick={handleFlagError} style={{width: "100%"}}>
-                                    ⚠️ Signaler une Erreur (+1)
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+          <AnimatePresence mode="wait">
+            {task && (
+              <motion.div key={task.id} className={styles.result} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className={styles.resultHead}>
+                  <span className="kx-mono">{task.epsReference}</span>
+                  <span className={styles.status}>{task.status}</span>
+                </div>
+                <p className={styles.assignee}><User size={14} /> {task.assignee?.username || "Non assigné"}</p>
+                {task.dynamicData && (
+                  <dl className={styles.data}>
+                    {Object.entries(task.dynamicData).map(([k, v]) => (
+                      <div key={k}><dt>{k}</dt><dd>{String(v ?? "—")}</dd></div>
+                    ))}
+                  </dl>
                 )}
-            </Card>
-        </div>
+                {task.flaggedError ? (
+                  <div className={styles.flagged}><Flag size={15} /> Déjà signalée comme erreur</div>
+                ) : confirming ? (
+                  <div className={styles.confirm}>
+                    <span>Ajouter +1 erreur à {task.assignee?.username || "ce pilote"} ?</span>
+                    <button type="button" className="kx-btn kx-btn-danger kx-btn-sm" onClick={flag}><Flag size={14} /> Signaler {task.epsReference}</button>
+                    <button type="button" className="kx-btn kx-btn-ghost kx-btn-sm" onClick={() => setConfirming(false)}>Annuler</button>
+                  </div>
+                ) : (
+                  <button type="button" className="kx-btn kx-btn-danger" onClick={() => setConfirming(true)}><Flag size={16} /> Signaler une erreur</button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </KxCard>
 
-        {/* COLONNE 2 : TABLEAU D'HONNEUR (OU DE HONTE hhh) */}
-        <div>
-            <Card>
-                <h3>🏆 Tableau des Erreurs (Mois en cours)</h3>
-                <p style={{color: "#666", fontSize: "0.9rem", marginBottom: 15}}>Suivi de la qualité par pilote.</p>
-                
-                <table style={{width: "100%", borderCollapse: "collapse"}}>
-                    <thead>
-                        <tr style={{borderBottom: "2px solid #eee", textAlign: "left", color: "#888", fontSize: "0.9rem"}}>
-                            <th style={{padding: 10}}>Pilote</th>
-                            <th style={{padding: 10, textAlign: "right"}}>Fautes 🚩</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pilots.length === 0 && <tr><td colSpan={2} style={{padding:20, textAlign:"center"}}>Aucun pilote trouvé</td></tr>}
-                        
-                        {pilots.map(p => (
-                            <tr key={p.id} style={{borderBottom: "1px solid #f0f0f0"}}>
-                                <td style={{padding: 15, display: "flex", alignItems: "center", gap: 10}}>
-                                    <div style={{
-                                        width: 32, height: 32, 
-                                        background: "#e6f7ff", color: "#005ecc", 
-                                        borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", 
-                                        fontWeight: "bold", fontSize: "0.8rem"
-                                    }}>
-                                        {p.username.substring(0,2).toUpperCase()}
-                                    </div>
-                                    <span style={{fontWeight: "500"}}>{p.username}</span>
-                                </td>
-                                <td style={{padding: 15, textAlign: "right", fontWeight: "bold", fontSize: "1.1rem", color: p.errorCount > 0 ? "#ae1e2c" : "#28a745"}}>
-                                    {p.errorCount}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </Card>
-        </div>
-
+        <KxCard title="Erreurs par pilote" icon={Trophy} count={pilots.length}>
+          {pilots.length === 0 ? (
+            <KxEmpty icon={Trophy} title="Aucun pilote"><span>Le suivi qualité apparaîtra ici.</span></KxEmpty>
+          ) : (
+            <ul className={styles.board}>
+              {pilots.map((p, i) => (
+                <motion.li key={p.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(i, 12) * 0.03 }}>
+                  <span className={styles.avatar}>{p.username.slice(0, 2).toUpperCase()}</span>
+                  <span className={styles.name}>{p.username}</span>
+                  <span className={styles.bar}><span style={{ width: `${(p.errorCount / maxErr) * 100}%` }} /></span>
+                  <b className={p.errorCount > 0 ? styles.bad : styles.good}>{p.errorCount}</b>
+                </motion.li>
+              ))}
+            </ul>
+          )}
+        </KxCard>
       </div>
-    </Container>
+    </main>
   );
 }

@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 import styles from "./DataGrid.module.css";
 import LuxSelect from "@/components/ui/LuxSelect";
-import InteractiveBackground from "@/components/ui/InteractiveBackground";
 import { toast } from "@/components/ui/Toaster";
 
 export default function OmniGrid() {
@@ -105,7 +104,6 @@ export default function OmniGrid() {
 
   return (
     <div className={styles.container}>
-      <InteractiveBackground />
 
       {/* --- CONTROL BAR --- */}
       <div className={styles.controlBar}>
@@ -189,7 +187,7 @@ export default function OmniGrid() {
                                       </td>
                                   ))}
 
-                                  <td style={{fontFamily:"monospace", color:"#666", textAlign: "right"}}>
+                                  <td style={{fontFamily: "var(--k-font-mono)", color:"#666", textAlign: "right"}}>
                                       {formatDuration(task.cumulativeTimeSeconds)}
                                   </td>
                               </tr>

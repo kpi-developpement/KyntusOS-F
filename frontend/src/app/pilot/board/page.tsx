@@ -283,7 +283,7 @@ export default function PilotBoard() {
     const ghost = document.createElement("div");
     ghost.textContent = col;
     ghost.style.cssText =
-      "position:fixed;top:-1000px;left:-1000px;padding:9px 15px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);" +
+      "position:fixed;top:-1000px;left:-1000px;padding:9px 15px;border-radius: 12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);" +
       "color:#fff;font:800 12px Inter,system-ui,sans-serif;letter-spacing:.4px;text-transform:uppercase;" +
       "box-shadow:0 14px 30px rgba(29,78,216,.4);white-space:nowrap;";
     document.body.appendChild(ghost);

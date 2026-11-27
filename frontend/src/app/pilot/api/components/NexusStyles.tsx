@@ -108,7 +108,7 @@ export default function NexusStyles() {
         width: 100%;
         background: linear-gradient(155deg, #ffffff 0%, #f4f8ff 52%, #e8f1fe 100%);
         color: var(--nx-ink);
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: var(--k-font-display);
         -webkit-font-smoothing: antialiased;
         margin-top: -120px;
         padding: 132px 1.75rem 3.5rem;
@@ -240,7 +240,7 @@ export default function NexusStyles() {
       .nx-btn:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; }
 
       .nx-btn.sm { height: 33px; padding: 0 11px; font-size: 0.73rem; border-radius: 9px; gap: 6px; }
-      .nx-btn.xs { height: 27px; padding: 0 9px; font-size: 0.68rem; border-radius: 8px; gap: 4px; font-weight: 800; }
+      .nx-btn.xs { height: 27px; padding: 0 9px; font-size: 0.68rem; border-radius: 12px; gap: 4px; font-weight: 800; }
       .nx-btn.icon { width: 34px; height: 34px; padding: 0; border-radius: 10px; }
 
       .nx-primary {
@@ -357,7 +357,7 @@ export default function NexusStyles() {
         color: var(--nx-ink);
         padding: 0.85rem 1rem;
         border-radius: 13px;
-        font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+        font-family: var(--k-font-mono);
         font-size: 0.81rem;
         font-weight: 500;
         line-height: 1.55;
@@ -381,10 +381,10 @@ export default function NexusStyles() {
         scrollbar-color: var(--nx-blue-300) var(--nx-surface);
       }
       .nx-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
-      .nx-scroll::-webkit-scrollbar-track { background: var(--nx-surface); border-radius: 8px; }
+      .nx-scroll::-webkit-scrollbar-track { background: var(--nx-surface); border-radius: 12px; }
       .nx-scroll::-webkit-scrollbar-thumb {
         background: var(--nx-blue-200);
-        border-radius: 8px;
+        border-radius: 12px;
         border: 2px solid var(--nx-surface);
       }
       .nx-scroll::-webkit-scrollbar-thumb:hover { background: var(--nx-blue-500); }
@@ -526,7 +526,7 @@ export default function NexusStyles() {
         border-collapse: separate;
         border-spacing: 0;
         font-size: 0.8rem;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: var(--k-font-display);
       }
       table.nx-table.compact td {
         padding-top: 0.36rem;
@@ -601,7 +601,7 @@ export default function NexusStyles() {
 
       table.nx-table td.num {
         font-variant-numeric: tabular-nums;
-        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-family: var(--k-font-mono);
         text-align: right;
         white-space: nowrap;
       }
@@ -643,9 +643,9 @@ export default function NexusStyles() {
         align-items: center;
         gap: 6px;
         padding: 4px 10px;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
-        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-family: var(--k-font-mono);
         font-weight: 800;
         font-size: 0.76rem;
         color: var(--nx-blue-800);
@@ -705,7 +705,7 @@ export default function NexusStyles() {
         height: 16px;
         accent-color: var(--nx-blue-600);
         cursor: pointer;
-        border-radius: 5px;
+        border-radius: 10px;
       }
 
       /* ======================== PROGRESS & LOADERS ======================== */

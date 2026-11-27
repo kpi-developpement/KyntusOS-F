@@ -36,7 +36,7 @@ export default function Workflow3DChart() {
       <Tooltip data={hoveredData} visible={!!hoveredData} />
 
       {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#00f2ea', fontFamily: 'monospace', letterSpacing: 2 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#2563eb', fontFamily: "var(--k-font-mono)", letterSpacing: "0.06em" }}>
           [ INITIALIZING NEURAL MAP... ]
         </div>
       ) : (
@@ -55,7 +55,7 @@ export default function Workflow3DChart() {
           />
           
           <ambientLight intensity={0.4} />
-          <pointLight position={[20, 50, 20]} intensity={2} color="#00f2ea" distance={100} />
+          <pointLight position={[20, 50, 20]} intensity={2} color="#2563eb" distance={100} />
           <pointLight position={[-20, 20, -20]} intensity={1.5} color="#ff0055" distance={100} />
           
           <Stars radius={200} depth={50} count={5000} factor={4} saturation={0} fade speed={0.5} />

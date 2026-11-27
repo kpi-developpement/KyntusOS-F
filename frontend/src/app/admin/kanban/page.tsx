@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import styles from "./AdminKanban.module.css";
 import LuxSelect from "@/components/ui/LuxSelect";
-import InteractiveBackground from "@/components/ui/InteractiveBackground";
 import { toast } from "@/components/ui/Toaster";
 import LiveTimer from "@/components/ui/LiveTimer";
 
@@ -139,7 +138,6 @@ export default function AdminKanban() {
   // --- RENDER ---
   return (
     <div className={styles.container}>
-      <InteractiveBackground />
 
       {/* HEADER */}
       <div className={styles.headerControl}>

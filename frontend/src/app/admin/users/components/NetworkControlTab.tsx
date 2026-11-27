@@ -1,145 +1,142 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Users, User, Power, Key, LayoutDashboard, Terminal, Cpu, Database, Settings2 } from "lucide-react";
-import { CyberTypography } from "./CyberTypography";
-import styles from "../Nexus.module.css";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Users, Power, Key, LayoutDashboard, Terminal, Cpu, Database, Settings2, Search, Check } from "lucide-react";
+import { KxEmpty, KxAlert } from "@/components/kx";
+import styles from "../Users.module.css";
+
+type Pilot = { id: number; username: string; role: string; active: boolean; permissions?: Record<string, boolean> };
 
 const MODULES = [
-  { id: "tableau", label: "Tableau de Tâches", icon: LayoutDashboard },
-  { id: "analyse", label: "Analyse Data", icon: Terminal },
+  { id: "tableau", label: "Tableau de tâches", icon: LayoutDashboard },
+  { id: "analyse", label: "Analyse data", icon: Terminal },
   { id: "facture", label: "Facturation", icon: Cpu },
   { id: "ventilation", label: "Ventilation", icon: Database },
   { id: "parametrage", label: "Paramétrage", icon: Settings2 },
 ];
 
 export default function NetworkControlTab() {
-  const [pilots, setPilots] = useState<any[]>([]);
-  const [selectedPilot, setSelectedPilot] = useState<any | null>(null);
+  const [pilots, setPilots] = useState<Pilot[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [q, setQ] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmOff, setConfirmOff] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "bad"; text: string } | null>(null);
 
-  const fetchPilots = async () => {
+  const fetchPilots = useCallback(async () => {
     try {
       const res = await fetch("/api/users/pilots");
       if (res.ok) setPilots(await res.json());
-    } catch (e) {}
+    } catch { /* réseau */ }
+  }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement initial
+  useEffect(() => { fetchPilots(); }, [fetchPilots]);
+
+  const selected = pilots.find((p) => p.id === selectedId) || null;
+  const list = useMemo(() => pilots.filter((p) => p.username.toLowerCase().includes(q.trim().toLowerCase())), [pilots, q]);
+
+  const patchLocal = (id: number, patch: Partial<Pilot>) => setPilots((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
+  const toggleStatus = async () => {
+    if (!selected) return;
+    setConfirmOff(false);
+    const res = await fetch(`/api/users/${selected.id}/toggle-status`, { method: "PATCH" }).catch(() => null);
+    if (res?.ok) { patchLocal(selected.id, { active: !selected.active }); setMsg({ type: "ok", text: `${selected.username} est maintenant ${selected.active ? "suspendu" : "actif"}.` }); }
+    else setMsg({ type: "bad", text: "Impossible de modifier le statut." });
   };
 
-  useEffect(() => { fetchPilots(); }, []);
-
-  const handleToggleStatus = async () => {
-    if(!selectedPilot) return;
-    try {
-      const res = await fetch(`/api/users/${selectedPilot.id}/toggle-status`, { method: "PATCH" });
-      if (res.ok) {
-        setSelectedPilot({ ...selectedPilot, active: !selectedPilot.active });
-        fetchPilots();
-      }
-    } catch (e) {}
+  const resetPassword = async () => {
+    if (!selected || !newPassword) return;
+    const res = await fetch(`/api/users/${selected.id}/reset-password`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ newPassword }) }).catch(() => null);
+    if (res?.ok) { setNewPassword(""); setMsg({ type: "ok", text: `Mot de passe de ${selected.username} réinitialisé.` }); }
+    else setMsg({ type: "bad", text: "La réinitialisation a échoué." });
   };
 
-  const handleResetPassword = async () => {
-    if (!selectedPilot || !newPassword) return;
-    try {
-      const res = await fetch(`/api/users/${selectedPilot.id}/reset-password`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ newPassword }),
-      });
-      if (res.ok) { setNewPassword(""); alert("Password Overriden!"); }
-    } catch (e) {}
-  };
-
-  const handleTogglePermission = async (moduleId: string) => {
-    if (!selectedPilot) return;
-    const updated = { ...(selectedPilot.permissions || {}), [moduleId]: !(selectedPilot.permissions?.[moduleId] || false) };
-    try {
-      const res = await fetch(`/api/users/${selectedPilot.id}/permissions`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated),
-      });
-      if (res.ok) {
-        setSelectedPilot({ ...selectedPilot, permissions: updated });
-        setPilots(pilots.map(p => p.id === selectedPilot.id ? { ...p, permissions: updated } : p));
-      }
-    } catch (e) {}
+  const togglePerm = async (moduleId: string) => {
+    if (!selected) return;
+    const updated = { ...(selected.permissions || {}), [moduleId]: !(selected.permissions?.[moduleId] || false) };
+    patchLocal(selected.id, { permissions: updated });
+    const res = await fetch(`/api/users/${selected.id}/permissions`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => null);
+    if (!res?.ok) { patchLocal(selected.id, { permissions: selected.permissions }); setMsg({ type: "bad", text: "Permission non enregistrée." }); }
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={styles.controlGrid}>
-      
-      {/* SIDEBAR */}
-      <div className={styles.rosterPanel}>
-        <div className={styles.rosterHeader}>
-          <Users size={18}/> ACTIVE ROSTER
-        </div>
-        <div className={`${styles.pilotList} ${styles.customScroll}`}>
-          {pilots.map((p) => (
-            <div 
-              key={p.id} onClick={() => { setSelectedPilot(p); }}
-              className={`${styles.pilotItem} ${selectedPilot?.id === p.id ? styles.pilotItemActive : ''}`}
-            >
-              <div className={styles.pilotInfo}>
-                <div className={styles.pilotIcon}><User size={18}/></div>
-                <span className={styles.pilotName}>{p.username}</span>
-              </div>
-              <div className={`${styles.statusDot} ${p.active ? styles.dotOn : styles.dotOff}`}></div>
-            </div>
+    <div className={styles.manage}>
+      <aside className={styles.roster}>
+        <label className={styles.rosterSearch}>
+          <Search size={15} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un pilote" aria-label="Rechercher un pilote" />
+        </label>
+        <div className={styles.rosterList}>
+          {list.map((p) => (
+            <button key={p.id} type="button" className={`${styles.rosterItem} ${selectedId === p.id ? styles.rosterOn : ""}`} onClick={() => { setSelectedId(p.id); setMsg(null); setConfirmOff(false); }}>
+              <span className={styles.avatar}>{p.username.slice(0, 2).toUpperCase()}</span>
+              <span className={styles.rosterName}>{p.username}</span>
+              <span className={`${styles.dot} ${p.active ? styles.dotOn : ""}`} title={p.active ? "Actif" : "Suspendu"} />
+            </button>
           ))}
+          {list.length === 0 && <p className={styles.rosterEmpty}>Aucun pilote</p>}
         </div>
-      </div>
+      </aside>
 
-      {/* MAIN DECK */}
-      <div className={styles.deckPanel}>
-        {!selectedPilot ? (
-          <div className={styles.deckEmpty}>SELECT TARGET ID</div>
-        ) : (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{display:'flex', flexDirection:'column', gap:'2.5rem'}}>
-            
-            <div className={styles.deckHeader}>
-              <div>
-                <h2 className={styles.targetName}>{selectedPilot.username}</h2>
-                <p className={styles.targetRole}>SYS_ROLE: {selectedPilot.role} | ID: {selectedPilot.id}</p>
-              </div>
-              <button 
-                onClick={handleToggleStatus} 
-                className={`${styles.actionBtn} ${selectedPilot.active ? styles.btnKill : styles.btnRevive}`}
-              >
-                <Power size={18} /> {selectedPilot.active ? 'KILL SWITCH' : 'REVIVE'}
-              </button>
-            </div>
-
-            <div>
-              <CyberTypography>SECURITY_OVERRIDE</CyberTypography>
-              <div className={styles.overrideFlex}>
-                <div className={styles.inputWrapper} style={{flex: 1}}>
-                  <Key className={styles.inputIcon} size={20} />
-                  <input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={styles.cyberInput} placeholder="INJECT NEW KEY..." />
+      <section className={styles.deck}>
+        <AnimatePresence mode="wait">
+          {!selected ? (
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <KxEmpty icon={Users} title="Sélectionnez un pilote"><span>Choisissez un pilote dans la liste pour gérer son accès.</span></KxEmpty>
+            </motion.div>
+          ) : (
+            <motion.div key={selected.id} className={styles.deckBody} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+              <div className={styles.deckHead}>
+                <span className={styles.bigAvatar}>{selected.username.slice(0, 2).toUpperCase()}</span>
+                <div className={styles.deckWho}>
+                  <h2>{selected.username}</h2>
+                  <span className={`${styles.badge} ${selected.active ? styles.badgeOn : styles.badgeOff}`}>{selected.active ? "Actif" : "Suspendu"}</span>
                 </div>
-                <button onClick={handleResetPassword} className={`${styles.actionBtn} ${styles.btnForce}`}>FORCE</button>
+                {selected.active && confirmOff ? (
+                  <div className={styles.confirm}>
+                    <button type="button" className="kx-btn kx-btn-danger kx-btn-sm" onClick={toggleStatus}><Power size={14} /> Suspendre {selected.username}</button>
+                    <button type="button" className="kx-btn kx-btn-ghost kx-btn-sm" onClick={() => setConfirmOff(false)}>Annuler</button>
+                  </div>
+                ) : (
+                  <button type="button" className={`kx-btn ${selected.active ? "kx-btn-ghost" : ""}`} onClick={() => (selected.active ? setConfirmOff(true) : toggleStatus())}>
+                    <Power size={16} /> {selected.active ? "Suspendre" : "Réactiver"}
+                  </button>
+                )}
               </div>
-            </div>
 
-            <div>
-              <CyberTypography>GRANULAR_MATRIX_CONTROL</CyberTypography>
-              <div className={styles.matrixGrid}>
-                {MODULES.map(mod => {
-                  const hasAccess = selectedPilot.permissions?.[mod.id] || false;
-                  return (
-                    <div key={mod.id} className={`${styles.moduleCard} ${hasAccess ? styles.moduleCardOn : ''}`}>
-                      <div className={styles.moduleInfo}>
-                        <mod.icon size={22} className={styles.moduleIcon} />
-                        <span className={styles.moduleLabel}>{mod.label}</span>
-                      </div>
-                      
-                      <div onClick={() => handleTogglePermission(mod.id)} className={`${styles.cyberToggle} ${hasAccess ? styles.cyberToggleOn : ''}`}>
-                        <div className={styles.toggleKnob}></div>
-                      </div>
-                    </div>
-                  );
-                })}
+              {msg && <KxAlert tone={msg.type}>{msg.text}</KxAlert>}
+
+              <div className={styles.block}>
+                <h3>Réinitialiser le mot de passe</h3>
+                <div className={styles.inline}>
+                  <span className={styles.inputWrap}>
+                    <Key size={17} />
+                    <input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nouveau mot de passe" aria-label="Nouveau mot de passe" />
+                  </span>
+                  <button type="button" className="kx-btn" onClick={resetPassword} disabled={!newPassword}>Enregistrer</button>
+                </div>
               </div>
-            </div>
 
-          </motion.div>
-        )}
-      </div>
-    </motion.div>
+              <div className={styles.block}>
+                <h3>Modules autorisés</h3>
+                <div className={styles.perms}>
+                  {MODULES.map((m) => {
+                    const on = selected.permissions?.[m.id] || false;
+                    const Icon = m.icon;
+                    return (
+                      <button key={m.id} type="button" role="switch" aria-checked={on} className={`${styles.perm} ${on ? styles.permOn : ""}`} onClick={() => togglePerm(m.id)}>
+                        <span className={styles.permIcon}><Icon size={18} /></span>
+                        <span className={styles.permLabel}>{m.label}</span>
+                        <span className={styles.switch}><span>{on && <Check size={11} strokeWidth={3} />}</span></span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </section>
+    </div>
   );
 }

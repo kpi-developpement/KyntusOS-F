@@ -29,7 +29,7 @@
 .boardContainer {
   position: relative; isolation: isolate; min-height: 100vh; width: 100%; overflow-x: hidden;
   background: var(--page); color: var(--ink);
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--k-font-display);
   -webkit-font-smoothing: antialiased;
 }
 .boardContainer::before {
@@ -160,14 +160,14 @@
 /* COLUMN STUDIO (portal) */
 .colStudioPopover {
   flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif; background: var(--white); border: 1px solid var(--blue-200);
+  font-family: var(--k-font-display); background: var(--white); border: 1px solid var(--blue-200);
   border-radius: 18px; box-shadow: var(--shadow-pop); animation: popIn 0.18s var(--ease);
 }
 .colStudioHeader { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: linear-gradient(120deg, var(--blue-700), var(--blue-600)); color: #fff; }
 .colStudioTitle { display: flex; align-items: center; gap: 8px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.6px; }
 .colStudioHeaderActions { display: flex; align-items: center; gap: 6px; }
 .colResetMiniBtn, .colCloseMiniBtn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 12px;
   background: rgba(255, 255, 255, 0.16); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3);
   font-size: 0.66rem; font-weight: 800; cursor: pointer; transition: background-color 0.2s, color 0.2s;
 }
@@ -184,14 +184,14 @@
 .colStudioItemHidden { opacity: 0.5; }
 .colStudioItemDragging { opacity: 0.4; border-style: dashed; }
 .dropLineTop::before, .dropLineBottom::after {
-  content: ""; position: absolute; left: 6px; right: 6px; height: 3px; border-radius: 3px;
+  content: ""; position: absolute; left: 6px; right: 6px; height: 3px; border-radius: 6px;
   background: var(--blue-600); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
 }
 .dropLineTop::before { top: -4px; }
 .dropLineBottom::after { bottom: -4px; }
 .colStudioItemLeft { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .colGripIcon { color: var(--blue-300); flex-shrink: 0; }
-.colIndexBadge { font-size: 0.64rem; font-weight: 800; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; font-family: "JetBrains Mono", ui-monospace, monospace; }
+.colIndexBadge { font-size: 0.64rem; font-weight: 800; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); padding: 1px 6px; border-radius: 10px; font-family: var(--k-font-mono); }
 .colStudioName { font-size: 0.77rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .colEditableTag { flex-shrink: 0; font-size: 0.58rem; font-weight: 900; background: var(--blue-700); color: #fff; padding: 2px 6px; border-radius: 99px; }
 .colStudioItemRight { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
@@ -352,7 +352,7 @@
 .thTypeIcon { flex-shrink: 0; opacity: 0.7; }
 .thGripHandle {
   flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 26px;
-  border-radius: 6px; cursor: grab; opacity: 0.35; transition: opacity 0.15s, background-color 0.15s;
+  border-radius: 10px; cursor: grab; opacity: 0.35; transition: opacity 0.15s, background-color 0.15s;
 }
 .th:hover .thGripHandle { opacity: 1; }
 .thGripHandle:hover { background: rgba(59, 130, 246, 0.14); }
@@ -406,7 +406,7 @@
 .tdActiveRuleHighlight { background-color: rgba(219, 234, 254, 0.35); }
 .compactCellContent { display: flex; align-items: center; justify-content: space-between; gap: 8px; overflow: hidden; }
 .wrappedBentoContent { padding: 7px 10px; line-height: 1.5; word-break: break-word; background: #fff; border: 1px solid var(--blue-100); border-left: 3px solid var(--blue-400); border-radius: 10px; }
-.expandCellBadge { flex-shrink: 0; width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; background: var(--blue-50); color: var(--blue-600); opacity: 0; transition: opacity 0.15s, background-color 0.15s; }
+.expandCellBadge { flex-shrink: 0; width: 18px; height: 18px; border-radius: 10px; display: grid; place-items: center; background: var(--blue-50); color: var(--blue-600); opacity: 0; transition: opacity 0.15s, background-color 0.15s; }
 .tdCell:hover .expandCellBadge { opacity: 1; background: var(--blue-600); color: #fff; }
 .emptyDash { color: #c7d5ec; font-weight: 600; }
 .lockedValue { color: var(--ink); font-size: 0.81rem; font-weight: 500; user-select: text; overflow: hidden; text-overflow: ellipsis; }
@@ -434,12 +434,12 @@
 .epsPillGroup { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .epsBadge {
   position: relative; display: inline-block; min-width: 0; max-width: calc(var(--col-eps) - 70px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  padding: 4px 9px 4px 20px; border-radius: 8px; background: #fff; color: var(--blue-800); border: 1px solid var(--blue-200);
-  font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.3px;
+  padding: 4px 9px 4px 20px; border-radius: 12px; background: #fff; color: var(--blue-800); border: 1px solid var(--blue-200);
+  font-family: var(--k-font-mono); font-size: 0.76rem; font-weight: 800; letter-spacing: 0.3px;
 }
 .epsBadge::before { content: ""; position: absolute; left: 8px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--rail, var(--blue-500)); }
 .copyMiniBtn {
-  flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--line-strong); background: #fff; color: var(--blue-600);
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 12px; border: 1px solid var(--line-strong); background: #fff; color: var(--blue-600);
   display: grid; place-items: center; cursor: pointer; opacity: 0.55; transition: opacity 0.15s, background-color 0.15s, color 0.15s, border-color 0.15s;
 }
 .trRow:hover .copyMiniBtn { opacity: 1; }

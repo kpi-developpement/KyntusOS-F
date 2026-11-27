@@ -420,7 +420,7 @@ export default function TissueRecordsPage() {
         minHeight: "100%",
         position: "relative",
         color: "#0f1e3d",
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        fontFamily: "var(--k-font-display)"
       }}
     >
 
@@ -480,7 +480,7 @@ export default function TissueRecordsPage() {
           background-color: rgba(255, 255, 255, 0.92);
           color: #0f1e3d;
           border: 1px solid rgba(52, 211, 153, 0.28);
-          font-family: 'Inter', -apple-system, sans-serif;
+          font-family: var(--k-font-display);
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
@@ -582,7 +582,7 @@ export default function TissueRecordsPage() {
           color: #0f1e3d;
           padding: 0.55rem 0.85rem;
           border-radius: 11px;
-          font-family: 'Inter', -apple-system, sans-serif;
+          font-family: var(--k-font-display);
           font-size: 0.875rem;
           font-weight: 500;
           outline: none;
@@ -605,7 +605,7 @@ export default function TissueRecordsPage() {
           color: #0f1e3d;
           padding: 0.9rem 1rem;
           border-radius: 12px;
-          font-family: 'JetBrains Mono', 'Fira Code', monospace;
+          font-family: var(--k-font-mono);
           font-size: 0.85rem;
           line-height: 1.5;
           outline: none;
@@ -620,8 +620,8 @@ export default function TissueRecordsPage() {
         }
 
         .tissue-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .tissue-scroll::-webkit-scrollbar-track { background-color: rgba(255, 255, 255, 0.85); border-radius: 6px; }
-        .tissue-scroll::-webkit-scrollbar-thumb { background-color: rgba(52, 211, 153, 0.32); border-radius: 6px; }
+        .tissue-scroll::-webkit-scrollbar-track { background-color: rgba(255, 255, 255, 0.85); border-radius: 10px; }
+        .tissue-scroll::-webkit-scrollbar-thumb { background-color: rgba(52, 211, 153, 0.32); border-radius: 10px; }
         .tissue-scroll::-webkit-scrollbar-thumb:hover { background-color: #34d399; }
 
         .modal-backdrop-anim { animation: modalBackdropIn 0.22s ease forwards; }
@@ -659,7 +659,7 @@ export default function TissueRecordsPage() {
                 <button onClick={handleClearSecurityLogs} className="tissue-btn btn-tissue-danger" style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Clear Logs</button>
               </div>
             </div>
-            <ul className="tissue-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#0f1e3d", fontFamily: "monospace", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
+            <ul className="tissue-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#0f1e3d", fontFamily: "var(--k-font-mono)", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
               {securityLogs.map((err, i) => (
                 <li key={i} style={{ marginBottom: "6px", paddingBottom: "6px", borderBottom: "1px dashed rgba(244, 63, 94, 0.25)" }}>{err}</li>
               ))}
@@ -723,7 +723,7 @@ export default function TissueRecordsPage() {
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "9px", flexWrap: "wrap" }}>
-                <h1 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
+                <h1 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.4rem", fontWeight: 700, letterSpacing: "-0.03em" }}>
                   TISSUE <span style={{ background: "linear-gradient(90deg, #34d399, #2dd4bf)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>NEXUS</span>
                 </h1>
                 <span
@@ -925,7 +925,7 @@ export default function TissueRecordsPage() {
                     <button onClick={handleExportValidationAlerts} disabled={isExportingAlerts} className="tissue-btn btn-tissue-danger">
                       <DownloadCloud size={15} /> {isExportingAlerts ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#b3051e", backgroundColor: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#b3051e", backgroundColor: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "12px" }}>
                       {showValidationDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
@@ -941,9 +941,9 @@ export default function TissueRecordsPage() {
                             backgroundColor: "rgba(244, 63, 94, 0.12)",
                             border: "1px solid rgba(244, 63, 94, 0.35)",
                             padding: "4px 10px",
-                            borderRadius: "6px",
+                            borderRadius: "10px",
                             fontSize: "0.78rem",
-                            fontFamily: "monospace",
+                            fontFamily: "var(--k-font-mono)",
                             fontWeight: 700,
                             color: "#b4041a",
                             cursor: "pointer",
@@ -994,7 +994,7 @@ export default function TissueRecordsPage() {
                     <button onClick={handleExportCommentAlerts} disabled={isExportingComments} className="tissue-btn" style={{ borderColor: "rgba(245, 158, 11, 0.4)", color: "#0f1e3d", backgroundColor: "rgba(245, 158, 11, 0.1)" }}>
                       <DownloadCloud size={15} /> {isExportingComments ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#b48303", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#b48303", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "12px" }}>
                       {showCommentDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
@@ -1010,9 +1010,9 @@ export default function TissueRecordsPage() {
                             backgroundColor: "rgba(245, 158, 11, 0.12)",
                             border: "1px solid rgba(245, 158, 11, 0.35)",
                             padding: "4px 10px",
-                            borderRadius: "6px",
+                            borderRadius: "10px",
                             fontSize: "0.78rem",
-                            fontFamily: "monospace",
+                            fontFamily: "var(--k-font-mono)",
                             fontWeight: 700,
                             color: "#0f1e3d",
                             cursor: "pointer",
@@ -1229,14 +1229,14 @@ export default function TissueRecordsPage() {
                               backgroundColor: isLatest ? "#10b981" : "rgba(16, 185, 129, 0.2)",
                               color: isLatest ? "#0f1e3d" : "#1a9e69",
                               padding: "4px 12px",
-                              borderRadius: "6px",
+                              borderRadius: "10px",
                               fontSize: "0.78rem",
                               fontWeight: 800
                             }}
                           >
                             {item.version} {isLatest ? "• LATEST" : ""}
                           </span>
-                          <span style={{ color: "#475569", fontSize: "0.78rem", fontFamily: "monospace", fontWeight: 600 }}>
+                          <span style={{ color: "#475569", fontSize: "0.78rem", fontFamily: "var(--k-font-mono)", fontWeight: 600 }}>
                             {new Date(item.importedAt).toLocaleString()}
                           </span>
                         </div>
@@ -1244,12 +1244,12 @@ export default function TissueRecordsPage() {
                           style={{
                             backgroundColor: "rgba(255, 255, 255, 0.92)",
                             padding: "12px",
-                            borderRadius: "8px",
+                            borderRadius: "12px",
                             color: "#0f1e3d",
                             fontSize: "0.86rem",
                             border: "1px solid rgba(52, 211, 153, 0.18)",
                             borderLeft: `3px solid ${isLatest ? "#42d6a0" : "#475569"}`,
-                            fontFamily: "'Inter', sans-serif"
+                            fontFamily: "var(--k-font-display)"
                           }}
                         >
                           {item.commentaire || <span style={{ color: "#64748b", fontStyle: "italic" }}>No comment recorded for this version.</span>}
@@ -1278,7 +1278,7 @@ export default function TissueRecordsPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(255, 255, 255, 0.85)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.18)", flexWrap: "wrap" }}>
-              <span style={{ color: "#1a9e69", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
+              <span style={{ color: "#1a9e69", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
                 SECTOR: {globalCategory}
               </span>
               <TissueSelect width="145px" value={trackYear} options={trackYearOptions} onChange={setTrackYear} variant="emerald" />
@@ -1326,7 +1326,7 @@ export default function TissueRecordsPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(255, 255, 255, 0.85)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.18)", flexWrap: "wrap" }}>
-              <span style={{ color: "#1a9e69", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
+              <span style={{ color: "#1a9e69", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
                 SECTOR: {globalCategory}
               </span>
               <TissueSelect width="160px" value={teamYear} options={trackYearOptions} onChange={setTeamYear} variant="teal" />

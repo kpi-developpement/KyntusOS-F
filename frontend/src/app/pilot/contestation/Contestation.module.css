@@ -35,7 +35,7 @@
   margin: 0 auto;
   padding: 24px 24px 64px;
   color: var(--text);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--k-font-display);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -71,8 +71,8 @@
 .headerText h1 {
   margin: 0;
   font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.2;
 }
 
@@ -132,12 +132,12 @@
 }
 
 .slotIndex {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--k-font-mono);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--tone);
   padding: 4px 8px;
-  border-radius: 8px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--tone) 14%, transparent);
 }
 
@@ -183,11 +183,11 @@
 }
 
 .chip {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--k-font-mono);
   font-size: 0.68rem;
   color: #334766;
   padding: 3px 7px;
-  border-radius: 6px;
+  border-radius: 10px;
   background: #f3f8ff;
   border: 1px solid var(--border);
 }
@@ -256,7 +256,7 @@
   height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--muted);
@@ -437,7 +437,7 @@
 
 .kpiValue {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--k);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
@@ -592,7 +592,7 @@
 }
 
 .mono {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--k-font-mono);
   font-size: 0.76rem;
 }
 
@@ -607,11 +607,11 @@
 
 .vr0,
 .vrN {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--k-font-mono);
   font-size: 0.72rem;
   font-weight: 700;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 .vr0 { color: var(--muted); background: #f1f5f9; }
 .vrN { color: var(--warn); background: var(--warn-soft); }
@@ -627,7 +627,7 @@
   font-size: 0.74rem;
   font-weight: 700;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 .tagOk { color: var(--ok); background: var(--ok-soft); }
 .tagBad { color: var(--bad); background: var(--bad-soft); }

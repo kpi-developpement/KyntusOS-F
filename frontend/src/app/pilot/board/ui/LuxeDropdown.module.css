@@ -3,7 +3,7 @@
 /* The menu lives in a portal (FloatingLayer) → no z-index fights anymore.    */
 /* ========================================================================== */
 
-.dropdownContainer { position: relative; display: inline-flex; flex-direction: column; user-select: none; font-family: "Inter", system-ui, -apple-system, sans-serif; }
+.dropdownContainer { position: relative; display: inline-flex; flex-direction: column; user-select: none; font-family: var(--k-font-display); }
 .dropdownContainer *, .dropdownContainer *::before, .dropdownContainer *::after,
 .menuPopover, .menuPopover *, .menuPopover *::before, .menuPopover *::after { box-sizing: border-box; }
 
@@ -24,7 +24,7 @@
 .triggerLeft { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; }
 .iconWrap { display: inline-flex; align-items: center; justify-content: center; color: #2563eb; flex-shrink: 0; }
 .prefixLabel {
-  flex-shrink: 0; padding: 4px 8px; border-radius: 8px; font-size: 0.62rem; font-weight: 900; letter-spacing: 0.7px; text-transform: uppercase;
+  flex-shrink: 0; padding: 4px 8px; border-radius: 12px; font-size: 0.62rem; font-weight: 900; letter-spacing: 0.7px; text-transform: uppercase;
   color: #fff; background: linear-gradient(135deg, #2563eb, #1e40af); box-shadow: 0 4px 10px -4px rgba(29, 78, 216, 0.7);
 }
 .triggerHero .prefixLabel { padding: 6px 10px; border-radius: 10px; }
@@ -43,7 +43,7 @@
 /* menu (inside the portal) */
 .menuPopover {
   flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
-  font-family: "Inter", system-ui, -apple-system, sans-serif; color: #0f2557;
+  font-family: var(--k-font-display); color: #0f2557;
   background: #fff; border: 1px solid #bfdbfe; border-radius: 16px;
   box-shadow: 0 28px 64px -18px rgba(15, 37, 87, 0.32), 0 10px 24px -10px rgba(29, 78, 216, 0.24);
   animation: menuIn 0.16s cubic-bezier(0.22, 1, 0.36, 1);
@@ -63,7 +63,7 @@
   font-size: 0.8rem; font-weight: 600; color: #334a75; cursor: pointer;
 }
 .optionActive { background: #eff6ff; color: #1d4ed8; }
-.optionActive::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: #2563eb; }
+.optionActive::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 6px; background: #2563eb; }
 .optionSelected { background: #dbeafe !important; color: #1e3a8a !important; font-weight: 800; }
 .optionLeft { display: flex; align-items: center; gap: 9px; min-width: 0; overflow: hidden; }
 .optionLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

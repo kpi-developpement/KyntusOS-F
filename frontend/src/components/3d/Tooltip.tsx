@@ -24,9 +24,9 @@ export default function Tooltip({ data, visible }: TooltipProps) {
       zIndex: 100,
       width: '280px',
       boxShadow: '0 10px 40px rgba(0,0,0,0.8)',
-      fontFamily: "'Inter', sans-serif"
+      fontFamily: "var(--k-font-display)"
     }}>
-      <h3 style={{ margin: '0 0 15px 0', fontSize: '1rem', color: '#00f2ea', textTransform: 'uppercase', letterSpacing: '2px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+      <h3 style={{ margin: '0 0 15px 0', fontSize: '1rem', color: '#00f2ea', textTransform: 'uppercase', letterSpacing: "0.06em", borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
         {data.templateName}
       </h3>
       
@@ -47,7 +47,7 @@ export default function Tooltip({ data, visible }: TooltipProps) {
       
       {/* Risk Bar */}
       <div style={{ fontSize: '0.65rem', color: '#666', marginBottom: '5px' }}>RISK FACTOR</div>
-      <div style={{ height: '4px', background: '#333', borderRadius: '2px', overflow: 'hidden' }}>
+      <div style={{ height: '4px', background: '#333', borderRadius: '6px', overflow: 'hidden' }}>
         <div style={{
           height: '100%',
           width: `${data.riskFactor * 100}%`,

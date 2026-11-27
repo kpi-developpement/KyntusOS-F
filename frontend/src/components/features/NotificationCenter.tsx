@@ -20,13 +20,14 @@ export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ username?: string; role?: string } | null>(null);
   
   // Toast State (Le popup qui apparait 3s)
   const [toast, setToast] = useState<{msg: string, type: NotifType} | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("kyntus_user");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique au montage
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
@@ -108,11 +109,11 @@ export default function NotificationCenter() {
     <>
       {/* 1. TOAST POPUP (Notification Volante) */}
       {toast && (
-          <div className={`${styles.toast} ${getTypeStyle(toast.type)}`} style={{ "--neon-color": toast.type === 'SUCCESS' ? '#10b981' : '#2563eb' } as any}>
-              <div className={styles.iconBox} style={{width: 24, height: 24, borderRadius: "50%"}}>
+          <div className={`${styles.toast} ${getTypeStyle(toast.type)}`} role="status">
+              <div className={styles.iconBox}>
                   {getIcon(toast.type)}
               </div>
-              <span style={{color: "white", fontWeight: "bold", fontSize: "0.9rem"}}>{toast.msg}</span>
+              <span className={styles.toastMsg}>{toast.msg}</span>
           </div>
       )}
 
@@ -120,22 +121,25 @@ export default function NotificationCenter() {
       <div className={styles.orbWrapper}>
         
         {/* La Cloche */}
-        <div 
-            className={`${styles.bellOrb} ${unreadCount > 0 ? styles.hasUnread : ''}`} 
+        <button
+            type="button"
+            className={`${styles.bellOrb} ${unreadCount > 0 ? styles.hasUnread : ''}`}
             onClick={handleOpen}
+            aria-label={unreadCount > 0 ? `${unreadCount} notification(s) non lue(s)` : "Notifications"}
+            aria-expanded={isOpen}
         >
-            <Bell size={22} className={styles.bellIcon} />
-            {unreadCount > 0 && <div className={styles.badgeCount}>{unreadCount}</div>}
-        </div>
+            <Bell size={19} className={styles.bellIcon} />
+            {unreadCount > 0 && <span className={styles.badgeCount}>{unreadCount}</span>}
+        </button>
 
         {/* 3. HOLO-DROPDOWN */}
         {isOpen && (
             <div className={styles.dropdown}>
                 {/* Header */}
                 <div className={styles.header}>
-                    <span className={styles.title}>SYSTEM LOGS</span>
+                    <span className={styles.title}>Notifications</span>
                     {notifications.length > 0 && (
-                        <button onClick={clearAll} className={styles.clearBtn}>PURGE DATA</button>
+                        <button type="button" onClick={clearAll} className={styles.clearBtn}>Tout effacer</button>
                     )}
                 </div>
 
@@ -143,8 +147,8 @@ export default function NotificationCenter() {
                 <div className={styles.list}>
                     {notifications.length === 0 ? (
                         <div className={styles.emptyState}>
-                            [ NO NEW SIGNALS ]<br/>
-                            <span style={{opacity: 0.5, fontSize: "0.7rem"}}>System monitoring active...</span>
+                            <b>Aucune notification</b>
+                            <span>Vous serez prévenu ici en temps réel.</span>
                         </div>
                     ) : (
                         notifications.map(notif => (

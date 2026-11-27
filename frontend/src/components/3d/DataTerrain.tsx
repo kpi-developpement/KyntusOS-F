@@ -47,10 +47,10 @@ const WorldGizmo = () => (
         {/* Z: COMPLEXITY */}
         <mesh position={[0, 0.2, -6]}>
             <boxGeometry args={[0.1, 0.1, 12]} />
-            <meshBasicMaterial color="#00f2ea" />
+            <meshBasicMaterial color="#2563eb" />
         </mesh>
         <Billboard position={[0, 1, -13]}>
-            <Text fontSize={1} color="#00f2ea" fontWeight="bold">Z: COMPLEXITÉ</Text>
+            <Text fontSize={1} color="#2563eb" fontWeight="bold">Z: COMPLEXITÉ</Text>
         </Billboard>
     </group>
 );
@@ -79,7 +79,7 @@ const AxisGrid = () => {
             </mesh>
             {/* Pourcentage Text */}
             <Billboard position={[-4, 0, 0]}>
-              <Text fontSize={1.2} color="#00f2ea" fontWeight="900">
+              <Text fontSize={1.2} color="#2563eb" fontWeight="900">
                 {lvl * 100}%
               </Text>
             </Billboard>

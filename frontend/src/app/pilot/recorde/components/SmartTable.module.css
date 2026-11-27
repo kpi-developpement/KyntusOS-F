@@ -45,7 +45,7 @@
   gap: 11px;
   color: #0f1e3d;
   font-weight: 800;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--k-font-display);
   font-size: 1rem;
   letter-spacing: -0.01em;
 }
@@ -74,7 +74,7 @@
   border-radius: 999px;
   border: 1px solid rgba(56, 189, 248, 0.3);
   color: #047bb3;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--k-font-display);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -101,7 +101,7 @@
   border-radius: 9px;
   font-size: 0.8rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--k-font-display);
   border: 1px solid rgba(148, 163, 184, 0.3);
   font-variant-numeric: tabular-nums;
 }
@@ -122,7 +122,7 @@
 
 .scrollWrapper::-webkit-scrollbar { width: 7px; height: 7px; }
 .scrollWrapper::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.75); }
-.scrollWrapper::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 8px; }
+.scrollWrapper::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 12px; }
 .scrollWrapper::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
 
 .table {
@@ -140,7 +140,7 @@
   backdrop-filter: blur(10px);
   color: #047bb3;
   padding: 0.95rem 1.25rem;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--k-font-display);
   font-size: 0.74rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -162,7 +162,7 @@
   padding: 0.85rem 1.25rem;
   color: #0f1e3d;
   font-size: 0.85rem;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--k-font-display);
   white-space: nowrap;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   font-variant-numeric: tabular-nums;
@@ -179,7 +179,7 @@
   background: rgba(2, 132, 199, 0.2);
   border: 1px solid rgba(56, 189, 248, 0.3);
   padding: 5px 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -191,12 +191,12 @@
   box-shadow: 0 6px 14px rgba(2, 132, 199, 0.24);
 }
 
-.epsText { color: #047bb3; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 700; transition: color 0.15s ease; }
+.epsText { color: #047bb3; font-family: var(--k-font-mono); font-size: 0.82rem; font-weight: 700; transition: color 0.15s ease; }
 .epsIcon { color: #067db1; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease; }
 .epsInteractive:hover .epsText, .epsInteractive:hover .epsIcon { color: #0f1e3d; }
 .epsInteractive:hover .epsIcon { transform: rotate(90deg); }
 
-.dateCell { color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+.dateCell { color: #64748b; font-family: var(--k-font-mono); font-size: 0.78rem; }
 .clockIcon { display: inline; margin-right: 6px; margin-bottom: -2px; color: #0a7bad; transition: transform 0.2s ease; }
 .tr:hover .clockIcon { transform: scale(1.15); }
 .commentaire { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #475569; font-size: 0.84rem; transition: color 0.15s ease; }
@@ -208,7 +208,7 @@
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 700;
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--k-font-display);
   letter-spacing: 0.03em;
   display: inline-flex;
   align-items: center;
@@ -255,11 +255,11 @@
 /* LOADING & EMPTY STATE */
 .loadingContainer, .emptyContainer { padding: 5rem 2rem; text-align: center; background: transparent; display: flex; flex-direction: column; align-items: center; }
 .loaderWrapper { position: relative; width: 64px; height: 64px; display: flex; justify-content: center; align-items: center; }
-.hexCenter { position: absolute; width: 12px; height: 12px; border-radius: 3px; background: #38bdf8; animation: pulse-hex 1.5s infinite alternate; }
+.hexCenter { position: absolute; width: 12px; height: 12px; border-radius: 6px; background: #38bdf8; animation: pulse-hex 1.5s infinite alternate; }
 .spinner { color: #0284c7; animation: spin 1.2s linear infinite; width: 48px; height: 48px; }
-.loadingText { color: #047bb3; margin-top: 1rem; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em; }
+.loadingText { color: #047bb3; margin-top: 1rem; font-family: var(--k-font-display); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.08em; }
 .emptyIcon { color: #0284c7; margin-bottom: 1rem; opacity: 0.85; }
-.emptyTitle { color: #0f1e3d; font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 6px; }
-.emptySub { color: #475569; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; }
+.emptyTitle { color: #0f1e3d; font-family: var(--k-font-display); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 6px; }
+.emptySub { color: #475569; font-family: var(--k-font-display); font-size: 0.85rem; font-weight: 500; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 @keyframes pulse-hex { 0% { transform: scale(0.85) rotate(0deg); opacity: 0.7; } 100% { transform: scale(1.15) rotate(45deg); opacity: 1; } }

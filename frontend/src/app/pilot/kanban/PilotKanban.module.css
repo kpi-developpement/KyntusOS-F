@@ -34,7 +34,7 @@
 }
 .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c); }
 .card:hover { box-shadow: 0 16px 30px -16px color-mix(in srgb, var(--c) 55%, transparent); border-color: color-mix(in srgb, var(--c) 35%, transparent); }
-.eps { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.76rem; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); }
+.eps { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 12px; font-family: var(--k-font-mono); font-size: 0.76rem; font-weight: 700; color: var(--c); background: color-mix(in srgb, var(--c) 9%, #fff); }
 .data { display: flex; flex-direction: column; gap: 4px; }
 .data div { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; }
 .data dt { color: var(--k-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -48,7 +48,7 @@
 .actions button:hover:not(:disabled) { background: var(--c); color: #fff; transform: scale(1.08); }
 .actions button:disabled { opacity: 0.3; cursor: not-allowed; }
 .actions button:focus-visible { outline: 2px solid var(--k-blue-600); outline-offset: 2px; }
-.track { flex: 1; height: 3px; border-radius: 3px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 40%, transparent), transparent); }
+.track { flex: 1; height: 3px; border-radius: 6px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 40%, transparent), transparent); }
 
 @media (max-width: 760px) { .mission { width: 100%; } .headerTools { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .column { animation: none; } .pulse { animation: none; } }

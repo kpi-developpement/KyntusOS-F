@@ -58,7 +58,7 @@ const BadgeVersions = ({ n, onClick }: { n: number; onClick?: () => void }) => {
         background: `${c}12`,
         borderColor: `${c}40`,
         cursor: onClick ? "pointer" : "default",
-        fontFamily: "'JetBrains Mono', monospace",
+        fontFamily: "var(--k-font-mono)",
       }}
     >
       <GitCommit size={11} /> V{n}
@@ -149,7 +149,7 @@ const BandeauIntrouvables = ({
                 border: "1px solid #fde68a",
                 color: "#b45309",
                 fontSize: "0.73rem",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--k-font-mono)",
                 fontWeight: 800,
               }}
             >
@@ -1318,8 +1318,8 @@ export default function BytelApiPage() {
                     color: "#0f2557",
                     margin: 0,
                     fontSize: "1.34rem",
-                    fontWeight: 900,
-                    letterSpacing: "-0.025em",
+                    fontWeight: 700,
+                    letterSpacing: "-0.03em",
                   }}
                 >
                   KYNTUS <span style={{ color: "#2563eb" }}>NEXUS</span>{" "}
@@ -1378,7 +1378,7 @@ export default function BytelApiPage() {
                     background: "#eff6ff",
                     border: "1px solid #bfdbfe",
                     padding: "1px 8px",
-                    borderRadius: 6,
+                    borderRadius: 10,
                     fontWeight: 800,
                   }}
                 >
@@ -1914,7 +1914,7 @@ export default function BytelApiPage() {
                 >
                   <span className="nx-dot" style={{ background: c }} />
                   <span>{k}</span> · <strong style={{ color: "#0f2557" }}>{v.nb}</strong> ·{" "}
-                  <span style={{ color: "#2563eb", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <span style={{ color: "#2563eb", fontFamily: "var(--k-font-mono)" }}>
                     {fmtMontant(v.montant)}
                   </span>
                 </div>
@@ -2187,7 +2187,7 @@ export default function BytelApiPage() {
                           color: "#647a9e",
                           fontSize: "0.72rem",
                           whiteSpace: "nowrap",
-                          fontFamily: "'JetBrains Mono', monospace",
+                          fontFamily: "var(--k-font-mono)",
                           fontWeight: 600,
                         }}
                       >
@@ -2462,7 +2462,7 @@ export default function BytelApiPage() {
                                       fontWeight: 800,
                                       background: "#dbeafe",
                                       padding: "2px 8px",
-                                      borderRadius: 6,
+                                      borderRadius: 10,
                                     }}
                                   >
                                     {g.periode}
@@ -2478,7 +2478,7 @@ export default function BytelApiPage() {
                                       fontSize: "0.72rem",
                                       fontWeight: 700,
                                       marginLeft: "auto",
-                                      fontFamily: "'JetBrains Mono', monospace",
+                                      fontFamily: "var(--k-font-mono)",
                                     }}
                                   >
                                     {fmtDate(g.premiereDate)} → {fmtDate(g.derniereDate)}
@@ -2503,7 +2503,7 @@ export default function BytelApiPage() {
                                       fontWeight: 900,
                                       fontSize: "0.72rem",
                                       color: courante ? "#059669" : "#647a9e",
-                                      fontFamily: "'JetBrains Mono', monospace",
+                                      fontFamily: "var(--k-font-mono)",
                                     }}
                                   >
                                     {i + 1}/{n}
@@ -2513,7 +2513,7 @@ export default function BytelApiPage() {
                                       color: "#334e7b",
                                       whiteSpace: "nowrap",
                                       fontSize: "0.74rem",
-                                      fontFamily: "'JetBrains Mono', monospace",
+                                      fontFamily: "var(--k-font-mono)",
                                     }}
                                   >
                                     {fmtDate(v.dateQualification)}
@@ -2658,7 +2658,7 @@ export default function BytelApiPage() {
                                 color: "#334e7b",
                                 whiteSpace: "nowrap",
                                 fontSize: "0.74rem",
-                                fontFamily: "'JetBrains Mono', monospace",
+                                fontFamily: "var(--k-font-mono)",
                               }}
                             >
                               {fmtDate(v.dateQualification)}
@@ -2826,7 +2826,7 @@ export default function BytelApiPage() {
                           color: "#334e7b",
                           whiteSpace: "nowrap",
                           fontSize: "0.74rem",
-                          fontFamily: "'JetBrains Mono', monospace",
+                          fontFamily: "var(--k-font-mono)",
                         }}
                       >
                         {fmtDate(a.actionAt)}
@@ -2843,7 +2843,7 @@ export default function BytelApiPage() {
                         style={{
                           color: "#647a9e",
                           fontSize: "0.68rem",
-                          fontFamily: "monospace",
+                          fontFamily: "var(--k-font-mono)",
                         }}
                         title={a.qualificationId}
                       >
@@ -2996,7 +2996,7 @@ export default function BytelApiPage() {
         titre={
           <>
             {actionType} ·{" "}
-            <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <span style={{ fontFamily: "var(--k-font-mono)" }}>
               {cible?.idIntervention}
             </span>
           </>
@@ -3135,7 +3135,7 @@ export default function BytelApiPage() {
                 <div
                   style={{
                     color: "#93c5fd",
-                    fontFamily: "monospace",
+                    fontFamily: "var(--k-font-mono)",
                     fontSize: "0.7rem",
                     marginBottom: 7,
                     wordBreak: "break-all",
@@ -3148,7 +3148,7 @@ export default function BytelApiPage() {
                     margin: 0,
                     color: "#e0f2fe",
                     fontSize: "0.72rem",
-                    fontFamily: "monospace",
+                    fontFamily: "var(--k-font-mono)",
                     whiteSpace: "pre-wrap",
                   }}
                 >
@@ -3254,7 +3254,7 @@ export default function BytelApiPage() {
                       color: "#dc2626",
                       fontSize: "0.72rem",
                       marginBottom: 3,
-                      fontFamily: "monospace",
+                      fontFamily: "var(--k-font-mono)",
                     }}
                   >
                     {String(d.qualificationId).slice(0, 8)} : {d.message || d.erreur}
@@ -3786,7 +3786,7 @@ export default function BytelApiPage() {
                                 color: "#647a9e",
                                 fontSize: "0.72rem",
                                 whiteSpace: "nowrap",
-                                fontFamily: "'JetBrains Mono', monospace",
+                                fontFamily: "var(--k-font-mono)",
                               }}
                             >
                               {fmtDate(r.dateQualification)}
@@ -3890,7 +3890,7 @@ export default function BytelApiPage() {
             </div>
             <div className="nx-label" style={{ marginBottom: 7 }}>
               Tapez{" "}
-              <span style={{ color: "#dc2626", fontFamily: "monospace" }}>{periode}</span> pour
+              <span style={{ color: "#dc2626", fontFamily: "var(--k-font-mono)" }}>{periode}</span> pour
               confirmer
             </div>
             <input
@@ -3898,7 +3898,7 @@ export default function BytelApiPage() {
               value={purgeSaisie}
               onChange={(e) => setPurgeSaisie(e.target.value)}
               placeholder={periode}
-              style={{ width: "100%", fontFamily: "monospace", background: "#ffffff" }}
+              style={{ width: "100%", fontFamily: "var(--k-font-mono)", background: "#ffffff" }}
               autoFocus
             />
           </>

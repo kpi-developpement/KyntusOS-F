@@ -1,136 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FileDown, Database, CheckCircle, AlertTriangle, DownloadCloud } from "lucide-react";
-import styles from "./Export.module.css";
+import { useEffect, useState } from "react";
+import { FileDown, DownloadCloud, Loader2, ShieldCheck } from "lucide-react";
 import LuxSelect from "@/components/ui/LuxSelect";
-import InteractiveBackground from "@/components/ui/InteractiveBackground";
 import { toast } from "@/components/ui/Toaster";
+import { KxHeader, KxAlert } from "@/components/kx";
+import styles from "./Export.module.css";
+
+type Template = { id: number; name: string };
 
 export default function ExportPage() {
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 1. Fetch Templates
   useEffect(() => {
     fetch("/api/templates")
-      .then(res => res.json())
-      .then(data => setTemplates(data || []))
-      .catch(() => toast({ message: "Erreur chargement templates", type: "error" }));
+      .then((r) => r.json())
+      .then((d) => setTemplates(Array.isArray(d) ? d : []))
+      .catch(() => toast({ message: "Impossible de charger les projets", type: "error" }));
   }, []);
 
-  // 2. Logic d'Exportation
   const handleExport = async () => {
-    if (!selectedTemplate) {
-      toast({ message: "Veuillez sélectionner une source de données", type: "error" });
-      return;
-    }
-
+    if (!selectedTemplate) return;
     setLoading(true);
-    toast({ message: "GÉNÉRATION DU FICHIER EN COURS...", type: "info" });
-
     try {
-      // Appel Backend
-      const res = await fetch(`/api/export/${selectedTemplate}`, {
-        method: "GET",
-      });
-
+      const res = await fetch(`/api/export/${selectedTemplate}`);
       if (res.ok) {
-        // A. Convertir la réponse en Blob (Fichier)
         const blob = await res.blob();
-        
-        // B. Créer un URL temporaire pour ce blob
         const url = window.URL.createObjectURL(blob);
-        
-        // C. Créer un lien <a> invisible
         const a = document.createElement("a");
+        const name = templates.find((t) => t.id.toString() === selectedTemplate)?.name || "Export";
         a.href = url;
-        
-        // D. Générer le nom du fichier (avec date)
-        const tmplName = templates.find(t => t.id.toString() === selectedTemplate)?.name || "Export";
-        const date = new Date().toISOString().split('T')[0];
-        a.download = `Kyntus_Export_${tmplName}_${date}.xlsx`;
-        
-        // E. Simuler le clic
+        a.download = `Kyntus_Export_${name}_${new Date().toISOString().split("T")[0]}.xlsx`;
         document.body.appendChild(a);
         a.click();
-        
-        // F. Nettoyage
         a.remove();
         window.URL.revokeObjectURL(url);
-
-        toast({ message: "EXPORTATION TERMINÉE ✅", type: "success" });
+        toast({ message: "Export terminé, fichier téléchargé", type: "success" });
       } else {
-        // Si le backend renvoie une erreur (ex: pas de données)
-        const errorText = await res.text(); // Probablement le message JSON
-        try {
-            const jsonError = JSON.parse(errorText);
-            toast({ message: `ERREUR: ${jsonError.message || "Echec Export"}`, type: "error" });
-        } catch {
-            toast({ message: "AUCUNE DONNÉE VALIDÉE À EXPORTER", type: "error" });
-        }
+        const t = await res.text();
+        let msg = "Aucune tâche validée à exporter pour ce projet.";
+        try { const j = JSON.parse(t); if (j?.message) msg = j.message; } catch { /* texte brut */ }
+        toast({ message: msg, type: "error" });
       }
-    } catch (err) {
-      console.error(err);
-      toast({ message: "ERREUR CONNEXION SERVEUR", type: "error" });
+    } catch {
+      toast({ message: "Serveur injoignable", type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  const tmplOptions = templates.map(t => ({ value: t.id.toString(), label: t.name.toUpperCase() }));
+  const options = templates.map((t) => ({ value: t.id.toString(), label: t.name }));
 
   return (
-    <div className={styles.container}>
-      <InteractiveBackground />
-
-      <div className={styles.exportCard}>
-        {/* Décoration de fond */}
-        <div className={styles.gridOverlay}></div>
-
-        <div className={styles.header}>
-          <h1 className={styles.title}>DATA EXTRACTION</h1>
-          <span className={styles.subtitle}>// SECURE EXCEL GATEWAY</span>
-        </div>
-
-        {/* SELECTEUR */}
-        <div className={styles.inputGroup}>
-          <LuxSelect 
-            label="SOURCE DE DONNÉES (TEMPLATE)" 
-            options={tmplOptions} 
-            value={selectedTemplate} 
-            onChange={setSelectedTemplate}
-            placeholder="SÉLECTIONNER UN FLUX..." 
-          />
-        </div>
-
-        {/* INFO BOX */}
-        <div className={styles.infoBox}>
-          <Database size={18} color="#2563eb" />
-          <span>
-            Seules les tâches avec le statut <strong style={{color:"#059669"}}>VALIDÉ</strong> seront incluses dans ce rapport.
-          </span>
-        </div>
-
-        {/* BOUTON ACTION */}
-        <button 
-          className={styles.exportBtn} 
-          onClick={handleExport}
-          disabled={loading}
-        >
-          {loading ? (
-            <span style={{display:"flex", alignItems:"center", justifyContent:"center", gap:10}}>
-                <span className="spin">⟳</span> GÉNÉRATION...
-            </span>
-          ) : (
-            <span style={{display:"flex", alignItems:"center", justifyContent:"center", gap:10}}>
-                <DownloadCloud size={24} /> TÉLÉCHARGER LE FICHIER
-            </span>
-          )}
+    <main className="kx-page" style={{ maxWidth: 760 }}>
+      <KxHeader
+        icon={FileDown}
+        eyebrow="Données"
+        title={<>Extraction <em>Excel</em></>}
+        subtitle="Téléchargez toutes les tâches validées d'un projet dans un fichier Excel."
+      />
+      <section className={styles.card}>
+        <label className={styles.field}>
+          <span>Projet à exporter</span>
+          <LuxSelect options={options} value={selectedTemplate} onChange={setSelectedTemplate} placeholder="Choisir un projet" />
+        </label>
+        <KxAlert tone="info" icon={<ShieldCheck size={18} />}>
+          Seules les tâches au statut <b>Validé</b> sont incluses dans le fichier.
+        </KxAlert>
+        <button type="button" className="kx-btn kx-btn-lg" onClick={handleExport} disabled={!selectedTemplate || loading}>
+          {loading ? <Loader2 size={18} className="kx-spin" /> : <DownloadCloud size={18} />}
+          {loading ? "Génération du fichier…" : "Télécharger le fichier"}
         </button>
-
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

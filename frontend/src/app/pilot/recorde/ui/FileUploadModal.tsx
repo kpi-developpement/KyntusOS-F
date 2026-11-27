@@ -359,7 +359,7 @@ export default function FileUploadModal({
           maxHeight: "92vh",
           display: "flex",
           flexDirection: "column",
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+          fontFamily: "var(--k-font-display)",
           animation: "uploadModalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards"
         }}
       >
@@ -382,7 +382,7 @@ export default function FileUploadModal({
               border: "1px solid #cbd5e1",
               color: "#475569",
               padding: "6px",
-              borderRadius: "8px",
+              borderRadius: "12px",
               cursor: isUploading ? "not-allowed" : "pointer",
               opacity: isUploading ? 0.5 : 1,
               transition: "all 0.15s ease"
@@ -417,7 +417,7 @@ export default function FileUploadModal({
                 {!isUploading && (
                   <button
                     onClick={() => { setBatchResults([]); setUploadStats({ current: 0, total: 0, percentage: 0 }); }}
-                    style={{ background: "#e2e8f0", border: "none", color: "#334155", padding: "3px 9px", borderRadius: "6px", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer" }}
+                    style={{ background: "#e2e8f0", border: "none", color: "#334155", padding: "3px 9px", borderRadius: "10px", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer" }}
                   >
                     Effacer ce résumé
                   </button>
@@ -445,7 +445,7 @@ export default function FileUploadModal({
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                      <span style={{ color: "#0f172a", fontFamily: "monospace", fontSize: "0.8rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ color: "#0f172a", fontFamily: "var(--k-font-mono)", fontSize: "0.8rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {res.filename}
                       </span>
                       {renderStatusBadge(res.status)}
@@ -459,7 +459,7 @@ export default function FileUploadModal({
                           <span style={{ color: '#15803d' }}>Nouvelles: <strong>+{res.insertedRows || 0}</strong></span>
                           <span style={{ color: '#b45309' }}>Doublons: <strong>{res.duplicateRows || 0}</strong></span>
                           {res.routedMonths && (
-                            <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '5px', fontWeight: 700 }}>
+                            <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '10px', fontWeight: 700 }}>
                               → {res.routedMonths}
                             </span>
                           )}
@@ -507,7 +507,7 @@ export default function FileUploadModal({
                   <div className="clean-scroll" style={{ maxHeight: "105px", overflowY: "auto", textAlign: "left", background: "#ffffff", padding: "8px 10px", borderRadius: "10px", border: "1px solid #dbeafe" }}>
                     {files.map((f, i) => (
                       <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9", padding: "5px 4px" }}>
-                        <span style={{ color: "#0f172a", fontFamily: "monospace", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "85%" }}>
+                        <span style={{ color: "#0f172a", fontFamily: "var(--k-font-mono)", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "85%" }}>
                           {f.name}
                         </span>
                         <X size={15} color="#dc2626" onClick={(e) => removeFile(e, i)} style={{ cursor: "pointer" }} />
@@ -572,7 +572,7 @@ export default function FileUploadModal({
                     style={{
                       padding: "8px 10px",
                       marginBottom: "5px",
-                      borderRadius: "8px",
+                      borderRadius: "12px",
                       backgroundColor: "#ffffff",
                       border: `1px solid ${log.status === 'ERROR' ? '#fb1e1e' : log.status === 'DUPLICATE_ONLY' ? '#fbcf1d' : '#e2e8f0'}`,
                       display: "flex",
@@ -581,7 +581,7 @@ export default function FileUploadModal({
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-                      <span style={{ color: "#0f172a", fontFamily: "monospace", fontSize: "0.78rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ color: "#0f172a", fontFamily: "var(--k-font-mono)", fontSize: "0.78rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {log.filename}
                       </span>
                       {renderStatusBadge(log.status)}
@@ -596,14 +596,14 @@ export default function FileUploadModal({
                             <span style={{ color: "#15803d" }}>+<strong>{log.insertedRows ?? 0}</strong> new</span>
                             <span style={{ color: "#b45309" }}><strong>{log.duplicateRows ?? 0}</strong> dup</span>
                             {log.routedMonths && (
-                              <span style={{ backgroundColor: "#e0f2fe", color: "#0369a1", padding: "1px 6px", borderRadius: "4px", fontWeight: 700 }}>
+                              <span style={{ backgroundColor: "#e0f2fe", color: "#0369a1", padding: "1px 6px", borderRadius: "8px", fontWeight: 700 }}>
                                 → {log.routedMonths}
                               </span>
                             )}
                           </>
                         )}
                       </div>
-                      <span style={{ fontFamily: "monospace", fontSize: "0.7rem" }}>
+                      <span style={{ fontFamily: "var(--k-font-mono)", fontSize: "0.7rem" }}>
                         {log.importedAt ? new Date(log.importedAt).toLocaleString() : ""}
                       </span>
                     </div>
@@ -630,7 +630,7 @@ export default function FileUploadModal({
                     background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
                     color: "#0f1e3d",
                     border: "none",
-                    borderRadius: "8px",
+                    borderRadius: "12px",
                     padding: "0.38rem 0.85rem",
                     fontSize: "0.74rem",
                     fontWeight: 700,
@@ -670,10 +670,10 @@ export default function FileUploadModal({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        fontFamily: "monospace",
+                        fontFamily: "var(--k-font-mono)",
                         cursor: "grab",
                         backgroundColor: draggedImportedIndex === idx ? "#eff6ff" : "#ffffff",
-                        borderRadius: "8px",
+                        borderRadius: "12px",
                         transition: "all 0.15s ease"
                       }}
                     >

@@ -66,13 +66,12 @@
 }
 
 .title {
-  font-family: 'Inter', sans-serif;
-  font-weight: 900;
+  font-family: var(--k-font-display);
+  font-weight: 700;
   font-size: 1.5rem;
-  letter-spacing: 5px;
+  letter-spacing: -0.03em;
   color: white;
   margin-bottom: 10px;
-  text-transform: uppercase;
   background: linear-gradient(120deg, #1d4ed8, #0ea5e9);
   -webkit-background-clip: text;
   background-clip: text;
@@ -82,10 +81,10 @@
 }
 
 .status {
-  font-family: monospace;
+  font-family: var(--k-font-mono);
   color: #666;
   font-size: 0.8rem;
-  letter-spacing: 2px;
+  letter-spacing: 0.06em;
 }
 
 /* La ligne de scan qui parcourt l'écran */

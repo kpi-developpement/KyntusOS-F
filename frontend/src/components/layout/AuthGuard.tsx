@@ -12,6 +12,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // 1. Pages publiques
     if (pathname === "/login") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- garde d'authentification au changement de route
       setAuthorized(true);
       return;
     }

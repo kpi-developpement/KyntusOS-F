@@ -420,7 +420,7 @@ export default function PilotRecordsPage() {
         minHeight: "100%", 
         position: "relative", 
         color: "#0f1e3d",
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        fontFamily: "var(--k-font-display)"
       }}
     >
 
@@ -485,7 +485,7 @@ export default function PilotRecordsPage() {
           background-color: rgba(255, 255, 255, 0.85);
           color: #0f1e3d;
           border: 1px solid rgba(148, 163, 184, 0.3);
-          font-family: 'Inter', -apple-system, sans-serif;
+          font-family: var(--k-font-display);
           font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
@@ -587,7 +587,7 @@ export default function PilotRecordsPage() {
           color: #0f1e3d;
           padding: 0.55rem 0.85rem;
           border-radius: 10px;
-          font-family: 'Inter', -apple-system, sans-serif;
+          font-family: var(--k-font-display);
           font-size: 0.875rem;
           font-weight: 500;
           outline: none;
@@ -612,7 +612,7 @@ export default function PilotRecordsPage() {
           color: #0f1e3d;
           padding: 0.9rem 1rem;
           border-radius: 12px;
-          font-family: 'JetBrains Mono', 'Fira Code', monospace;
+          font-family: var(--k-font-mono);
           font-size: 0.85rem;
           line-height: 1.5;
           outline: none;
@@ -627,8 +627,8 @@ export default function PilotRecordsPage() {
         }
 
         .clean-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .clean-scroll::-webkit-scrollbar-track { background-color: rgba(255, 255, 255, 0.75); border-radius: 6px; }
-        .clean-scroll::-webkit-scrollbar-thumb { background-color: rgba(56, 189, 248, 0.3); border-radius: 6px; }
+        .clean-scroll::-webkit-scrollbar-track { background-color: rgba(255, 255, 255, 0.75); border-radius: 10px; }
+        .clean-scroll::-webkit-scrollbar-thumb { background-color: rgba(56, 189, 248, 0.3); border-radius: 10px; }
         .clean-scroll::-webkit-scrollbar-thumb:hover { background-color: #38bdf8; }
 
         .modal-backdrop-anim { animation: modalBackdropIn 0.22s ease forwards; }
@@ -666,7 +666,7 @@ export default function PilotRecordsPage() {
                 <button onClick={handleClearSecurityLogs} className="nexus-btn btn-danger-clean" style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Clear Logs</button>
               </div>
             </div>
-            <ul className="clean-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#b20606", fontFamily: "monospace", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
+            <ul className="clean-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#b20606", fontFamily: "var(--k-font-mono)", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
               {securityLogs.map((err, i) => (
                 <li key={i} style={{ marginBottom: "6px", paddingBottom: "6px", borderBottom: "1px dashed rgba(239, 68, 68, 0.2)" }}>{err}</li>
               ))}
@@ -726,7 +726,7 @@ export default function PilotRecordsPage() {
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <h1 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.38rem", fontWeight: 800, letterSpacing: "-0.025em" }}>
+                <h1 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.38rem", fontWeight: 700, letterSpacing: "-0.03em" }}>
                   KYNTUS <span style={{ color: "#067db1" }}>NEXUS</span>
                 </h1>
                 <span 
@@ -928,7 +928,7 @@ export default function PilotRecordsPage() {
                     <button onClick={handleExportValidationAlerts} disabled={isExportingAlerts} className="nexus-btn btn-danger-clean">
                       <DownloadCloud size={15} /> {isExportingAlerts ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#af0909", backgroundColor: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#af0909", backgroundColor: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "12px" }}>
                       {showValidationDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
@@ -944,9 +944,9 @@ export default function PilotRecordsPage() {
                             backgroundColor: "rgba(239, 68, 68, 0.1)", 
                             border: "1px solid rgba(239, 68, 68, 0.3)", 
                             padding: "4px 10px", 
-                            borderRadius: "6px", 
+                            borderRadius: "10px", 
                             fontSize: "0.78rem", 
-                            fontFamily: "monospace",
+                            fontFamily: "var(--k-font-mono)",
                             fontWeight: 700,
                             color: "#b20606", 
                             cursor: "pointer",
@@ -997,7 +997,7 @@ export default function PilotRecordsPage() {
                     <button onClick={handleExportCommentAlerts} disabled={isExportingComments} className="nexus-btn" style={{ borderColor: "rgba(245, 158, 11, 0.4)", color: "#0f1e3d", backgroundColor: "rgba(245, 158, 11, 0.1)" }}>
                       <DownloadCloud size={15} /> {isExportingComments ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#b48303", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#b48303", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "12px" }}>
                       {showCommentDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
@@ -1013,9 +1013,9 @@ export default function PilotRecordsPage() {
                             backgroundColor: "rgba(245, 158, 11, 0.1)", 
                             border: "1px solid rgba(245, 158, 11, 0.3)", 
                             padding: "4px 10px", 
-                            borderRadius: "6px", 
+                            borderRadius: "10px", 
                             fontSize: "0.78rem", 
-                            fontFamily: "monospace",
+                            fontFamily: "var(--k-font-mono)",
                             fontWeight: 700,
                             color: "#0f1e3d", 
                             cursor: "pointer",
@@ -1232,14 +1232,14 @@ export default function PilotRecordsPage() {
                               backgroundColor: isLatest ? "#0284c7" : "rgba(2, 132, 199, 0.2)", 
                               color: isLatest ? "#0f1e3d" : "#047bb3", 
                               padding: "4px 12px", 
-                              borderRadius: "6px", 
+                              borderRadius: "10px", 
                               fontSize: "0.78rem", 
                               fontWeight: 800 
                             }}
                           >
                             {item.version} {isLatest ? "• LATEST" : ""}
                           </span>
-                          <span style={{ color: "#475569", fontSize: "0.78rem", fontFamily: "monospace", fontWeight: 600 }}>
+                          <span style={{ color: "#475569", fontSize: "0.78rem", fontFamily: "var(--k-font-mono)", fontWeight: 600 }}>
                             {new Date(item.importedAt).toLocaleString()}
                           </span>
                         </div>
@@ -1247,12 +1247,12 @@ export default function PilotRecordsPage() {
                           style={{ 
                             backgroundColor: "rgba(255, 255, 255, 0.85)", 
                             padding: "12px", 
-                            borderRadius: "8px", 
+                            borderRadius: "12px", 
                             color: "#0f1e3d", 
                             fontSize: "0.86rem", 
                             border: "1px solid rgba(148, 163, 184, 0.2)",
                             borderLeft: `3px solid ${isLatest ? "#21b5f7" : "#475569"}`,
-                            fontFamily: "'Inter', sans-serif" 
+                            fontFamily: "var(--k-font-display)" 
                           }}
                         >
                           {item.commentaire || <span style={{ color: "#64748b", fontStyle: "italic" }}>No comment recorded for this version.</span>}
@@ -1281,7 +1281,7 @@ export default function PilotRecordsPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(255, 255, 255, 0.65)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(148, 163, 184, 0.15)", flexWrap: "wrap" }}>
-              <span style={{ color: "#047bb3", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(2, 132, 199, 0.2)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+              <span style={{ color: "#047bb3", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(2, 132, 199, 0.2)", padding: "5px 10px", borderRadius: "12px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
                 SECTOR: {globalCategory}
               </span>
               <CyberSelect width="145px" value={trackYear} options={trackYearOptions} onChange={setTrackYear} variant="sky" />
@@ -1329,7 +1329,7 @@ export default function PilotRecordsPage() {
             </div>
 
             <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(255, 255, 255, 0.65)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(148, 163, 184, 0.15)", flexWrap: "wrap" }}>
-              <span style={{ color: "#047bb3", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(2, 132, 199, 0.2)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+              <span style={{ color: "#047bb3", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(2, 132, 199, 0.2)", padding: "5px 10px", borderRadius: "12px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
                 SECTOR: {globalCategory}
               </span>
               <CyberSelect width="160px" value={teamYear} options={trackYearOptions} onChange={setTeamYear} variant="matrix" />

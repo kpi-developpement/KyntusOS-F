@@ -2,85 +2,104 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Terminal, Cpu, ShieldCheck } from "lucide-react";
-import HeroScene from "@/components/3d/HeroScene"; 
-import styles from "./Portal.module.css";
+import { motion } from "framer-motion";
+import {
+  ArrowRight, Terminal, LayoutGrid, Target, Radio, ScanSearch, UsersRound, Map, type LucideIcon,
+} from "lucide-react";
 import AuthGuard from "@/components/layout/AuthGuard";
+import styles from "./Portal.module.css";
+
+const SHORTCUTS: { href: string; label: string; desc: string; icon: LucideIcon }[] = [
+  { href: "/admin/tasks", label: "Dispatch", desc: "Répartir les tâches", icon: Target },
+  { href: "/admin/live-board", label: "Live monitor", desc: "Suivre les pilotes", icon: Radio },
+  { href: "/admin/check", label: "Inspecteur", desc: "Retrouver un EPS", icon: ScanSearch },
+  { href: "/admin/strategic", label: "Carte stratégique", desc: "Vue d'ensemble", icon: Map },
+  { href: "/admin/stats", label: "Équipe", desc: "Classement et charge", icon: UsersRound },
+];
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir";
+}
 
 export default function PortalPage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [exiting, setExiting] = useState(false);
-  
-  // STATE NOUVEAU: Wach l'souris fou9 l'bouton?
-  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [name, setName] = useState("");
+  const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    try {
+      const u = JSON.parse(localStorage.getItem("kyntus_user") || "null");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique au montage
+      if (u?.username) setName(u.username);
+    } catch { /* stockage indisponible */ }
   }, []);
 
-  const enterSystem = () => {
-    setExiting(true);
-    setTimeout(() => {
-        router.push("/");
-    }, 800);
+  const go = (href: string) => {
+    setLeaving(true);
+    setTimeout(() => router.push(href), 380);
   };
 
   return (
     <AuthGuard>
-        <div className={`${styles.container} ${exiting ? styles.zoomOut : ''}`}>
-            
-            {/* LAYER 1: 3D WORLD (On passe le state ici) */}
-            <div className={styles.sceneWrapper}>
-                {mounted && <HeroScene isHovered={isButtonHovered} />}
-            </div>
+      <motion.main
+        className={styles.page}
+        animate={{ opacity: leaving ? 0 : 1, scale: leaving ? 0.985 : 1 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <header className={styles.top}>
+          <span className={styles.brand}>
+            <span className={styles.mark}><Terminal size={17} strokeWidth={2.6} /></span>
+            Kyntus<b>OS</b>
+          </span>
+          <span className={styles.status}><i /> Connexion sécurisée</span>
+        </header>
 
-            {/* LAYER 2: UI OVERLAY */}
-            <div className={styles.uiLayer}>
-                
-                {/* HEADER */}
-                <div className={styles.topBar}>
-                    <div className={styles.statusBadge}>
-                        <div className={styles.greenDot}></div>
-                        SECURE CONNECTION ESTABLISHED
-                    </div>
-                    <div className={styles.codeRun}>
-                        ID: ADMIN_ROOT // ACCESS: UNLIMITED
-                    </div>
-                </div>
+        <section className={styles.hero}>
+          <motion.span className={styles.eyebrow} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            Espace administrateur
+          </motion.span>
+          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}>
+            {greeting()}{name ? `, ${name}` : ""}.<br />
+            Tout est <em>prêt</em>.
+          </motion.h1>
+          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}>
+            Ouvrez le centre de commande ou allez directement à l&apos;outil dont vous avez besoin.
+          </motion.p>
+          <motion.button
+            type="button"
+            className={styles.cta}
+            onClick={() => go("/")}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            autoFocus
+          >
+            <LayoutGrid size={18} /> Ouvrir le centre de commande <ArrowRight size={18} className={styles.ctaArrow} />
+          </motion.button>
+        </section>
 
-                {/* CENTER ACTION */}
-                <div className={styles.centerContent}>
-                    
-                    <button 
-                        className={styles.crazyBtn} 
-                        onClick={enterSystem}
-                        // DETECTION DU HOVER
-                        onMouseEnter={() => setIsButtonHovered(true)}
-                        onMouseLeave={() => setIsButtonHovered(false)}
-                    >
-                        <span className={styles.btnContent}>
-                            ACCÉDER AU CENTRE <ArrowRight className={styles.arrowAnim} />
-                        </span>
-                        <div className={styles.btnGlow}></div>
-                        <div className={styles.btnBorder}></div>
-                    </button>
-                    
-                    <div className={styles.warningText}>
-                        <Terminal size={12} style={{display:'inline', marginRight:5}}/>
-                        AUTHORIZED PERSONNEL ONLY // CLASSIFIED LEVEL 5
-                    </div>
-                </div>
-
-                {/* FOOTER */}
-                <div className={styles.footer}>
-                    <div className={styles.techStack}>
-                        <Cpu size={14} /> KYNTUS NEURAL CORE v4.0 <span style={{margin:'0 10px'}}>|</span> <ShieldCheck size={14} /> SYSTEM INTEGRITY: 100%
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        <section className={styles.grid} aria-label="Accès rapides">
+          {SHORTCUTS.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.button
+                key={s.href}
+                type="button"
+                className={styles.tile}
+                onClick={() => go(s.href)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.26 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <span className={styles.tileIcon}><Icon size={20} /></span>
+                <span className={styles.tileText}><b>{s.label}</b><small>{s.desc}</small></span>
+                <ArrowRight size={16} className={styles.tileArrow} />
+              </motion.button>
+            );
+          })}
+        </section>
+      </motion.main>
     </AuthGuard>
   );
 }

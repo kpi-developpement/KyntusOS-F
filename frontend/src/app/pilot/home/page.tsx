@@ -91,7 +91,7 @@ export default function PilotHomePage() {
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandMark}><Terminal size={18} strokeWidth={2.6} /></span>
-          <span className={styles.brandText}>KYNTUS<span>OS</span></span>
+          <span className={styles.brandText}>Kyntus<span>OS</span></span>
         </div>
         <div className={styles.topRight}>
           {now && (
