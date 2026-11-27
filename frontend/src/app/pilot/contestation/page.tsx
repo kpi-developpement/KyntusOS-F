@@ -17,6 +17,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import styles from "./Contestation.module.css";
+import { KxHeader } from "@/components/kx";
 
 // Proxy /api de Next.js (rewrites -> backend)
 const BACKEND_URL = "/api/contestation/generate";
@@ -241,22 +242,18 @@ export default function ContestationPage() {
   ];
 
   return (
-    <main className={styles.page}>
-      {/* HEADER */}
-      <header className={styles.header}>
-        <div className={styles.headerIcon}>
-          <Scale size={26} strokeWidth={2.2} />
-        </div>
-        <div className={styles.headerText}>
-          <h1>Contestation</h1>
-          <p>Croise le Global Bytel, la facture et le contrôle CA, puis génère le fichier de contestation.</p>
-        </div>
-        {(loaded > 0 || blob) && (
-          <button type="button" className={styles.ghostBtn} onClick={reset} disabled={isProcessing}>
+    <main className={`kx-page ${styles.page}`}>
+      <KxHeader
+        icon={Scale}
+        eyebrow="Facturation"
+        title={<>Fichier de <em>contestation</em></>}
+        subtitle="Croise le Global Bytel, la facture et le contrôle CA, puis génère le fichier Excel de contestation."
+        actions={(loaded > 0 || blob) ? (
+          <button type="button" className="kx-btn kx-btn-ghost" onClick={reset} disabled={isProcessing}>
             <RotateCcw size={15} /> Recommencer
           </button>
-        )}
-      </header>
+        ) : undefined}
+      />
 
       {/* FILE SLOTS */}
       <section className={styles.slots} aria-label="Fichiers sources">

@@ -55,19 +55,19 @@
 }
 
 .titleMain {
-  font-size: 2.3rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: #0f172a;
-  margin: 0 0 6px 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+  color: var(--k-navy);
+  margin: 4px 0 8px 0;
 }
+.titleMain em { color: var(--k-blue-600); }
 
 .subtitle {
-  font-family: var(--k-font-mono);
-  color: #0369a1;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  color: var(--k-muted);
+  font-size: 0.95rem;
+  font-weight: 450;
 }
 
 /* --- SEARCH BAR CARD --- */

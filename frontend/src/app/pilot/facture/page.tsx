@@ -22,7 +22,6 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import QuantumDataGrid from "./ux/QuantumDataGrid";
 import HoloSpreadsheet from "./components/HoloSpreadsheet";
 
 type FactureType = "KYNTUS" | "TISSEO";
@@ -264,7 +263,8 @@ export default function FacturePage() {
         .fx-logo { width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; color: #fff;
           background: linear-gradient(140deg, var(--b-500), var(--b-800)); box-shadow: 0 16px 30px -12px rgba(29,78,216,.75); }
         .fx-kicker { display:inline-block; font-size:.64rem; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color: var(--b-600); }
-        .fx-title { margin: 2px 0 0; font-size: 2.1rem; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); line-height: 1.05; }
+        .fx-title { margin: 2px 0 0; font-size: 2.2rem; font-weight: 650; letter-spacing: -0.045em; color: var(--ink); line-height: 1.05; }
+        .fx-title em { color: var(--b-600); }
         .fx-title span { background: linear-gradient(90deg, var(--b-600), var(--b-800)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .fx-hero-stats { display:flex; gap:.6rem; flex-wrap:wrap; justify-content:flex-end; }
         .fx-stat { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius: 14px; background:#fff; border:1px solid var(--line); min-width: 150px; }
@@ -380,7 +380,6 @@ export default function FacturePage() {
         }
       `}</style>
 
-      <QuantumDataGrid />
 
       <div className="fx-wrap">
         {/* HERO */}
@@ -389,9 +388,9 @@ export default function FacturePage() {
             <Cpu size={28} />
           </div>
           <div>
-            <span className="fx-kicker">Kyntus Quantum Suite · Facturation</span>
+            <span className="fx-kicker">Facturation</span>
             <h1 className="fx-title">
-              NEXUS <span>ENGINE</span>
+              Moteur de <em className="kx-serif">facturation</em>
             </h1>
           </div>
           <div className="fx-hero-stats">

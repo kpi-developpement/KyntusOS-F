@@ -115,10 +115,10 @@ const StrategicBar = ({ item, index, totalItems, onHover }: { item: TerrainData,
   useFrame((state) => {
     if (hovered) {
         mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, 1.1, 0.1);
-        mesh.current.material.emissiveIntensity = 0.8;
+        (mesh.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.8;
     } else {
         mesh.current.scale.y = THREE.MathUtils.lerp(mesh.current.scale.y, 1, 0.1);
-        mesh.current.material.emissiveIntensity = 0.2;
+        (mesh.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.2;
     }
   });
 

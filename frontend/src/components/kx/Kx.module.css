@@ -104,7 +104,7 @@
 .alertBody { flex: 1; min-width: 0; }
 
 /* ---------- STAT ---------- */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
 .stat {
   --t: var(--k-blue-600);
   position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px;

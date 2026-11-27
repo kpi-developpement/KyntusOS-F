@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { 
-  RefreshCw, CheckCircle, XCircle, Clock, AlertCircle, Play
-} from "lucide-react";
+import { RefreshCw, TableProperties } from "lucide-react";
+import { KxHeader } from "@/components/kx";
 import styles from "./DataGrid.module.css";
 import LuxSelect from "@/components/ui/LuxSelect";
 import { toast } from "@/components/ui/Toaster";
@@ -103,24 +102,30 @@ export default function OmniGrid() {
   ];
 
   return (
-    <div className={styles.container}>
+    <main className={`kx-page ${styles.container}`} style={{ maxWidth: 1640 }}>
+      <KxHeader
+        icon={TableProperties}
+        eyebrow="Contrôle"
+        title={<>Omni-<em>grid</em></>}
+        subtitle="Toutes les tâches d'un projet, avec leurs colonnes Excel, filtrables par statut et par pilote."
+      />
 
       {/* --- CONTROL BAR --- */}
       <div className={styles.controlBar}>
           <div style={{minWidth: 300}}>
               <LuxSelect 
-                label="1. SOURCE DE DONNÉES" 
+                label="Projet" 
                 options={tmplOpts} 
                 value={selectedTemplate} 
                 onChange={setSelectedTemplate} 
-                placeholder="SÉLECTIONNER UN FLUX..."
+                placeholder="Choisir un projet"
               />
           </div>
 
           <div className={styles.filterGroup}>
               <div style={{width: 220}}>
                   <LuxSelect 
-                    label="2. FILTRE ÉTAT" 
+                    label="Statut" 
                     options={statusOpts} 
                     value={statusFilter} 
                     onChange={setStatusFilter} 
@@ -128,7 +133,7 @@ export default function OmniGrid() {
               </div>
               <div style={{width: 220}}>
                   <LuxSelect 
-                    label="3. FILTRE PILOTE" 
+                    label="Pilote" 
                     options={pilotOpts} 
                     value={pilotFilter} 
                     onChange={setPilotFilter} 
@@ -136,8 +141,8 @@ export default function OmniGrid() {
               </div>
           </div>
 
-          <button className={styles.refreshBtn} onClick={fetchTasks} disabled={!selectedTemplate} title="Forcer Actualisation">
-              <RefreshCw size={20} className={loading ? "spin" : ""}/>
+          <button className={styles.refreshBtn} onClick={fetchTasks} disabled={!selectedTemplate} title="Actualiser" aria-label="Actualiser">
+              <RefreshCw size={18} className={loading ? "kx-spin" : ""}/>
           </button>
       </div>
 
@@ -147,21 +152,21 @@ export default function OmniGrid() {
               <table className={styles.table}>
                   <thead>
                       <tr>
-                          <th style={{width: 150}}>RÉFÉRENCE EPS</th>
-                          <th style={{width: 140}}>STATUS</th>
-                          <th style={{width: 200}}>OPÉRATEUR</th>
+                          <th style={{width: 150}}>Référence EPS</th>
+                          <th style={{width: 140}}>Statut</th>
+                          <th style={{width: 200}}>Pilote</th>
                           {/* Colonnes Dynamiques (Template + Excel) */}
                           {dynamicCols.map(col => (
                               <th key={col} style={{whiteSpace: 'nowrap'}}>{col}</th>
                           ))}
-                          <th style={{width: 120, textAlign: "right"}}>TEMPS</th>
+                          <th style={{width: 120, textAlign: "right"}}>Temps</th>
                       </tr>
                   </thead>
                   <tbody>
                       {filteredData.length === 0 ? (
                           <tr>
                               <td colSpan={4 + dynamicCols.length} className={styles.emptyState}>
-                                  {selectedTemplate ? "[ AUCUN RÉSULTAT POUR CES CRITÈRES ]" : "[ EN ATTENTE DE SIGNAL ]"}
+                                  {selectedTemplate ? "Aucune tâche ne correspond à ces filtres." : "Choisissez un projet pour afficher ses tâches."}
                               </td>
                           </tr>
                       ) : (
@@ -176,7 +181,7 @@ export default function OmniGrid() {
                                           <div className={styles.pilotAvatar}>
                                               {task.assignee?.username.substring(0,1).toUpperCase() || "?"}
                                           </div>
-                                          {task.assignee?.username || "NON ASSIGNÉ"}
+                                          {task.assignee?.username || "Non assigné"}
                                       </div>
                                   </td>
                                   
@@ -187,7 +192,7 @@ export default function OmniGrid() {
                                       </td>
                                   ))}
 
-                                  <td style={{fontFamily: "var(--k-font-mono)", color:"#666", textAlign: "right"}}>
+                                  <td className={styles.colTime}>
                                       {formatDuration(task.cumulativeTimeSeconds)}
                                   </td>
                               </tr>
@@ -199,11 +204,10 @@ export default function OmniGrid() {
           
           {/* Footer Info */}
           <div className={styles.footerGrid}>
-              <span>TOTAL ENTRÉES: <strong style={{color:"#0f1e3d"}}>{filteredData.length}</strong></span>
-              <span>OMNI-GRID SYSTEM V1.0</span>
+              <span><strong>{filteredData.length.toLocaleString("fr-FR")}</strong> tâche(s)</span>
           </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -211,9 +215,11 @@ export default function OmniGrid() {
 
 const StatusBadge = ({status}: {status: string}) => {
     let label = status;
-    if(status === "A_FAIRE") label = "EN ATTENTE";
-    if(status === "EN_COURS") label = "EN COURS";
-    if(status === "DONE") label = "À VALIDER";
+    if(status === "A_FAIRE") label = "En attente";
+    if(status === "EN_COURS") label = "En cours";
+    if(status === "DONE") label = "À valider";
+    if(status === "VALIDE") label = "Validée";
+    if(status === "REJETE") label = "Rejetée";
     
     return (
         <span className={`${styles.badge} ${styles[`status_${status}`]}`}>

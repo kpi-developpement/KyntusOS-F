@@ -156,12 +156,12 @@ export default function TissueSmartTable({
           <div className={styles.headerIconBox}>
             <Layers size={17} color="#ffffff" />
           </div>
-          <span>TISSUE DATAGRID</span>
+          <span>Tableau Tissue</span>
         </div>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
           <div className={styles.statusDotWrapper}>
             <div className={styles.dot}></div>
-            <span>TISSUE LIVE SYNC</span>
+            <span>Synchro en direct</span>
           </div>
           <div className={styles.totalBadge}>
             <span className={styles.badgeHighlight}>{(totalItems || 0).toLocaleString()}</span> RECORDS
@@ -173,12 +173,12 @@ export default function TissueSmartTable({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th}>TARGET EPS</th>
+              <th className={styles.th}>EPS</th>
               <th className={styles.th}>VER</th>
-              <th className={styles.th}>CORE STATUS</th>
-              <th className={styles.th}>PILOT LOG (COMMENT)</th>
+              <th className={styles.th}>Statut</th>
+              <th className={styles.th}>Commentaire pilote</th>
               {dynamicColumns.map(col => <th key={col} className={styles.th}>{col}</th>)}
-              <th className={styles.th}>TIMESTAMP</th>
+              <th className={styles.th}>Date</th>
             </tr>
           </thead>
           <tbody>
@@ -190,7 +190,7 @@ export default function TissueSmartTable({
                       <div className={styles.hexCenter}></div>
                       <Loader2 size={48} className={styles.spinner} />
                     </div>
-                    <div className={styles.loadingText}>SYNCHRONIZING TISSUE MATRIX...</div>
+                    <div className={styles.loadingText}>Chargement des dossiers Tissue…</div>
                   </div>
                 </td>
               </tr>
@@ -199,8 +199,8 @@ export default function TissueSmartTable({
                 <td colSpan={100} style={{ padding: 0 }}>
                   <div className={styles.emptyContainer}>
                     <Layers size={48} className={styles.emptyIcon} />
-                    <div className={styles.emptyTitle}>No Tissue Records Found in This Sector</div>
-                    <div className={styles.emptySub}>Try adjusting your filters or inject a new Tissue Excel batch payload.</div>
+                    <div className={styles.emptyTitle}>Aucun dossier Tissue pour ces filtres</div>
+                    <div className={styles.emptySub}>Modifiez les filtres ou importez un nouveau fichier Tissue.</div>
                   </div>
                 </td>
               </tr>
@@ -225,7 +225,7 @@ export default function TissueSmartTable({
       {(!loading && data && data.length > 0) && (
         <div className={styles.pagination}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <span className={styles.pageLabel}>ROWS PER PAGE</span>
+            <span className={styles.pageLabel}>Lignes par page</span>
             <TissueSelect
               width="130px"
               direction="up"

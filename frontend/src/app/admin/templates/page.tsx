@@ -146,9 +146,9 @@ export default function TemplatesPage() {
                 <FolderKanban size={26} />
               </div>
               <div>
-                <h1 className={styles.title}>ARCHITECTE SYSTÈME</h1>
+                <h1 className={styles.title}>Architecte <em className="kx-serif">système</em></h1>
                 <span className={styles.subtitle}>
-                  // DÉFINITION DES PROTOCOLES & COLONNES D&apos;ANALYSE PILOTE
+                  Définissez les protocoles et les colonnes d&apos;analyse des pilotes.
                 </span>
               </div>
             </div>

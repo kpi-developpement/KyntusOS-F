@@ -406,7 +406,7 @@ export default function TissueRecordsPage() {
   ], []);
   const yearOptions = useMemo(() => [2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => ({ value: y, label: `${y}` })), []);
   const monthOptions = useMemo(() => Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: `M-${String(i + 1).padStart(2, '0')}` })), []);
-  const versionOptions = useMemo(() => [{ value: "", label: "All Versions" }, ...dynamicVersions.map(v => ({ value: v, label: `${v}` }))], [dynamicVersions]);
+  const versionOptions = useMemo(() => [{ value: "", label: "Toutes les versions" }, ...dynamicVersions.map(v => ({ value: v, label: `${v}` }))], [dynamicVersions]);
 
   const trackYearOptions = useMemo(() => [{ value: "ALL", label: "All Years" }, ...yearOptions], [yearOptions]);
   const trackMonthOptions = useMemo(() => [{ value: "ALL", label: "All Months" }, ...monthOptions], [monthOptions]);
@@ -723,8 +723,8 @@ export default function TissueRecordsPage() {
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "9px", flexWrap: "wrap" }}>
-                <h1 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.4rem", fontWeight: 700, letterSpacing: "-0.03em" }}>
-                  TISSUE <span style={{ background: "linear-gradient(90deg, #34d399, #2dd4bf)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>NEXUS</span>
+                <h1 style={{ color: "var(--k-navy)", margin: 0, fontSize: "1.7rem", fontWeight: 650, letterSpacing: "-0.04em" }}>
+                  Tissue <em className="kx-serif" style={{ color: "#0d9488" }}>records</em>
                 </h1>
                 <span
                   style={{
@@ -738,12 +738,12 @@ export default function TissueRecordsPage() {
                     letterSpacing: "0.06em"
                   }}
                 >
-                  TISSUE MATRIX
+                  Tissue
                 </span>
               </div>
               <div style={{ color: "#475569", fontSize: "0.76rem", fontWeight: 500, marginTop: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
                 <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#34d399", display: "inline-block", boxShadow: "0 0 0 3px rgba(52, 211, 153, 0.13)" }} />
-                Dedicated Tissue Dossiers • 120FPS Telemetry &amp; Version Synchronization
+                Dossiers Tissue, versions et historique
               </div>
             </div>
           </div>
@@ -755,7 +755,7 @@ export default function TissueRecordsPage() {
               onMouseEnter={() => changeBgTheme("rgba(244, 63, 94, 0.05)")}
               onMouseLeave={() => changeBgTheme("transparent")}
             >
-              <ShieldAlert size={15} /> Purge DB
+              <ShieldAlert size={15} /> Vider la base
             </button>
 
             <button
@@ -774,7 +774,7 @@ export default function TissueRecordsPage() {
               onMouseEnter={() => changeBgTheme("rgba(16, 185, 129, 0.05)")}
               onMouseLeave={() => changeBgTheme("transparent")}
             >
-              <Crosshair size={15} /> Global Track
+              <Crosshair size={15} /> Suivi global
             </button>
 
             <button
@@ -783,7 +783,7 @@ export default function TissueRecordsPage() {
               onMouseEnter={() => changeBgTheme("rgba(16, 185, 129, 0.05)")}
               onMouseLeave={() => changeBgTheme("transparent")}
             >
-              <Users size={15} /> Team Export
+              <Users size={15} /> Export équipe
             </button>
 
             <button
@@ -792,7 +792,7 @@ export default function TissueRecordsPage() {
               onMouseEnter={() => changeBgTheme("rgba(20, 184, 166, 0.06)")}
               onMouseLeave={() => changeBgTheme("transparent")}
             >
-              <Globe size={15} /> Omni Search
+              <Globe size={15} /> Recherche globale
             </button>
 
             <button
@@ -801,7 +801,7 @@ export default function TissueRecordsPage() {
               onMouseEnter={() => changeBgTheme("rgba(16, 185, 129, 0.08)")}
               onMouseLeave={() => changeBgTheme("transparent")}
             >
-              <UploadCloud size={15} /> Inject Batch
+              <UploadCloud size={15} /> Importer
             </button>
           </div>
         </header>
@@ -819,7 +819,7 @@ export default function TissueRecordsPage() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#21976c", fontWeight: 700, fontSize: "0.78rem" }}>
               <Folder size={17} />
-              <span>SECTOR</span>
+              <span>Secteur</span>
             </div>
             <TissueSelect width="135px" value={globalCategory} options={categoryOptions} onChange={(val: string) => setGlobalCategory(val)} variant="emerald" />
 
@@ -827,7 +827,7 @@ export default function TissueRecordsPage() {
 
             <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#15a28c", fontWeight: 700, fontSize: "0.78rem" }}>
               <Calendar size={17} />
-              <span>CYCLE</span>
+              <span>Période</span>
             </div>
             <TissueSelect width="95px" value={globalYear} options={yearOptions} onChange={setGlobalYear} variant="teal" />
             <TissueSelect width="95px" value={globalMonth} options={monthOptions} onChange={setGlobalMonth} variant="teal" />
@@ -848,7 +848,7 @@ export default function TissueRecordsPage() {
               <Search size={17} color="#34d399" style={{ position: "absolute", left: "12px", pointerEvents: "none" }} />
               <input
                 type="text"
-                placeholder="Search Tissue records by EPS Reference ID..."
+                placeholder="Rechercher une référence EPS…"
                 value={epsInputValue}
                 onChange={(e) => setEpsInputValue(e.target.value)}
                 className="tissue-input"
@@ -1188,7 +1188,7 @@ export default function TissueRecordsPage() {
                 <div style={{ textAlign: "center", padding: "3rem", border: "1px dashed rgba(52, 211, 153, 0.3)", backgroundColor: "rgba(255, 255, 255, 0.75)", borderRadius: "12px" }}>
                   <ShieldAlert size={42} color="#64748b" style={{ margin: "0 auto 0.75rem" }} />
                   <p style={{ color: "#0f1e3d", fontSize: "1rem", fontWeight: 700, margin: 0 }}>No Tissue Version History Found</p>
-                  <p style={{ color: "#475569", fontSize: "0.82rem", marginTop: "4px" }}>Verify the EPS identifier or active sector cycle.</p>
+                  <p style={{ color: "#475569", fontSize: "0.82rem", marginTop: "4px" }}>Vérifiez la référence EPS ou la période sélectionnée.</p>
                 </div>
               )}
 
@@ -1270,7 +1270,7 @@ export default function TissueRecordsPage() {
           <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(15, 30, 61, 0.18)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "14px" }}>
               <h2 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-                <Layers color="#34d399" size={24} /> Tissue Global Tracking Protocol
+                <Layers color="#34d399" size={24} /> Tissue Suivi global
               </h2>
               <button onClick={() => setIsTrackModalOpen(false)} disabled={isTrackingGlobal} className="tissue-btn" style={{ padding: "6px" }}>
                 <X size={20} />
@@ -1365,7 +1365,7 @@ export default function TissueRecordsPage() {
           <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(15, 30, 61, 0.18)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "14px" }}>
               <h2 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-                <Globe color="#2dd4bf" size={24} /> Tissue Omni Search Protocol
+                <Globe color="#2dd4bf" size={24} /> Tissue Recherche globale
               </h2>
               <button onClick={() => setIsOmniSearchModalOpen(false)} disabled={isExportingOmniSearch} className="tissue-btn" style={{ padding: "6px" }}>
                 <X size={20} />
@@ -1374,7 +1374,7 @@ export default function TissueRecordsPage() {
 
             <div style={{ marginBottom: "1.25rem", background: "rgba(16, 185, 129, 0.12)", padding: "0.9rem 1.1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.25)" }}>
               <p style={{ color: "#0f1e3d", margin: 0, fontSize: "0.84rem", lineHeight: 1.5, fontWeight: 500 }}>
-                <strong style={{ color: "#21976c" }}>CROSS-SECTOR TISSUE SEARCH:</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire Tissue database</span> and extract every version of the requested EPS IDs.
+                <strong style={{ color: "#21976c" }}>Recherche globale Tissue :</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire Tissue database</span> and extract every version of the requested EPS IDs.
               </p>
             </div>
 
@@ -1398,7 +1398,7 @@ export default function TissueRecordsPage() {
               className="tissue-btn btn-tissue-primary"
               style={{ width: "100%", justifyContent: "center", padding: "0.95rem", fontSize: "0.92rem", fontWeight: 700 }}
             >
-              {isExportingOmniSearch ? "Scanning Tissue Matrix..." : "Execute Tissue Global Omni Search"}
+              {isExportingOmniSearch ? "Recherche en cours…" : "Lancer la recherche globale"}
             </button>
           </div>
         </div>

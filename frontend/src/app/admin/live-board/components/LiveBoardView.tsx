@@ -470,7 +470,7 @@ export default function LiveBoardView({ pilotId, pilotName, templateId, template
   // ------------------------------------------------------------------
   // 6. ACTIONS (spectator)
   // ------------------------------------------------------------------
-  const spectatorWarning = () => toast({ message: "MODE SPECTATEUR : lecture seule.", type: "warning" });
+  const spectatorWarning = () => toast({ message: "MODE SPECTATEUR : lecture seule.", type: "info" });
 
   const handleCopyColumnValues = async (target?: string) => {
     const col = target && target !== "ALL" ? target : "EPS_ONLY";

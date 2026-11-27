@@ -3,12 +3,13 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { 
   ShieldAlert, CheckCircle, XCircle, LayoutGrid, Zap, 
-  Archive, ArrowRight, ArrowLeft, RotateCcw, RefreshCw, AlertTriangle, Clock, Activity
+  Archive, ArrowRight, ArrowLeft, RotateCcw, RefreshCw, AlertTriangle, Clock, SquareActivity
 } from "lucide-react";
 import styles from "./AdminKanban.module.css";
 import LuxSelect from "@/components/ui/LuxSelect";
 import { toast } from "@/components/ui/Toaster";
 import LiveTimer from "@/components/ui/LiveTimer";
+import { KxHeader } from "@/components/kx";
 
 // --- TYPES (Pour la clarté) ---
 type Task = any; 
@@ -137,44 +138,41 @@ export default function AdminKanban() {
 
   // --- RENDER ---
   return (
-    <div className={styles.container}>
+    <main className={`kx-page ${styles.container}`} style={{ maxWidth: 1600 }}>
 
-      {/* HEADER */}
-      <div className={styles.headerControl}>
-        <div className={styles.titleBlock}>
-          <h1>OVERWATCH COMMAND</h1>
-          <p>// GESTION GLOBALE & VALIDATION QC</p>
-        </div>
-        <div className={styles.filters}>
-           <button onClick={fetchAllData} className={styles.miniBtn} title="Actualiser" style={{marginRight: 10, width: 40, height: 40}}>
-              <RefreshCw size={18} className={loading ? "spin" : ""} />
-           </button>
-          <div style={{width: 200}}>
-             <LuxSelect label="" options={pilotOpts} value={selectedPilot} onChange={setSelectedPilot} />
+      <KxHeader
+        icon={SquareActivity}
+        eyebrow="Pilotage"
+        title={<>Tableau <em>tactique</em></>}
+        subtitle="Suivez toutes les tâches en direct et validez le travail des pilotes."
+        actions={
+          <div className={styles.filters}>
+            <button type="button" onClick={fetchAllData} className="kx-btn kx-btn-ghost" aria-label="Actualiser">
+              <RefreshCw size={16} className={loading ? "kx-spin" : ""} />
+            </button>
+            <div style={{ width: 200 }}><LuxSelect options={pilotOpts} value={selectedPilot} onChange={setSelectedPilot} /></div>
+            <div style={{ width: 220 }}><LuxSelect options={tmplOpts} value={selectedTemplate} onChange={setSelectedTemplate} /></div>
           </div>
-          <div style={{width: 220}}>
-             <LuxSelect label="" options={tmplOpts} value={selectedTemplate} onChange={setSelectedTemplate} />
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {error && <div className={styles.errorBanner}><AlertTriangle size={16}/> {error}</div>}
 
       {/* KANBAN BOARD */}
       <div className={styles.kanbanGrid}>
-        <KanbanColumn title="FILE D'ATTENTE" icon={LayoutGrid} count={pending.length} type="PENDING" tasks={pending} onUpdate={updateTaskStatus} color="gray" />
-        <KanbanColumn title="EN COURS" icon={Zap} count={active.length} type="ACTIVE" tasks={active} onUpdate={updateTaskStatus} color="#2563eb" />
+        <KanbanColumn title="File d'attente" icon={LayoutGrid} count={pending.length} type="PENDING" tasks={pending} onUpdate={updateTaskStatus} color="gray" />
+        <KanbanColumn title="En cours" icon={Zap} count={active.length} type="ACTIVE" tasks={active} onUpdate={updateTaskStatus} color="#2563eb" />
         
         {/* Validation Column Special */}
         <div className={`${styles.column} ${styles.colValidation}`}>
             <div className={styles.colHeader}>
-                <div className={styles.colTitle}><ShieldAlert size={14} color="#ffd700"/> À VALIDER</div>
+                <div className={styles.colTitle}><ShieldAlert size={15} color="#d97706"/> À valider</div>
                 <span className={styles.countBadge}>{validation.length}</span>
             </div>
             {validation.length > 0 && (
                 <div className={styles.bulkActions}>
-                    <button className={`${styles.bulkBtn} ${styles.bulkValide}`} onClick={() => handleBulkAction("VALIDE")}><CheckCircle size={14}/> TOUT OK</button>
-                    <button className={`${styles.bulkBtn} ${styles.bulkRefuse}`} onClick={() => handleBulkAction("REJETE")}><XCircle size={14}/> REFUS</button>
+                    <button className={`${styles.bulkBtn} ${styles.bulkValide}`} onClick={() => handleBulkAction("VALIDE")}><CheckCircle size={14}/> Tout valider</button>
+                    <button className={`${styles.bulkBtn} ${styles.bulkRefuse}`} onClick={() => handleBulkAction("REJETE")}><XCircle size={14}/> Tout refuser</button>
                 </div>
             )}
             <div className={styles.cardList}>
@@ -183,23 +181,23 @@ export default function AdminKanban() {
             </div>
         </div>
 
-        <KanbanColumn title="ARCHIVES (24H)" icon={Archive} count={history.length} type="HISTORY" tasks={history} onUpdate={updateTaskStatus} color="#10b981" />
+        <KanbanColumn title="Archives (24 h)" icon={Archive} count={history.length} type="HISTORY" tasks={history} onUpdate={updateTaskStatus} color="#10b981" />
       </div>
 
       {/* MODAL */}
       {modalConfig && (
         <div className={styles.modalOverlay}>
-            <div className={styles.cyberModal} style={{"--modal-color": modalConfig.type === "SUCCESS" ? "#10b981" : "#ff0055"} as any}>
+            <div className={styles.cyberModal} role="dialog" aria-modal="true" style={{"--modal-color": modalConfig.type === "SUCCESS" ? "#059669" : "#e11d48"} as React.CSSProperties}>
                 <div className={styles.modalTitle}>{modalConfig.title}</div>
                 <p className={styles.modalText}>{modalConfig.message}</p>
                 <div className={styles.modalActions}>
-                    <button className={styles.btnCancel} onClick={() => setModalConfig(null)}>ANNULER</button>
-                    <button className={styles.btnConfirm} onClick={modalConfig.onConfirm}>CONFIRMER</button>
+                    <button className={styles.btnCancel} onClick={() => setModalConfig(null)}>Annuler</button>
+                    <button className={styles.btnConfirm} onClick={modalConfig.onConfirm}>Confirmer</button>
                 </div>
             </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
@@ -221,7 +219,7 @@ const KanbanColumn = ({ title, icon: Icon, count, tasks, type, onUpdate, color }
 
 // 2. Empty Message
 const EmptyMsg = ({msg}: {msg: string}) => (
-    <div style={{textAlign: "center", padding: "40px", color: "rgba(15, 30, 61, 0.2)", fontSize: "0.8rem", fontStyle: "italic"}}>{msg}</div>
+    <div className={styles.empty}>{msg}</div>
 );
 
 // 3. Helper Time
@@ -245,11 +243,11 @@ const AdminCard = ({ task, onUpdate, type }: { task: any, onUpdate: any, type: s
                 </div>
             </div>
 
-            <div style={{fontSize:"0.6rem", color:"#666", marginBottom:8, display:"flex", justifyContent:"space-between"}}>
+            <div className={styles.cardMeta}>
                 <span>{task.template?.name}</span>
                 {/* Affiche une data contextuelle si dispo */}
                 {task.dynamicData && Object.values(task.dynamicData)[0] && 
-                    <span style={{color:"#0052cc"}}>{String(Object.values(task.dynamicData)[0])}</span>
+                    <span className={styles.cardMetaVal}>{String(Object.values(task.dynamicData)[0])}</span>
                 }
             </div>
 
@@ -257,14 +255,14 @@ const AdminCard = ({ task, onUpdate, type }: { task: any, onUpdate: any, type: s
             <div className={`${styles.timerZone} ${type === "ACTIVE" ? styles.timerActive : ''}`}>
                 {type === "ACTIVE" ? (
                     <>
-                        <Activity size={12} className="spin" /> 
-                        <span style={{fontWeight:"bold"}}>LIVE : </span>
+                        <span className={styles.liveDot} />
+                        <span style={{fontWeight: 600}}>En direct</span>
                         <LiveTimer startTime={task.lastStartedAt} cumulativeSeconds={task.cumulativeTimeSeconds || 0} />
                     </>
                 ) : (
                     <>
                         <Clock size={12} />
-                        <span>DURÉE : {formatTime(task.cumulativeTimeSeconds || 0)}</span>
+                        <span>Durée {formatTime(task.cumulativeTimeSeconds || 0)}</span>
                     </>
                 )}
             </div>
@@ -272,25 +270,25 @@ const AdminCard = ({ task, onUpdate, type }: { task: any, onUpdate: any, type: s
             <div className={styles.cardActions}>
                 {type === "PENDING" && (
                     <div className={styles.adminControls} style={{width:'100%', justifyContent:'flex-end'}}>
-                        <button className={styles.miniBtn} onClick={() => onUpdate(task, "EN_COURS")} title="Start"><ArrowRight size={14}/></button>
+                        <button className={styles.miniBtn} onClick={() => onUpdate(task, "EN_COURS")} title="Démarrer" aria-label="Démarrer"><ArrowRight size={14}/></button>
                     </div>
                 )}
                 {type === "ACTIVE" && (
                      <div className={styles.adminControls} style={{width:"100%", justifyContent:"space-between", alignItems:"center"}}>
-                         <span style={{color:"#0052cc", fontSize:"0.6rem", opacity:0.7}}>MONITORING...</span>
-                         <button className={styles.miniBtn} onClick={() => onUpdate(task, "A_FAIRE")} title="Reset"><RotateCcw size={14}/></button>
+                         <span className={styles.monitor}>Suivi en cours</span>
+                         <button className={styles.miniBtn} onClick={() => onUpdate(task, "A_FAIRE")} title="Remettre à faire" aria-label="Remettre à faire"><RotateCcw size={14}/></button>
                      </div>
                 )}
                 {type === "VALIDATION" && (
                     <div className={styles.valBtns}>
-                        <button className={`${styles.btnV} ${styles.btnKo}`} onClick={() => onUpdate(task, "REJETE")}><XCircle size={16}/></button>
-                        <button className={`${styles.btnV} ${styles.btnOk}`} onClick={() => onUpdate(task, "VALIDE")}><CheckCircle size={16}/></button>
+                        <button className={`${styles.btnV} ${styles.btnKo}`} onClick={() => onUpdate(task, "REJETE")} aria-label="Rejeter"><XCircle size={16}/> Rejeter</button>
+                        <button className={`${styles.btnV} ${styles.btnOk}`} onClick={() => onUpdate(task, "VALIDE")} aria-label="Valider"><CheckCircle size={16}/> Valider</button>
                     </div>
                 )}
                 {type === "HISTORY" && (
                     <div style={{display:'flex', width:'100%', justifyContent:'space-between', alignItems:'center'}}>
-                        <span style={{fontSize:"0.6rem", fontWeight:"bold", color: task.status==="VALIDE" ? "#20cc00":"#cc0044"}}>{task.status}</span>
-                        <button className={styles.miniBtn} onClick={() => onUpdate(task, "DONE")} title="Backtrack"><ArrowLeft size={14}/></button>
+                        <span className={task.status === "VALIDE" ? styles.stOk : styles.stKo}>{task.status === "VALIDE" ? "Validée" : "Rejetée"}</span>
+                        <button className={styles.miniBtn} onClick={() => onUpdate(task, "DONE")} title="Revenir à valider" aria-label="Revenir à valider"><ArrowLeft size={14}/></button>
                     </div>
                 )}
             </div>

@@ -347,3 +347,7 @@ body::after {
     scroll-behavior: auto !important;
   }
 }
+
+@media (max-width: 640px) {
+  .kx-page { padding: 18px 16px 56px; gap: 16px; }
+}

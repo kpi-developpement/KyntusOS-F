@@ -1317,13 +1317,12 @@ export default function BytelApiPage() {
                   style={{
                     color: "#0f2557",
                     margin: 0,
-                    fontSize: "1.34rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.03em",
+                    fontSize: "1.7rem",
+                    fontWeight: 650,
+                    letterSpacing: "-0.04em",
                   }}
                 >
-                  KYNTUS <span style={{ color: "#2563eb" }}>NEXUS</span>{" "}
-                  <span style={{ color: "#93c5fd", fontWeight: 600 }}>·</span> BYTEL API
+                  API <em className="kx-serif" style={{ color: "var(--k-blue-600)" }}>Bytel</em>
                 </h1>
                 <span
                   className="nx-pill"

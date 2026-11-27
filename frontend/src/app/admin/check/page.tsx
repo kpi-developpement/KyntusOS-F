@@ -331,11 +331,11 @@ export default function InspectorPage() {
       {/* HEADER */}
       <div className={styles.headerTitle}>
         <div className={styles.badgeTop}>
-          <Sparkles size={13} /> RECHERCHE INTELLIGENTE EXCEL & TRAÇABILITÉ PILOTE
+          <Sparkles size={13} /> Recherche Excel &amp; traçabilité pilote
         </div>
-        <h1 className={styles.titleMain}>INSPECTOR PROTOCOL</h1>
+        <h1 className={styles.titleMain}>Inspecteur <em className="kx-serif">EPS</em></h1>
         <span className={styles.subtitle}>
-          // RECHERCHE PAR NUMÉRO EPS DU FICHIER EXCEL (EX: EPS-12345)
+          Retrouvez une ligne par son numéro EPS (ex. EPS-12345) dans tous les fichiers importés.
         </span>
       </div>
 
