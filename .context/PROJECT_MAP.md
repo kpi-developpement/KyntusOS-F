@@ -1,11 +1,11 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-27 15:13 · 30 files · ~10,547 tokens_
+_llm_extractor v3.0 · 2026-11-27 17:38 · 30 files · ~11,591 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion, GSAP, Axios
-**Files:** tsx 141, java 111, css 56, ts 5, md 3, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Files:** tsx 113, java 111, css 56, ts 5, md 3, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
 **Manifests:**
 - `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, @tanstack/react-table@8.21.3, @tsparticles/react@3.0.0, @tsparticles/slim@3.9.1, animejs@4.3.6, axios@1.13.4, d3-scale@4.0.2, framer-motion@12.38.0, gsap@3.14.2, lucide-react@0.563.0, net@1.0.2, next@16.1.6, react@19.2.3, react-dom@19.2.3, recharts@3.7.0, sockjs-client@1.6.1, stompjs@2.3.3, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
@@ -108,24 +108,20 @@ KyntusOS-F/
           api/
             components/
               NexusModal.tsx [sig]
-              TimelineModal.tsx [sig]
-              AlertBanners.tsx [omitted]
-              DataGrid.tsx [omitted]
-              NexusSelect.tsx [omitted]
-              NexusStyles.tsx [omitted]
+              … +5 files omitted
             lib/
               apiUtils.ts [sig]
             page.tsx [omitted]
           board/ (23 files omitted)
           contestation/ (2 files omitted)
           facture/ (3 files omitted)
-          history/ (7 files omitted)
-          home/ (7 files omitted)
-          kanban/ (12 files omitted)
-          parametrage/ (3 files omitted)
-          recorde/ (9 files omitted)
-          tissue-records/ (6 files omitted)
-          ventilation/ (8 files omitted)
+          history/ (2 files omitted)
+          home/ (3 files omitted)
+          kanban/ (4 files omitted)
+          parametrage/ (1 files omitted)
+          recorde/ (8 files omitted)
+          tissue-records/ (5 files omitted)
+          ventilation/ (2 files omitted)
           PilotLayout.module.css [omitted]
           layout.tsx [omitted]
         portal/ (2 files omitted)
@@ -152,8 +148,11 @@ KyntusOS-F/
             Experience.tsx [omitted]
           … +6 files omitted
         features/ (11 files omitted)
+        kx/
+          index.tsx [sig]
+          Kx.module.css [omitted]
         layout/ (11 files omitted)
-        ui/ (23 files omitted)
+        ui/ (20 files omitted)
         LuxChart.css [omitted]
         ProtectedRoute.tsx [omitted]
       context/ (1 files omitted)
@@ -756,28 +755,6 @@ export default function NexusModal({
 }: Props) { … }
 ```
 
-### frontend/src/app/pilot/api/components/TimelineModal.tsx · signatures only
-```tsx
-"use client";
-
-import React from "react";
-import { Crosshair, ShieldAlert, GitCommit, Bot, ArrowRight } from "lucide-react";
-import NexusModal from "./NexusModal";
-import { couleurEtat, elementsDe, fmtDate, fmtMontant, totalElements } from "../lib/apiUtils";
-
-interface Props {
-  eps: string | null;
-  periode: string;
-  entrees: any[];
-  chargement: boolean;
-  onClose: () => void;
-}
-
-const champ = (label: string, valeur: React.ReactNode, couleur = "#0f2557") => ( … );
-
-export default function TimelineModal({ eps, periode, entrees, chargement, onClose }: Props) { … }
-```
-
 ### frontend/src/app/pilot/api/lib/apiUtils.ts · signatures only
 ```ts
 export const ETAT_ACTIONNABLE = "EN_ATTENTE_VALIDATION_PARTENAIRE";
@@ -884,5 +861,107 @@ interface ProcessChart3DProps {
 
 export default function ProcessChart3D({ projects }: ProcessChart3DProps) { … }
 ```
+
+### frontend/src/components/kx/index.tsx · signatures only
+```tsx
+"use client";
+
+import React, { useMemo, useRef, useState } from "react";
+import {
+  UploadCloud, Loader2, CheckCircle2, AlertTriangle, Info, Search, ChevronLeft, ChevronRight,
+  Inbox, type LucideIcon,
+} from "lucide-react";
+import s from "./Kx.module.css";
+
+const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
+
+export function trackGlow(e: React.PointerEvent<HTMLElement>) { … }
+
+export function KxHeader({
+  icon: Icon, eyebrow, title, subtitle, actions,
+}: { icon: LucideIcon; eyebrow?: string; title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode }) { … }
+
+export function KxCard({
+  children, title, icon: Icon, count, actions, className, pad = true, style,
+}: {
+  children: React.ReactNode; title?: React.ReactNode; icon?: LucideIcon; count?: React.ReactNode;
+  actions?: React.ReactNode; className?: string; pad?: boolean; style?: React.CSSProperties;
+}) { … }
+
+export function KxDropzone({
+  onFile, busy, disabled, title = "Glissez votre fichier Excel ici", hint = "ou cliquez pour parcourir · .xlsx, .xls, .csv",
+  busyTitle = "Traitement en cours…", busyHint = "Merci de patienter", accept = ".xlsx,.xls,.csv", icon: Icon = UploadCloud,
+}: {
+  onFile: (f: File) => void; busy?: boolean; disabled?: boolean; title?: string; hint?: string;
+  busyTitle?: string; busyHint?: string; accept?: string; icon?: LucideIcon;
+}) { … }
+
+export function KxAlert({ tone, children, icon }: { tone: "ok" | "bad" | "info"; children: React.ReactNode; icon?: React.ReactNode }) {
+  const I = tone === "ok" ? CheckCircle2 : tone === "bad" ? AlertTriangle : Info;
+  return (
+    <div className={cx(s.alert, s[`alert_${tone}`])} role={tone === "bad" ? "alert" : "status"}>
+      <span className={s.alertIcon}>{icon ?? <I size={19} />}</span>
+      <div className={s.alertBody}>{children}</div>
+    </div>
+  );
+}
+
+export function KxStats({ children }: { children: React.ReactNode }) { … }
+
+export function KxStat({
+  icon: Icon, label, value, tone, delay = 0,
+}: { icon: LucideIcon; label: string; value: React.ReactNode; tone?: "ok" | "bad" | "warn" | "sky"; delay?: number }) { … }
+
+export function KxEmpty({ icon: Icon = Inbox, title, children }: { icon?: LucideIcon; title: string; children?: React.ReactNode }) { … }
+
+export function KxTable({
+  rows, columns, pageSize = 50, title, icon, searchPlaceholder = "Rechercher une valeur…", render,
+}: {
+  rows: Record<string, unknown>[]; columns: string[]; pageSize?: number; title?: React.ReactNode; icon?: LucideIcon;
+  searchPlaceholder?: string; render?: (col: string, value: unknown, row: Record<string, unknown>) => React.ReactNode;
+}) {
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const filtered = useMemo(() => { … }, [rows, columns, q]);
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const cur = Math.min(page, pages);
+  const slice = filtered.slice((cur - 1) * pageSize, cur * pageSize);
+
+  const cell = (c: string, v: unknown, r: Record<string, unknown>) => { … };
+
+  return (
+    <KxCard title={title} icon={icon} count={filtered.length.toLocaleString("fr-FR")}
+      actions={
+        <label className={s.search}>
+          <Search size={15} />
+          <span className={s.srOnly}>Rechercher</span>
+          <input value={q} onChange={(e) => { … }} placeholder={searchPlaceholder} />
+        </label>
+      }
+    >
+      <div className={s.tableWrap}>
+        <table className={s.table}>
+          <thead><tr>{columns.map((c) => <th key={c}>{c}</th>)}</tr></thead>
+          <tbody>
+            {slice.map((r, i) => ( … )}
+            {slice.length === 0 && (
+              <tr><td colSpan={columns.length} className={s.empty}>Aucune ligne ne correspond à « {q} ».</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {pages > 1 && (
+        <div className={s.pager}>
+          <span>Page <b>{cur}</b> sur <b>{pages}</b></span>
+          <div className={s.pagerBtns}>
+            <button type="button" className={s.pageBtn} disabled={cur === 1} onClick={() => setPage(cur - 1)}><ChevronLeft size={15} /> Précédent</button>
+            <button type="button" className={s.pageBtn} disabled={cur === pages} onClick={() => setPage(cur + 1)}>Suivant <ChevronRight size={15} /></button>
+          </div>
+        </div>
+      )}
+    </KxCard>
+  );
+}
+```
 ## Not included
-- omitted (budget): 295 files — see `[omitted]` in Structure
+- omitted (budget): 267 files — see `[omitted]` in Structure
