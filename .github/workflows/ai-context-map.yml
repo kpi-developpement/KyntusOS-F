@@ -1,0 +1,53 @@
+name: Update AI Context Map
+
+on:
+  push:
+    paths-ignore:
+      - '.context/PROJECT_MAP.md'
+
+permissions:
+  contents: write
+
+jobs:
+  update-map:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regenerate .context/PROJECT_MAP.md
+        run: |
+          if [ ! -f "scripts/llm_extractor.py" ]; then exit 0; fi
+          mkdir -p .context
+          python - "skeleton" "15000" "scripts/llm_extractor.py" << 'PYEOF'
+          import re, subprocess, sys
+          from pathlib import Path
+
+          mode, max_tokens, excl = sys.argv[1], sys.argv[2], sys.argv[3]
+          out = Path(".context/PROJECT_MAP.md")
+          tmp = Path(".context/PROJECT_MAP.tmp.md")
+          cmd = [sys.executable, "scripts/llm_extractor.py", ".", "-m", mode, "-t", max_tokens, "-o", str(tmp)]
+          if excl:
+              cmd += ["--exclude", excl]
+          try:
+              res = subprocess.run(cmd)
+              if res.returncode == 0 and tmp.is_file():
+                  strip_ts = lambda s: re.sub(r"^_llm_extractor .*_$", "", s, count=1, flags=re.M)
+                  new_txt = tmp.read_text(encoding="utf-8", errors="ignore")
+                  old_txt = out.read_text(encoding="utf-8", errors="ignore") if out.is_file() else ""
+                  if strip_ts(new_txt) != strip_ts(old_txt):
+                      out.write_text(new_txt, encoding="utf-8", newline="\n")
+          finally:
+              tmp.unlink(missing_ok=True)
+          PYEOF
+      - name: Commit updated map
+        run: |
+          if [ -n "$(git status --porcelain .context/PROJECT_MAP.md)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .context/PROJECT_MAP.md
+            git commit -m "chore(ai): update PROJECT_MAP.md [skip ci]"
+            git push
+          fi

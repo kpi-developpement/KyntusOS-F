@@ -16,3 +16,9 @@ Workflow/.mvn/wrapper/maven-wrapper.jar
 
 # --- Docker ---
 docker-compose.override.yml
+
+# >>> AI_CONTEXT_MAP_IGNORE >>>
+.context/*.tmp.md
+*_context.md
+*.context.md
+# <<< AI_CONTEXT_MAP_IGNORE <<<

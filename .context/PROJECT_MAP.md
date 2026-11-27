@@ -1,0 +1,925 @@
+# Project: kyntus-workflow-main
+_llm_extractor v3.0 · 2026-11-27 14:37 · 30 files · ~10,639 tokens_
+
+> **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
+
+## Overview
+**Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion, GSAP, Axios
+**Files:** tsx 140, java 109, css 55, ts 5, md 3, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Manifests:**
+- `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, @tanstack/react-table@8.21.3, @tsparticles/react@3.0.0, @tsparticles/slim@3.9.1, animejs@4.3.6, axios@1.13.4, d3-scale@4.0.2, framer-motion@12.38.0, gsap@3.14.2, lucide-react@0.563.0, net@1.0.2, next@16.1.6, react@19.2.3, react-dom@19.2.3, recharts@3.7.0, sockjs-client@1.6.1, stompjs@2.3.3, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
+
+### API endpoints
+- **AdminController**: GET /api/admin/search (searchByEps) · POST /api/admin/eps-tracer (traceEps) · POST /api/admin/flag-error/{taskId} (flagError) · POST /api/admin/points (manualPointsAdjustment) · GET /api/admin/points/history/{pilotId} (getPointsHistory)
+- **AuthController**: POST /api/auth/login (login) · POST /api/auth/register (register)
+- **BytelApiController**: POST /api/bytel/sync (synchroniser) · GET /api/bytel/sync/status (syncStatus) · POST /api/bytel/sync/annuler (syncAnnuler) · GET /api/bytel/sync/etats (syncEtats) · GET /api/bytel/live (live) · GET /api/bytel/qualifications (lister) · POST /api/bytel/qualifications/recherche (listerPost) · GET /api/bytel/versions (versions) · POST /api/bytel/versions/recherche (versionsPost) · POST /api/bytel/versions/par-eps (versionsParEps) · POST /api/bytel/export (exporter) · POST /api/bytel/export/equipe (exporterEquipe) · GET /api/bytel/export/{id}/status (exportStatus) · GET /api/bytel/export/{id}/fichier (exportFichier) · GET /api/bytel/timeline/{eps} (timeline) · GET /api/bytel/history/eps/{eps} (decisionsDeLEps) · GET /api/bytel/eps/{eps}/versions (versionsDeLEps) · GET /api/bytel/eps/{eps} (detailEps) · GET /api/bytel/etats (etats) · GET /api/bytel/types (types) · GET /api/bytel/types-qualification (typesQualification) · GET /api/bytel/periodes (periodes) · GET /api/bytel/stats (stats) · POST /api/bytel/actions (agir) · GET /api/bytel/actions/apercu (apercu) · POST /api/bytel/actions/lot (agirEnLot) · GET /api/bytel/historique (historique) · GET /api/bytel/config (config) · GET /api/bytel/alertes (alertes) · DELETE /api/bytel/purge (purger) · POST /api/bytel/omni (omni) · POST /api/bytel/omni/export (omniExport)
+- **BytelDiagController**: GET /api/bytel/diag (diag)
+- **BytelLocaliserController**: POST /api/bytel/localiser (localiser)
+- **DispatchController**: POST /api/dispatch/execute (executeDispatch)
+- **ExportController**: GET /api/export/{templateId} (exportTemplate)
+- **FactureController**: POST /api/facture/generate (generateFacture)
+- **HealthController**: GET /api/health (liveness) · GET /api/health/db (database)
+- **ImportController**: POST /api/import/{templateId} (uploadExcel)
+- **ParametrageController**: POST /api/parametrage/process (processParametrage)
+- **PilotEquipeController**: POST /api/equipe-export/track (exportEquipeTrack)
+- **PilotRecordController**: POST /api/pilot-records/import/{pilotId} (importPilotData) · GET /api/pilot-records/{pilotId} (getPilotRecords) · DELETE /api/pilot-records/clear (clearDatabase) · DELETE /api/pilot-records/delete-file (deleteSpecificFile) · GET /api/pilot-records/export/{pilotId} (exportPilotRecords) · GET /api/pilot-records/versions (getAvailableVersions) · GET /api/pilot-records/etats (getAvailableEtats) · GET /api/pilot-records/history/{eps} (getEpsHistory) · POST /api/pilot-records/export-track-global (exportGlobalTrackHistory) · POST /api/pilot-records/export-global-search (exportGlobalSearch) · GET /api/pilot-records/imported-files (getImportedFiles) · GET /api/pilot-records/alerts (getValidationAlerts) · GET /api/pilot-records/alerts-comments (getDuplicateCommentAlerts) · GET /api/pilot-records/export-alerts (exportAlertsToExcel) · GET /api/pilot-records/export-alerts-comments (exportCommentAlertsToExcel) · DELETE /api/pilot-records/deduplicate (removeDuplicates) · DELETE /api/pilot-records/fix-69-files (fixRetroactiveDuplicates)
+- **PilotSecureUploadController**: POST /api/secure-upload/import/{pilotId} (importSecureData) · GET /api/secure-upload/logs (getImportLogs) · PUT /api/secure-upload/reorder (reorderFiles)
+- **RescueController**: GET /api/rescue/admin (createRescueAdmin) · GET /api/rescue/pilot (createRescuePilot)
+- **StatsController**: GET /api/stats/leaderboard (getLeaderboard) · GET /api/stats/template/{templateId}/pilots (getPilotStatsForTemplate) · GET /api/stats/dashboard-summary (getDashboardSummary) · GET /api/stats/terrain (getTerrainStats)
+- **TaskAndTemplateAdminController**: DELETE /api/templates/{templateId} (deleteTemplate) · PATCH /api/tasks/reassign (reassignTasks) · PATCH /api/tasks/{taskId}/validate-final (validateFinalByAdmin) · GET /api/tasks/search-eps (searchWhoWorkedOnEps)
+- **TaskController**: GET /api/tasks (getTasks) · PATCH /api/tasks/{id}/status (updateStatus) · PATCH /api/tasks/{id}/data (updateData) · GET /api/tasks/unassigned (getUnassignedTasks) · GET /api/tasks/unassigned/{templateId} (getUnassignedTasksByTemplate) · GET /api/tasks/columns/{templateId} (getTemplateColumns) · GET /api/tasks/values/{templateId}/{columnKey} (getColumnValues)
+- **TissueEquipeController**: POST /api/tissue-equipe-export/track (exportEquipeTrack)
+- **TissueRecordController**: POST /api/tissue-records/import/{pilotId} (importTissueData) · GET /api/tissue-records/{pilotId} (getTissueRecords) · DELETE /api/tissue-records/clear (clearDatabase) · DELETE /api/tissue-records/delete-file (deleteSpecificFile) · GET /api/tissue-records/export/{pilotId} (exportTissueRecords) · GET /api/tissue-records/versions (getAvailableVersions) · GET /api/tissue-records/etats (getAvailableEtats) · GET /api/tissue-records/history/{eps} (getEpsHistory) · POST /api/tissue-records/export-track-global (exportGlobalTrackHistory) · POST /api/tissue-records/export-global-search (exportGlobalSearch) · GET /api/tissue-records/imported-files (getImportedFiles) · GET /api/tissue-records/alerts (getValidationAlerts) · GET /api/tissue-records/alerts-comments (getDuplicateCommentAlerts) · GET /api/tissue-records/export-alerts (exportAlertsToExcel) · GET /api/tissue-records/export-alerts-comments (exportCommentAlertsToExcel) · DELETE /api/tissue-records/deduplicate (removeDuplicates) · DELETE /api/tissue-records/fix-69-files (fixRetroactiveDuplicates)
+- **TissueSecureUploadController**: POST /api/tissue-secure-upload/import/{pilotId} (importSecureData) · GET /api/tissue-secure-upload/logs (getImportLogs) · PUT /api/tissue-secure-upload/reorder (reorderFiles)
+- **UserController**: GET /api/users/pilots (getPilots) · GET /api/users/{id} (getUserById) · PATCH /api/users/{id}/toggle-status (toggleUserStatus) · PATCH /api/users/{id}/reset-password (resetPassword) · PATCH /api/users/{id}/permissions (updatePermissions)
+- **VentilationController**: POST /api/ventilation/import (importVentilation) · GET /api/ventilation/data (getVentilationData) · DELETE /api/ventilation/purge (purgeVentilationData)
+- **WorkflowTemplateController**: ANY /api/templates (js) · GET / (getTemplates) · POST / (create)
+
+### Front routes
+- pages: `/` · `/admin/audit` · `/admin/check` · `/admin/data` · `/admin/eps-tracer` · `/admin/export` · `/admin/kanban` · `/admin/live-board` · `/admin/stats` · `/admin/strategic` · `/admin/tasks` · `/admin/templates` · `/admin/users` · `/import` · `/login` · `/pilot/api` · `/pilot/board` · `/pilot/facture` · `/pilot/history` · `/pilot/home` · `/pilot/kanban` · `/pilot/parametrage` · `/pilot/recorde` · `/pilot/tissue-records` · `/pilot/ventilation` · `/portal`
+
+### Data models
+BytelIntervention, BytelSyncEtat, Batch, FieldDefinition, PilotRecord, PointLog, RecordImportLog, Task, TissueRecord, User, VentilationData, WorkflowTemplate
+
+## Structure
+```
+kyntus-workflow-main/
+  .github/workflows/ (1 files omitted)
+  Workflow/
+    src/
+      main/
+        java/com/kyntus/Workflow/
+          bytel/
+            controller/
+              BytelDiagController.java [sig]
+              BytelLocaliserController.java [sig]
+              BytelApiController.java [omitted]
+            model/ (4 files omitted)
+            repository/ (4 files omitted)
+            service/ (8 files omitted)
+          config/
+            ApiExceptionHandler.java [sig]
+            CorsConfig.java [omitted]
+            DatabaseInitializer.java [omitted]
+            SecurityConfig.java [omitted]
+            WebSocketConfig.java [omitted]
+          controller/
+            facture/ (1 files omitted)
+            AdminController.java [sig]
+            AuthController.java [sig]
+            ChatController.java [sig]
+            DispatchController.java [sig]
+            ExportController.java [sig]
+            HealthController.java [sig]
+            ImportController.java [sig]
+            ParametrageController.java [sig]
+            PilotEquipeController.java [sig]
+            PilotSecureUploadController.java [sig]
+            RescueController.java [sig]
+            TaskAndTemplateAdminController.java [sig]
+            TaskController.java [sig]
+            TissueEquipeController.java [sig]
+            TissueSecureUploadController.java [sig]
+            UserController.java [sig]
+            VentilationController.java [sig]
+            WorkflowTemplateController.java [sig]
+            PilotRecordController.java [omitted]
+            StatsController.java [omitted]
+            TissueRecordController.java [omitted]
+          dto/ (8 files omitted)
+          model/ (13 files omitted)
+          repository/ (9 files omitted)
+          service/ (30 files omitted)
+          WorkflowApplication.java
+          DataSeeder.java [omitted]
+        resources/ (1 files omitted)
+      test/java/com/kyntus/Workflow/ (1 files omitted)
+    Dockerfile [omitted]
+    pom.xml [omitted]
+  frontend/
+    src/
+      app/
+        admin/ (34 files omitted)
+        import/ (2 files omitted)
+        login/ (2 files omitted)
+        pilot/
+          api/
+            components/
+              DataGrid.tsx [sig]
+              NexusModal.tsx [sig]
+              TimelineModal.tsx [sig]
+              AlertBanners.tsx [omitted]
+              NexusSelect.tsx [omitted]
+              NexusStyles.tsx [omitted]
+            lib/
+              apiUtils.ts [sig]
+            page.tsx [omitted]
+          board/ (23 files omitted)
+          facture/ (3 files omitted)
+          history/ (7 files omitted)
+          home/ (7 files omitted)
+          kanban/ (12 files omitted)
+          parametrage/ (3 files omitted)
+          recorde/ (9 files omitted)
+          tissue-records/ (6 files omitted)
+          ventilation/ (8 files omitted)
+          PilotLayout.module.css [omitted]
+          layout.tsx [omitted]
+        portal/ (2 files omitted)
+        layout.tsx [sig]
+        page.tsx [sig]
+        globals.css [omitted]
+        page.module.css [omitted]
+      components/
+        3d/
+          HeroScene/
+            index.tsx [sig]
+            HyperText.tsx [omitted]
+            WarpStars.tsx [omitted]
+          DataTerrain.tsx [omitted]
+          Tooltip.tsx [omitted]
+          Workflow3DChart.tsx [omitted]
+          types.ts [omitted]
+        dashboard/
+          3d-chart/
+            index.tsx [sig]
+            Axes.tsx [omitted]
+            BarPillar.tsx [omitted]
+            Chart3D.module.css [omitted]
+            Experience.tsx [omitted]
+          … +6 files omitted
+        features/ (11 files omitted)
+        layout/ (11 files omitted)
+        ui/ (23 files omitted)
+        LuxChart.css [omitted]
+        ProtectedRoute.tsx [omitted]
+      context/ (1 files omitted)
+      lib/ (1 files omitted)
+    … +6 files omitted
+  AGENTS.md [omitted]
+  MAINTENANCE.md [omitted]
+  docker-compose.yml [omitted]
+```
+
+## Files
+
+### Workflow/src/main/java/com/kyntus/Workflow/WorkflowApplication.java
+```java
+@SpringBootApplication
+public class WorkflowApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(WorkflowApplication.class, args);
+	}
+
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/bytel/controller/BytelDiagController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/bytel")
+public class BytelDiagController {
+
+    @Value("${bytel.dashboard.url:http://10.10.10.25:8117/api/dashboard/interventions}")
+    private String dashboardUrl;
+
+    @GetMapping("/diag")
+    public ResponseEntity<Map<String, Object>> diag(
+            @RequestParam(defaultValue = "2026_M01") String period,
+            @RequestParam(defaultValue = "1") int size) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/bytel/controller/BytelLocaliserController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/bytel")
+public class BytelLocaliserController {
+
+    private final ObjectMapper mapper;
+    private final RestClient restClient;
+
+    @Value("${bytel.dashboard.url:http://10.10.10.25:8117/api/dashboard/interventions}")
+    private String dashboardUrl;
+
+    @Value("${bytel.dashboard.page-size:500}")
+    private int pageSize;
+
+    public BytelLocaliserController(ObjectMapper mapper) { … }
+
+    public record LocaliserRequest(List<String> epsList, String eps, List<String> periodes) {}
+
+    @PostMapping("/localiser")
+    public ResponseEntity<Map<String, Object>> localiser(@RequestBody LocaliserRequest req) { … }
+
+    private Map<String, Integer> repartition(Map<String, String> trouves) { … }
+
+    private void ajouterTokens(Set<String> cible, String brut) { … }
+
+    private List<String> periodesParDefaut() { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/config/ApiExceptionHandler.java · signatures only
+```java
+@RestControllerAdvice
+public class ApiExceptionHandler {
+
+    private static ResponseEntity<Map<String, Object>> body(HttpStatus status, String message, Throwable t) { … }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> onTooBig(MaxUploadSizeExceededException e) { … }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> onIllegalState(IllegalStateException e) { … }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> onAny(Exception e) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/AdminController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/admin")
+public class AdminController {
+
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final PointLogRepository pointLogRepository;
+
+    public AdminController(TaskRepository taskRepository, UserRepository userRepository, PointLogRepository pointLogRepository) { … }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchByEps(@RequestParam String eps) { … }
+
+    @PostMapping("/eps-tracer")
+    public ResponseEntity<?> traceEps(@RequestBody Map<String, Object> payload) { … }
+
+    @PostMapping("/flag-error/{taskId}")
+    public ResponseEntity<?> flagError(@PathVariable Long taskId) { … }
+
+    @PostMapping("/points")
+    public ResponseEntity<?> manualPointsAdjustment(@RequestBody Map<String, Object> payload) { … }
+
+    @GetMapping("/points/history/{pilotId}")
+    public List<PointLog> getPointsHistory(@PathVariable Long pilotId) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/AuthController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) { … }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> payload) { … }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/ChatController.java · signatures only
+```java
+@Controller
+public class ChatController {
+
+    @MessageMapping("/chat.sendMessage")
+    @SendTo("/topic/public")
+    public ChatMessage sendMessage(@Payload ChatMessage chatMessage) { … }
+
+    @MessageMapping("/chat.addUser")
+    @SendTo("/topic/public")
+    public ChatMessage addUser(@Payload ChatMessage chatMessage,
+                               SimpMessageHeaderAccessor headerAccessor) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/DispatchController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/dispatch")
+public class DispatchController {
+
+    private final DispatchService dispatchService;
+
+    public DispatchController(DispatchService dispatchService) { … }
+
+    @PostMapping("/execute")
+    public ResponseEntity<Map<String, String>> executeDispatch(@RequestBody DispatchRequestDto request) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/ExportController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/export")
+public class ExportController {
+
+    private final ExcelExportService exportService;
+
+    public ExportController(ExcelExportService exportService) { … }
+
+    @GetMapping("/{templateId}")
+    public ResponseEntity<InputStreamResource> exportTemplate(@PathVariable Long templateId) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/HealthController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/health")
+public class HealthController {
+
+    private final DataSource dataSource;
+
+    public HealthController(DataSource dataSource) { … }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> liveness() { … }
+
+    @GetMapping("/db")
+    public ResponseEntity<Map<String, Object>> database() { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/ImportController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/import")
+public class ImportController {
+
+    private final ExcelImportService importService;
+
+    public ImportController(ExcelImportService importService) { … }
+
+    @PostMapping("/{templateId}")
+    public ResponseEntity<String> uploadExcel(@RequestParam("file") MultipartFile file,
+                                              @PathVariable Long templateId) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/ParametrageController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/parametrage")
+public class ParametrageController {
+
+    private final ParametrageMasterService parametrageMasterService;
+
+    public ParametrageController(ParametrageMasterService parametrageMasterService) { … }
+
+    @PostMapping("/process")
+    public ResponseEntity<byte[]> processParametrage(@RequestParam("file") MultipartFile file) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/PilotEquipeController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/equipe-export")
+public class PilotEquipeController {
+
+    private final PilotEquipeService pilotEquipeService;
+
+    public PilotEquipeController(PilotEquipeService pilotEquipeService) { … }
+
+    @PostMapping("/track")
+    public ResponseEntity<byte[]> exportEquipeTrack(
+            @RequestBody List<String> epsList,
+            @RequestParam("category") String category,
+            @RequestParam(value = "year", required = false) String year,
+            @RequestParam(value = "month", required = false) String month) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/PilotSecureUploadController.java · signatures only
+```java
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/secure-upload")
+public class PilotSecureUploadController {
+
+    private final PilotSecureImportService pilotSecureImportService;
+
+    public PilotSecureUploadController(PilotSecureImportService pilotSecureImportService) { … }
+
+    @PostMapping("/import/{pilotId}")
+    public ResponseEntity<Map<String, Object>> importSecureData(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("category") String category,
+            @RequestParam("fileRank") int fileRank,
+            @PathVariable Long pilotId) { … }
+
+    @GetMapping("/logs")
+    public ResponseEntity<List<RecordImportLog>> getImportLogs(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) { … }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<?> reorderFiles(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestBody List<String> orderedFilenames) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/RescueController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/rescue")
+public class RescueController {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public RescueController(UserRepository userRepository, PasswordEncoder passwordEncoder) { … }
+
+    @GetMapping("/admin")
+    public String createRescueAdmin() { … }
+
+    @GetMapping("/pilot")
+    public String createRescuePilot() { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/TaskAndTemplateAdminController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api")
+@CrossOrigin(origins = "*")
+public class TaskAndTemplateAdminController {
+
+    private final JdbcTemplate jdbcTemplate;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final WorkflowTemplateRepository workflowTemplateRepository;
+
+    public TaskAndTemplateAdminController(
+            JdbcTemplate jdbcTemplate,
+            TaskRepository taskRepository,
+            UserRepository userRepository,
+            WorkflowTemplateRepository workflowTemplateRepository
+    ) { … }
+
+    @DeleteMapping("/templates/{templateId}")
+    @Transactional
+    public ResponseEntity<?> deleteTemplate(@PathVariable Long templateId) { … }
+
+    @PatchMapping("/tasks/reassign")
+    @Transactional
+    public ResponseEntity<?> reassignTasks(@RequestBody Map<String, Object> payload) { … }
+
+    @PatchMapping("/tasks/{taskId}/validate-final")
+    @Transactional
+    public ResponseEntity<?> validateFinalByAdmin(@PathVariable Long taskId) { … }
+
+    @GetMapping("/tasks/search-eps")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> searchWhoWorkedOnEps(@RequestParam("q") String query) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/TaskController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/tasks")
+public class TaskController {
+
+    private final TaskRepository taskRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    public TaskController(TaskRepository taskRepository, SimpMessagingTemplate messagingTemplate) { … }
+
+    @GetMapping
+    public List<Task> getTasks(
+            @RequestParam(required = false) Long assigneeId,
+            @RequestParam(required = false) Long templateId,
+            @RequestParam(required = false) String status
+    ) { … }
+
+    @PatchMapping("/{id}/status")
+    public Task updateStatus(@PathVariable Long id, @RequestBody Map<String, String> payload) { … }
+
+    @PatchMapping("/{id}/data")
+    public Task updateData(@PathVariable Long id, @RequestBody Map<String, Object> payload) { … }
+
+    @GetMapping("/unassigned")
+    public List<Task> getUnassignedTasks() { … }
+
+    @GetMapping("/unassigned/{templateId}")
+    public List<Task> getUnassignedTasksByTemplate(@PathVariable Long templateId) { … }
+
+    @GetMapping("/columns/{templateId}")
+    public List<String> getTemplateColumns(@PathVariable Long templateId) { … }
+
+    @GetMapping("/values/{templateId}/{columnKey}")
+    public List<String> getColumnValues(@PathVariable Long templateId, @PathVariable String columnKey) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/TissueEquipeController.java · signatures only
+```java
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/tissue-equipe-export")
+public class TissueEquipeController {
+
+    private final TissueEquipeService tissueEquipeService;
+
+    public TissueEquipeController(TissueEquipeService tissueEquipeService) { … }
+
+    @PostMapping("/track")
+    public ResponseEntity<byte[]> exportEquipeTrack(
+            @RequestBody List<String> epsList,
+            @RequestParam("category") String category,
+            @RequestParam(value = "year", required = false) String year,
+            @RequestParam(value = "month", required = false) String month) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/TissueSecureUploadController.java · signatures only
+```java
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/api/tissue-secure-upload")
+public class TissueSecureUploadController {
+
+    private final TissueSecureImportService tissueSecureImportService;
+
+    public TissueSecureUploadController(TissueSecureImportService tissueSecureImportService) { … }
+
+    @PostMapping("/import/{pilotId}")
+    public ResponseEntity<Map<String, Object>> importSecureData(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestParam("category") String category,
+            @RequestParam("fileRank") int fileRank,
+            @PathVariable Long pilotId) { … }
+
+    @GetMapping("/logs")
+    public ResponseEntity<List<RecordImportLog>> getImportLogs(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) { … }
+
+    @PutMapping("/reorder")
+    public ResponseEntity<?> reorderFiles(
+            @RequestParam("category") String category,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @RequestBody List<String> orderedFilenames) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/UserController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserController(UserRepository userRepository, PasswordEncoder passwordEncoder) { … }
+
+    @GetMapping("/pilots")
+    public List<User> getPilots() { … }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) { … }
+
+    @PatchMapping("/{id}/toggle-status")
+    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id) { … }
+
+    @PatchMapping("/{id}/reset-password")
+    public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> payload) { … }
+
+    @PatchMapping("/{id}/permissions")
+    public ResponseEntity<?> updatePermissions(@PathVariable Long id, @RequestBody Map<String, Boolean> newPermissions) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/VentilationController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/ventilation")
+public class VentilationController {
+
+    private final VentilationMasterService ventilationMasterService;
+
+    public VentilationController(VentilationMasterService ventilationMasterService) { … }
+
+    @PostMapping("/import")
+    public ResponseEntity<?> importVentilation(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("year") int year,
+            @RequestParam("month") int month) { … }
+
+    @GetMapping("/data")
+    public ResponseEntity<?> getVentilationData(@RequestParam("year") int year, @RequestParam("month") int month) { … }
+
+    @DeleteMapping("/purge")
+    public ResponseEntity<?> purgeVentilationData(@RequestParam("year") int year, @RequestParam("month") int month) { … }
+}
+```
+
+### Workflow/src/main/java/com/kyntus/Workflow/controller/WorkflowTemplateController.java · signatures only
+```java
+@RestController
+@RequestMapping("/api/templates")
+public class WorkflowTemplateController {
+
+    private final WorkflowTemplateService templateService;
+
+    public WorkflowTemplateController(WorkflowTemplateService templateService) { … }
+
+    @GetMapping
+    public ResponseEntity<List<WorkflowTemplate>> getTemplates(@RequestParam(required = false) Long userId) { … }
+
+    @PostMapping
+    public ResponseEntity<WorkflowTemplate> create(@RequestBody WorkflowTemplateDto dto) { … }
+}
+```
+
+### frontend/src/app/layout.tsx · signatures only
+```tsx
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import AppShell from "@/components/layout/AppShell";
+import { AuthProvider } from "@/context/AuthContext";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Kyntus Workflow",
+  description: "Système de gestion de workflow Kyntus",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) { … }
+```
+
+### frontend/src/app/page.tsx · signatures only
+```tsx
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { Layers, ChevronsDown } from "lucide-react";
+import styles from "./page.module.css";
+import AuthGuard from "@/components/layout/AuthGuard";
+import AdminLoader from "@/components/ui/AdminLoader";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import ProcessChart3D from "@/components/dashboard/3d-chart";
+
+import CommandHeader from "@/components/dashboard/CommandHeader";
+import HudStats from "@/components/dashboard/HudStats";
+import ProjectRow from "@/components/dashboard/ProjectRow";
+import { apiJsonOr } from "@/lib/api";
+
+export default function CommandPage() { … }
+```
+
+### frontend/src/app/pilot/api/components/DataGrid.tsx · signatures only
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight, Database, Rows3, Rows4, Search, X } from "lucide-react";
+import NexusSelect from "./NexusSelect";
+
+interface Props {
+  titre: string;
+  icone?: React.ReactNode;
+  accent?: string;
+  badgeLive?: React.ReactNode;
+  total: number;
+  unite: string;
+  outils?: React.ReactNode;
+  chargement: boolean;
+  messageChargement?: React.ReactNode;
+  vide: boolean;
+  messageVide: React.ReactNode;
+  sousMessageVide?: React.ReactNode;
+  page: number;
+  totalPages: number;
+  setPage: (p: number) => void;
+  taille?: number;
+  setTaille?: (t: number) => void;
+  options?: number[];
+  density?: "comfort" | "compact";
+  setDensity?: (d: "comfort" | "compact") => void;
+  quickFilter?: string;
+  setQuickFilter?: (q: string) => void;
+  children: React.ReactNode;
+}
+
+export default function DataGrid({
+  titre,
+  icone,
+  accent = "#2563eb",
+  badgeLive,
+  total,
+  unite,
+  outils,
+  chargement,
+  messageChargement,
+  vide,
+  messageVide,
+  sousMessageVide,
+  page,
+  totalPages,
+  setPage,
+  taille,
+  setTaille,
+  options = [25, 50, 100, 200],
+  density,
+  setDensity,
+  quickFilter,
+  setQuickFilter,
+  children,
+}: Props) { … }
+```
+
+### frontend/src/app/pilot/api/components/NexusModal.tsx · signatures only
+```tsx
+"use client";
+
+import React, { useEffect } from "react";
+import { X } from "lucide-react";
+
+interface Props {
+  ouvert: boolean;
+  onClose: () => void;
+  titre: React.ReactNode;
+  sousTitre?: React.ReactNode;
+  icone?: React.ReactNode;
+  accent?: string;
+  largeur?: number;
+  verrouille?: boolean;
+  children: React.ReactNode;
+  pied?: React.ReactNode;
+}
+
+export default function NexusModal({
+  ouvert,
+  onClose,
+  titre,
+  sousTitre,
+  icone,
+  accent = "#2563eb",
+  largeur = 740,
+  verrouille,
+  children,
+  pied,
+}: Props) { … }
+```
+
+### frontend/src/app/pilot/api/components/TimelineModal.tsx · signatures only
+```tsx
+"use client";
+
+import React from "react";
+import { Crosshair, ShieldAlert, GitCommit, Bot, ArrowRight } from "lucide-react";
+import NexusModal from "./NexusModal";
+import { couleurEtat, elementsDe, fmtDate, fmtMontant, totalElements } from "../lib/apiUtils";
+
+interface Props {
+  eps: string | null;
+  periode: string;
+  entrees: any[];
+  chargement: boolean;
+  onClose: () => void;
+}
+
+const champ = (label: string, valeur: React.ReactNode, couleur = "#0f2557") => ( … );
+
+export default function TimelineModal({ eps, periode, entrees, chargement, onClose }: Props) { … }
+```
+
+### frontend/src/app/pilot/api/lib/apiUtils.ts · signatures only
+```ts
+export const ETAT_ACTIONNABLE = "EN_ATTENTE_VALIDATION_PARTENAIRE";
+
+export const ETAT_COLORS: Record<string, string> = {
+  EN_ATTENTE_VALIDATION_PARTENAIRE: "#d97706",
+  EN_ATTENTE_VALIDATION_BYTEL: "#2563eb",
+  EN_ATTENTE_ANALYSE_PHOTOS: "#0284c7",
+  EN_ATTENTE_VALIDATION_ANALYSE_PHOTOS: "#1d4ed8",
+  VALIDEE: "#059669",
+  INCONNU: "#64748b",
+};
+export const couleurEtat = (e?: string | null) => ( … ) || "#334e7b";
+
+export const TYPES_RACCORDEMENT = ["EXISTANTE", "BRASSAGE_PM", "INTERIEUR", "CHAMBRE", "AERIEN", "FACADE"];
+export const TYPES_PAR_QUALIF: Record<string, string[]> = {
+  QualificationRaccordement: ["RACCORDEMENT", "BRASSAGE_PM", "PLP", "NOK"],
+  QualificationSAV: ["SAV_STD", "SAV_MC", "SAV_SC", "SAV_REPRISE", "NOK"],
+  QualificationReseau: ["AUDITS", "DESATURATION", "REMISE_EN_ETAT", "REPRISE_JARRETIERAGE", "EXPERTISES", "SOUDURE_ET_POSES_DE_CORPS_DE_TRAVERSES"],
+};
+export const ELEMENTS_PAR_QUALIF: Record<string, string[]> = {
+  QualificationRaccordement: ["INSTALLATION", "MES", "MATERIEL", "SUPPORT", "LOGISTIQUE", "DEPLACEMENT", "GOULOTTE"],
+  QualificationSAV: ["INSTALLATION", "SUPPORT", "DEPLACEMENT", "JARRETIERES"],
+  QualificationReseau: ["INSTALLATION", "MATERIEL", "JARRETIERES", "DEPLACEMENT"],
+};
+export const ELEMENTS_TOUS = ["INSTALLATION", "MES", "MATERIEL", "SUPPORT", "LOGISTIQUE", "DEPLACEMENT", "GOULOTTE", "JARRETIERES"];
+
+export const SECTEURS = [
+  { value: "", label: "SECTEUR : TOUS" },
+  { value: "QualificationRaccordement", label: "SECTEUR : RACC" },
+  { value: "QualificationSAV", label: "SECTEUR : SAV" },
+  { value: "QualificationReseau", label: "SECTEUR : RESEAU" },
+];
+export const libelleSecteur = (q?: string | null) =>
+  !q ? "TOUS" : q === "QualificationRaccordement" ? "RACC" : q === "QualificationSAV" ? "SAV" : q === "QualificationReseau" ? "RESEAU" : q.replace("Qualification", "");
+
+export const VERSIONS_OPTIONS = [
+  { value: "", label: "Toutes versions" },
+  { value: "1", label: "V1 seule" },
+  { value: "2", label: "2 versions" },
+  { value: "3", label: "3 versions" },
+  { value: "2+", label: "2 versions et +" },
+  { value: "3+", label: "3 versions et +" },
+  { value: "5+", label: "5 versions et +" },
+];
+
+export const elementsDe = (v: any): Record<string, number> => { … };
+export const totalElements = (el: Record<string, number>) =>
+  Object.values(el || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+
+export const fmtMontant = (m?: number | null) =>
+  m === null || m === undefined ? "-" : `${Number(m).toFixed(2).replace(".", ",")} €`;
+
+export const fmtDate = (d?: string | null) => { … };
+
+export const parserListe = (t: string) =>
+  Array.from(new Set((t || "").split(/[\s,;|]+/).map(x => x.trim().replace(/["']/g, "").toUpperCase()).filter(Boolean)));
+
+export const telechargerBlob = (blob: Blob, nom: string) => { … };
+
+export const telechargerUrl = (url: string, nom: string) => { … };
+
+export const auteurCourant = () => { … };
+```
+
+### frontend/src/components/3d/HeroScene/index.tsx · signatures only
+```tsx
+"use client";
+
+import React, { Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import * as THREE from "three";
+
+import { HyperText } from "./HyperText";
+import { WarpStars } from "./WarpStars";
+
+interface SceneProps {
+  isHovered?: boolean;
+}
+
+export default function HeroScene({ isHovered = false }: SceneProps) { … }
+```
+
+### frontend/src/components/dashboard/3d-chart/index.tsx · signatures only
+```tsx
+"use client";
+
+import { Canvas } from "@react-three/fiber";
+import { Suspense } from "react";
+import { BarChart3, Zap } from "lucide-react";
+import { Experience } from "./Experience";
+import styles from "./Chart3D.module.css";
+import * as THREE from "three";
+
+interface ProjectData {
+  templateName: string;
+  progress: number;
+  templateId: number;
+}
+
+interface ProcessChart3DProps {
+  projects: ProjectData[];
+}
+
+export default function ProcessChart3D({ projects }: ProcessChart3DProps) { … }
+```
+## Not included
+- omitted (budget): 291 files — see `[omitted]` in Structure
