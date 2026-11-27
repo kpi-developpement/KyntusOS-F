@@ -201,7 +201,7 @@ export default function OmniGrid() {
           
           {/* Footer Info */}
           <div className={styles.footerGrid}>
-              <span>TOTAL ENTRÉES: <strong style={{color:"white"}}>{filteredData.length}</strong></span>
+              <span>TOTAL ENTRÉES: <strong style={{color:"#0f1e3d"}}>{filteredData.length}</strong></span>
               <span>OMNI-GRID SYSTEM V1.0</span>
           </div>
       </div>

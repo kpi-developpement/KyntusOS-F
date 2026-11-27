@@ -190,8 +190,8 @@ export default function PilotStatsGrid() {
                 <div className={styles.profileHeader}>
                     <div className={styles.bigAvatar}>{viewingProfile.username.substring(0,2).toUpperCase()}</div>
                     <div>
-                        <h2 style={{margin:0, color:"white"}}>{viewingProfile.username}</h2>
-                        <span style={{color:"#00f2ea", fontSize:"0.7rem", letterSpacing:1, fontFamily:"monospace"}}>
+                        <h2 style={{margin:0, color:"#0f1e3d"}}>{viewingProfile.username}</h2>
+                        <span style={{color:"#0052cc", fontSize:"0.7rem", letterSpacing:1, fontFamily:"monospace"}}>
                             OPERATOR TIER {Math.floor((viewingProfile.leaguePoints || 0) / 100) + 1}
                         </span>
                     </div>
@@ -209,12 +209,12 @@ export default function PilotStatsGrid() {
                     </div>
                     <div className={styles.pCard}>
                         <label>VALIDÉES</label>
-                        <div className={styles.pValue} style={{color:"#39ff14"}}>{viewingProfile.validatedTasks || 0}</div>
+                        <div className={styles.pValue} style={{color:"#20cc00"}}>{viewingProfile.validatedTasks || 0}</div>
                         <ShieldCheck size={20} className={styles.pIcon}/>
                     </div>
                     <div className={styles.pCard}>
                         <label>REJETÉES</label>
-                        <div className={styles.pValue} style={{color:"#ff0055"}}>{viewingProfile.rejectedTasks || 0}</div>
+                        <div className={styles.pValue} style={{color:"#cc0044"}}>{viewingProfile.rejectedTasks || 0}</div>
                         <Shield size={20} className={styles.pIcon}/>
                     </div>
                     <div className={styles.pCard}>
@@ -227,7 +227,7 @@ export default function PilotStatsGrid() {
                 <div className={styles.varHistory}>
                     <div className={styles.varRow}>
                         <span>Solde Points Admin :</span>
-                        <strong style={{color: (viewingProfile.manualPoints || 0) >= 0 ? "#39ff14" : "#ff0055"}}>
+                        <strong style={{color: (viewingProfile.manualPoints || 0) >= 0 ? "#20cc00" : "#cc0044"}}>
                             {viewingProfile.manualPoints || 0} pts
                         </strong>
                     </div>

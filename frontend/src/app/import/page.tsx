@@ -147,13 +147,13 @@ export default function ImportPage() {
               
               {file ? (
                 <div className={styles.fileReady}>
-                  <FileSpreadsheet size={60} color="#39ff14" />
+                  <FileSpreadsheet size={60} color="#10b981" />
                   <div className={styles.fileName}>{file.name}</div>
                   <div className={styles.dropSub}>{(file.size / 1024 / 1024).toFixed(2)} MB - Ready for injection</div>
                 </div>
               ) : (
                 <>
-                  <UploadCloud size={60} color={isDragging ? "#00f0ff" : "#64748b"} className={styles.dropIcon} />
+                  <UploadCloud size={60} color={isDragging ? "#2563eb" : "#64748b"} className={styles.dropIcon} />
                   <h3 className={styles.dropTitle}>
                     {isDragging ? "DROP TO LOCK TARGET" : "DRAG & DROP EXCEL FILE HERE"}
                   </h3>

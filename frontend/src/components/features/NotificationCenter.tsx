@@ -108,7 +108,7 @@ export default function NotificationCenter() {
     <>
       {/* 1. TOAST POPUP (Notification Volante) */}
       {toast && (
-          <div className={`${styles.toast} ${getTypeStyle(toast.type)}`} style={{ "--neon-color": toast.type === 'SUCCESS' ? '#39ff14' : '#00f2ea' } as any}>
+          <div className={`${styles.toast} ${getTypeStyle(toast.type)}`} style={{ "--neon-color": toast.type === 'SUCCESS' ? '#10b981' : '#2563eb' } as any}>
               <div className={styles.iconBox} style={{width: 24, height: 24, borderRadius: "50%"}}>
                   {getIcon(toast.type)}
               </div>

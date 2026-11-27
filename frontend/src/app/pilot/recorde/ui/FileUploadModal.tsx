@@ -286,28 +286,28 @@ export default function FileUploadModal({
   const renderStatusBadge = (status: string) => {
     if (status === 'SUCCESS') {
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #34e474', whiteSpace: 'nowrap' }}>
           <CheckCircle size={12} /> PASSÉ
         </span>
       );
     }
     if (status === 'DUPLICATE_ONLY') {
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fbc71d', whiteSpace: 'nowrap' }}>
           <RefreshCw size={12} /> DÉJÀ INTÉGRÉ
         </span>
       );
     }
     if (status === 'ERROR') {
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #f82121', whiteSpace: 'nowrap' }}>
           <XCircle size={12} /> ÉCHEC
         </span>
       );
     }
     if (status === 'UPLOADING') {
       return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#dbeafe', color: '#1e40af', border: '1px solid #93c5fd', whiteSpace: 'nowrap' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, backgroundColor: '#dbeafe', color: '#1e40af', border: '1px solid #1e86fb', whiteSpace: 'nowrap' }}>
           <Activity size={12} /> EN COURS...
         </span>
       );
@@ -326,7 +326,7 @@ export default function FileUploadModal({
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.55)",
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -348,12 +348,12 @@ export default function FileUploadModal({
       <div
         style={{
           backgroundColor: "#ffffff",
-          border: "1px solid #bfdbfe",
+          border: "1px solid #1d80fb",
           borderRadius: "20px",
           width: "720px",
           maxWidth: "95%",
           padding: "1.75rem 2rem",
-          boxShadow: "0 24px 48px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(37, 99, 235, 0.08)",
+          boxShadow: "0 24px 48px -12px rgba(15, 30, 61, 0.07), 0 0 0 1px rgba(37, 99, 235, 0.05)",
           position: "relative",
           overflow: "hidden",
           maxHeight: "92vh",
@@ -369,7 +369,7 @@ export default function FileUploadModal({
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "12px", flexShrink: 0 }}>
           <h2 style={{ color: "#0f172a", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
-            <div style={{ backgroundColor: "#eff6ff", padding: "8px", borderRadius: "10px", border: "1px solid #bfdbfe", display: "flex" }}>
+            <div style={{ backgroundColor: "#eff6ff", padding: "8px", borderRadius: "10px", border: "1px solid #1d80fb", display: "flex" }}>
               <Database color="#2563eb" size={20} />
             </div>
             Batch Payload Uplink — Kyntus
@@ -394,19 +394,19 @@ export default function FileUploadModal({
 
         <div style={{ flex: 1, overflowY: "auto", paddingRight: "4px" }} className="clean-scroll">
           {/* Active Target & Cycle Pill Bar */}
-          <div style={{ display: "flex", gap: "16px", backgroundColor: "#eff6ff", padding: "0.7rem 1.2rem", borderRadius: "12px", border: "1px solid #bfdbfe", marginBottom: "1rem", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "16px", backgroundColor: "#eff6ff", padding: "0.7rem 1.2rem", borderRadius: "12px", border: "1px solid #1d80fb", marginBottom: "1rem", justifyContent: "center", alignItems: "center" }}>
             <span style={{ color: "#1e40af", fontSize: "0.86rem", fontWeight: 700 }}>
-              SECTOR: <strong style={{ color: "#2563eb" }}>[{category}]</strong>
+              SECTOR: <strong style={{ color: "#0f3fa8" }}>[{category}]</strong>
             </span>
-            <span style={{ color: "#93c5fd" }}>•</span>
+            <span style={{ color: "#0357b4" }}>•</span>
             <span style={{ color: "#1e40af", fontSize: "0.86rem", fontWeight: 700 }}>
-              CYCLE: <strong style={{ color: "#2563eb" }}>{String(month).padStart(2, '0')}/{year}</strong>
+              CYCLE: <strong style={{ color: "#0f3fa8" }}>{String(month).padStart(2, '0')}/{year}</strong>
             </span>
           </div>
 
           {/* LIVE BATCH RESULTS (Current Upload Session) */}
           {batchResults.length > 0 && (
-            <div style={{ marginBottom: "1rem", padding: "1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #93c5fd", borderLeft: "4px solid #0284c7" }}>
+            <div style={{ marginBottom: "1rem", padding: "1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #1e86fb", borderLeft: "4px solid #0284c7" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <Activity size={16} color="#0284c7" />
@@ -438,7 +438,7 @@ export default function FileUploadModal({
                       padding: "8px 10px",
                       borderRadius: "9px",
                       backgroundColor: res.status === 'ERROR' ? '#fef2f2' : res.status === 'SUCCESS' ? '#f0fdf4' : res.status === 'DUPLICATE_ONLY' ? '#fffbeb' : '#ffffff',
-                      border: `1px solid ${res.status === 'ERROR' ? '#fecaca' : res.status === 'SUCCESS' ? '#bbf7d0' : res.status === 'DUPLICATE_ONLY' ? '#fde68a' : '#e2e8f0'}`,
+                      border: `1px solid ${res.status === 'ERROR' ? '#fb1e1e' : res.status === 'SUCCESS' ? '#32e771' : res.status === 'DUPLICATE_ONLY' ? '#fbcf1d' : '#e2e8f0'}`,
                       display: "flex",
                       flexDirection: "column",
                       gap: "4px"
@@ -482,7 +482,7 @@ export default function FileUploadModal({
               onDrop={handleDrop}
               onClick={() => files.length === 0 && fileInputRef.current?.click()}
               style={{
-                border: isDraggingOver ? "2px dashed #2563eb" : (files.length > 0 ? "2px solid #3b82f6" : "2px dashed #93c5fd"),
+                border: isDraggingOver ? "2px dashed #2d69ec" : (files.length > 0 ? "2px solid #2473f5" : "2px dashed #1e86fb"),
                 borderRadius: "16px",
                 padding: "1.4rem 1.25rem",
                 textAlign: "center",
@@ -500,7 +500,7 @@ export default function FileUploadModal({
                 <div>
                   <div style={{ position: "relative", width: "40px", height: "40px", margin: "0 auto 8px" }} onClick={() => fileInputRef.current?.click()}>
                     <Layers size={36} color="#2563eb" style={{ cursor: "pointer" }} />
-                    <div style={{ position: "absolute", bottom: "-4px", right: "-10px", background: "#2563eb", borderRadius: "999px", padding: "2px 7px", color: "#ffffff", fontSize: "0.72rem", fontWeight: 800 }}>
+                    <div style={{ position: "absolute", bottom: "-4px", right: "-10px", background: "#2563eb", borderRadius: "999px", padding: "2px 7px", color: "#0f1e3d", fontSize: "0.72rem", fontWeight: 800 }}>
                       {files.length}
                     </div>
                   </div>
@@ -537,8 +537,8 @@ export default function FileUploadModal({
               style={{
                 width: "100%",
                 background: files.length > 0 ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "#f1f5f9",
-                color: files.length > 0 ? "#ffffff" : "#94a3b8",
-                border: files.length > 0 ? "1px solid #1d4ed8" : "1px solid #e2e8f0",
+                color: files.length > 0 ? "#0f1e3d" : "#475569",
+                border: files.length > 0 ? "1px solid #3563e4" : "1px solid #e2e8f0",
                 padding: "0.85rem",
                 borderRadius: "12px",
                 cursor: files.length > 0 ? "pointer" : "not-allowed",
@@ -547,7 +547,7 @@ export default function FileUploadModal({
                 marginBottom: "1.15rem",
                 fontSize: "0.9rem",
                 transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
-                boxShadow: files.length > 0 ? "0 8px 20px rgba(37, 99, 235, 0.28)" : "none"
+                boxShadow: files.length > 0 ? "0 8px 20px rgba(37, 99, 235, 0.17)" : "none"
               }}
             >
               {files.length > 0 ? `Execute Secure Injection (${files.length} ${files.length === 1 ? 'File' : 'Files'})` : "Select Files to Enable Uplink"}
@@ -555,7 +555,7 @@ export default function FileUploadModal({
           )}
 
           {/* PERSISTENT INJECTION HISTORY (EVERY FILE INJECTED) */}
-          <div style={{ marginBottom: "1rem", padding: "1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #0ea5e9" }}>
+          <div style={{ marginBottom: "1rem", padding: "1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #27b3f2" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <h3 style={{ color: "#0f172a", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "8px", margin: 0, fontWeight: 800, letterSpacing: "0.02em" }}>
                 <History size={15} color="#0284c7" /> HISTORIQUE DES INJECTIONS ({importLogs.length})
@@ -574,7 +574,7 @@ export default function FileUploadModal({
                       marginBottom: "5px",
                       borderRadius: "8px",
                       backgroundColor: "#ffffff",
-                      border: `1px solid ${log.status === 'ERROR' ? '#fecaca' : log.status === 'DUPLICATE_ONLY' ? '#fde68a' : '#e2e8f0'}`,
+                      border: `1px solid ${log.status === 'ERROR' ? '#fb1e1e' : log.status === 'DUPLICATE_ONLY' ? '#fbcf1d' : '#e2e8f0'}`,
                       display: "flex",
                       flexDirection: "column",
                       gap: "4px"
@@ -589,7 +589,7 @@ export default function FileUploadModal({
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px", fontSize: "0.72rem", color: "#64748b" }}>
                       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
                         {log.status === 'ERROR' ? (
-                          <span style={{ color: "#dc2626", fontWeight: 600 }}>{log.errorMessage}</span>
+                          <span style={{ color: "#9e1919", fontWeight: 600 }}>{log.errorMessage}</span>
                         ) : (
                           <>
                             <span>Lues: <strong>{log.totalRows ?? 0}</strong></span>
@@ -616,7 +616,7 @@ export default function FileUploadModal({
           </div>
 
           {/* Integrated Payloads List (DB Active Files — Drag to Reorder) */}
-          <div style={{ padding: "1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #2563eb" }}>
+          <div style={{ padding: "1rem", background: "#f8fafc", borderRadius: "14px", border: "1px solid #e2e8f0", borderLeft: "4px solid #2d69ec" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
               <h3 style={{ color: "#0f172a", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "8px", margin: 0, fontWeight: 800, letterSpacing: "0.02em" }}>
                 <Terminal size={15} color="#2563eb" /> INTEGRATED PAYLOADS IN DB ({importedFiles.length})
@@ -628,7 +628,7 @@ export default function FileUploadModal({
                   disabled={isSavingOrder}
                   style={{
                     background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                    color: "#ffffff",
+                    color: "#0f1e3d",
                     border: "none",
                     borderRadius: "8px",
                     padding: "0.38rem 0.85rem",
@@ -638,7 +638,7 @@ export default function FileUploadModal({
                     gap: "5px",
                     alignItems: "center",
                     cursor: "pointer",
-                    boxShadow: "0 4px 10px rgba(37, 99, 235, 0.25)"
+                    boxShadow: "0 4px 10px rgba(37, 99, 235, 0.15)"
                   }}
                 >
                   <Save size={13} /> {isSavingOrder ? "Saving..." : "Save New Order"}
@@ -647,7 +647,7 @@ export default function FileUploadModal({
             </div>
 
             {loadingFiles ? (
-              <p style={{ color: "#2563eb", fontSize: "0.8rem", margin: 0, fontWeight: 600 }}>Scanning integrated files...</p>
+              <p style={{ color: "#0f3fa8", fontSize: "0.8rem", margin: 0, fontWeight: 600 }}>Scanning integrated files...</p>
             ) : importedFiles.length > 0 ? (
               <div>
                 <p style={{ color: "#64748b", fontSize: "0.74rem", marginBottom: "8px", marginTop: 0 }}>
@@ -666,7 +666,7 @@ export default function FileUploadModal({
                         fontSize: "0.8rem",
                         padding: "7px 10px",
                         marginBottom: "5px",
-                        border: draggedImportedIndex === idx ? "1px solid #3b82f6" : "1px solid #e2e8f0",
+                        border: draggedImportedIndex === idx ? "1px solid #2473f5" : "1px solid #e2e8f0",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
@@ -679,7 +679,7 @@ export default function FileUploadModal({
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
                         <GripVertical size={14} color="#64748b" />
-                        <span style={{ color: "#2563eb", fontWeight: 800 }}>#{idx + 1}</span>
+                        <span style={{ color: "#0f3fa8", fontWeight: 800 }}>#{idx + 1}</span>
                         <CheckCircle size={14} color="#059669" style={{ flexShrink: 0 }} />
                         <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: 600 }}>{f}</span>
                       </div>

@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import TissueSmartTable from "./components/TissueSmartTable";
 import TissueFileUploadModal from "./ui/TissueFileUploadModal";
 import TissueSelect from "./TissueSelect";
-import InteractiveTissueCanvas from "./components/InteractiveTissueCanvas";
 import {
   UploadCloud,
   CheckCircle,
@@ -420,11 +419,10 @@ export default function TissueRecordsPage() {
         padding: "1.75rem 2rem",
         minHeight: "100%",
         position: "relative",
-        color: "#ecfdf5",
+        color: "#0f1e3d",
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
       }}
     >
-      <InteractiveTissueCanvas overlayRef={bgOverlayRef} />
 
       <style>{`
         @keyframes tissueEntrance {
@@ -449,15 +447,15 @@ export default function TissueRecordsPage() {
         /* Signature Emerald-Obsidian Glass Cards */
         .tissue-card {
           position: relative;
-          background: linear-gradient(135deg, rgba(6, 20, 19, 0.88) 0%, rgba(5, 13, 16, 0.9) 100%);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
           border: 1px solid rgba(52, 211, 153, 0.2);
           border-radius: 18px;
           box-shadow:
-            0 1px 3px rgba(0, 0, 0, 0.25),
-            0 12px 34px -8px rgba(16, 185, 129, 0.18),
-            inset 0 1px 0 rgba(167, 243, 208, 0.08);
+            0 1px 3px rgba(15, 30, 61, 0.07),
+            0 12px 34px -8px rgba(16, 185, 129, 0.11),
+            inset 0 1px 0 rgba(167, 243, 208, 0.05);
           transition:
             transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
             border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
@@ -467,9 +465,9 @@ export default function TissueRecordsPage() {
         .tissue-card:hover {
           border-color: rgba(52, 211, 153, 0.42);
           box-shadow:
-            0 8px 26px -4px rgba(0, 0, 0, 0.35),
-            0 18px 44px -10px rgba(16, 185, 129, 0.28),
-            inset 0 1px 0 rgba(167, 243, 208, 0.14);
+            0 8px 26px -4px rgba(15, 30, 61, 0.1),
+            0 18px 44px -10px rgba(16, 185, 129, 0.17),
+            inset 0 1px 0 rgba(167, 243, 208, 0.08);
         }
 
         .tissue-btn {
@@ -479,8 +477,8 @@ export default function TissueRecordsPage() {
           align-items: center;
           gap: 8px;
           padding: 0.58rem 1.1rem;
-          background-color: rgba(6, 22, 20, 0.72);
-          color: #ecfdf5;
+          background-color: rgba(255, 255, 255, 0.92);
+          color: #0f1e3d;
           border: 1px solid rgba(52, 211, 153, 0.28);
           font-family: 'Inter', -apple-system, sans-serif;
           font-size: 0.8rem;
@@ -494,7 +492,7 @@ export default function TissueRecordsPage() {
             border-color 0.2s ease,
             box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
             color 0.2s ease;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+          box-shadow: 0 2px 4px rgba(15, 30, 61, 0.07);
           user-select: none;
         }
 
@@ -532,56 +530,56 @@ export default function TissueRecordsPage() {
 
         .btn-tissue-primary {
           background: linear-gradient(135deg, #10b981 0%, #0f766e 100%);
-          color: #ffffff;
+          color: #0f1e3d;
           border-color: #14b8a6;
-          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.22);
         }
         .btn-tissue-primary:hover:not(:disabled) {
           background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-          border-color: #6ee7b7;
-          box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          border-color: #3ade9d;
+          box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         .btn-tissue-emerald {
           background-color: rgba(16, 185, 129, 0.13);
           border-color: rgba(16, 185, 129, 0.38);
-          color: #34d399;
+          color: #21976c;
         }
         .btn-tissue-emerald:hover:not(:disabled) {
           background-color: rgba(16, 185, 129, 0.24);
-          border-color: #34d399;
-          color: #d1fae5;
-          box-shadow: 0 6px 18px rgba(16, 185, 129, 0.28);
+          border-color: #42d6a0;
+          color: #0f1e3d;
+          box-shadow: 0 6px 18px rgba(16, 185, 129, 0.17);
         }
 
         .btn-tissue-teal {
           background-color: rgba(20, 184, 166, 0.12);
           border-color: rgba(45, 212, 191, 0.34);
-          color: #5eead4;
+          color: #15a28c;
         }
         .btn-tissue-teal:hover:not(:disabled) {
           background-color: rgba(20, 184, 166, 0.22);
-          border-color: #5eead4;
-          color: #ccfbf1;
-          box-shadow: 0 6px 18px rgba(20, 184, 166, 0.28);
+          border-color: #34e5c9;
+          color: #0f1e3d;
+          box-shadow: 0 6px 18px rgba(20, 184, 166, 0.17);
         }
 
         .btn-tissue-danger {
           background-color: rgba(244, 63, 94, 0.11);
           border-color: rgba(244, 63, 94, 0.34);
-          color: #fb7185;
+          color: #b3051e;
         }
         .btn-tissue-danger:hover:not(:disabled) {
           background-color: rgba(244, 63, 94, 0.22);
-          border-color: #fb7185;
-          color: #fecdd3;
-          box-shadow: 0 6px 18px rgba(244, 63, 94, 0.28);
+          border-color: #f9203f;
+          color: #0f1e3d;
+          box-shadow: 0 6px 18px rgba(244, 63, 94, 0.17);
         }
 
         .tissue-input {
-          background-color: rgba(6, 20, 19, 0.72);
+          background-color: rgba(255, 255, 255, 0.92);
           border: 1px solid rgba(52, 211, 153, 0.24);
-          color: #ecfdf5;
+          color: #0f1e3d;
           padding: 0.55rem 0.85rem;
           border-radius: 11px;
           font-family: 'Inter', -apple-system, sans-serif;
@@ -593,18 +591,18 @@ export default function TissueRecordsPage() {
         .tissue-input::placeholder { color: #64748b; }
         .tissue-input:hover {
           border-color: rgba(52, 211, 153, 0.45);
-          background-color: rgba(6, 24, 22, 0.88);
+          background-color: rgba(255, 255, 255, 0.92);
         }
         .tissue-input:focus {
-          background-color: rgba(6, 26, 24, 0.95);
-          border-color: #34d399;
-          box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.18), 0 4px 14px rgba(16, 185, 129, 0.2);
+          background-color: rgba(255, 255, 255, 0.92);
+          border-color: #42d6a0;
+          box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.11), 0 4px 14px rgba(16, 185, 129, 0.12);
         }
 
         .tissue-textarea {
-          background-color: rgba(6, 20, 19, 0.72);
+          background-color: rgba(255, 255, 255, 0.92);
           border: 1px solid rgba(52, 211, 153, 0.24);
-          color: #ecfdf5;
+          color: #0f1e3d;
           padding: 0.9rem 1rem;
           border-radius: 12px;
           font-family: 'JetBrains Mono', 'Fira Code', monospace;
@@ -616,13 +614,13 @@ export default function TissueRecordsPage() {
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .tissue-textarea:focus {
-          background-color: rgba(6, 26, 24, 0.95);
-          border-color: #34d399;
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+          background-color: rgba(255, 255, 255, 0.92);
+          border-color: #42d6a0;
+          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.11);
         }
 
         .tissue-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .tissue-scroll::-webkit-scrollbar-track { background-color: rgba(6, 20, 19, 0.6); border-radius: 6px; }
+        .tissue-scroll::-webkit-scrollbar-track { background-color: rgba(255, 255, 255, 0.85); border-radius: 6px; }
         .tissue-scroll::-webkit-scrollbar-thumb { background-color: rgba(52, 211, 153, 0.32); border-radius: 6px; }
         .tissue-scroll::-webkit-scrollbar-thumb:hover { background-color: #34d399; }
 
@@ -642,18 +640,18 @@ export default function TissueRecordsPage() {
           <div
             className="modal-panel-anim"
             style={{
-              backgroundColor: "rgba(18, 10, 16, 0.92)",
+              backgroundColor: "rgba(255, 255, 255, 0.92)",
               backdropFilter: "blur(12px)",
               border: "1px solid rgba(244, 63, 94, 0.35)",
-              borderLeft: "5px solid #f43f5e",
+              borderLeft: "5px solid #f32649",
               borderRadius: "14px",
               padding: "1.25rem 1.5rem",
               marginBottom: "1.25rem",
-              boxShadow: "0 12px 28px -6px rgba(244, 63, 94, 0.18)"
+              boxShadow: "0 12px 28px -6px rgba(244, 63, 94, 0.11)"
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-              <h2 style={{ color: "#fb7185", margin: 0, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px", fontWeight: 800, letterSpacing: "0.03em" }}>
+              <h2 style={{ color: "#b3051e", margin: 0, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px", fontWeight: 800, letterSpacing: "0.03em" }}>
                 <ShieldAlert size={20} /> TISSUE SECURITY BREACH LOGS ({securityLogs.length})
               </h2>
               <div style={{ display: "flex", gap: "8px" }}>
@@ -661,7 +659,7 @@ export default function TissueRecordsPage() {
                 <button onClick={handleClearSecurityLogs} className="tissue-btn btn-tissue-danger" style={{ padding: "4px 10px", fontSize: "0.75rem" }}>Clear Logs</button>
               </div>
             </div>
-            <ul className="tissue-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#fecdd3", fontFamily: "monospace", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
+            <ul className="tissue-scroll" style={{ margin: 0, paddingLeft: "18px", color: "#0f1e3d", fontFamily: "monospace", fontSize: "0.82rem", maxHeight: "110px", overflowY: "auto" }}>
               {securityLogs.map((err, i) => (
                 <li key={i} style={{ marginBottom: "6px", paddingBottom: "6px", borderBottom: "1px dashed rgba(244, 63, 94, 0.25)" }}>{err}</li>
               ))}
@@ -676,7 +674,7 @@ export default function TissueRecordsPage() {
               width: "100%",
               backgroundColor: "rgba(244, 63, 94, 0.1)",
               border: "1px solid rgba(244, 63, 94, 0.35)",
-              color: "#fb7185",
+              color: "#b3051e",
               padding: "0.75rem",
               borderRadius: "10px",
               fontWeight: 700,
@@ -718,20 +716,20 @@ export default function TissueRecordsPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 8px 22px -4px rgba(16, 185, 129, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.28)"
+                boxShadow: "0 8px 22px -4px rgba(16, 185, 129, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.28)"
               }}
             >
               <Hexagon size={24} color="#ffffff" strokeWidth={2.2} />
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "9px", flexWrap: "wrap" }}>
-                <h1 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
+                <h1 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.4rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
                   TISSUE <span style={{ background: "linear-gradient(90deg, #34d399, #2dd4bf)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>NEXUS</span>
                 </h1>
                 <span
                   style={{
                     backgroundColor: "rgba(16, 185, 129, 0.18)",
-                    color: "#6ee7b7",
+                    color: "#1a9e69",
                     border: "1px solid rgba(52, 211, 153, 0.38)",
                     fontSize: "0.68rem",
                     fontWeight: 800,
@@ -743,8 +741,8 @@ export default function TissueRecordsPage() {
                   TISSUE MATRIX
                 </span>
               </div>
-              <div style={{ color: "#94a3b8", fontSize: "0.76rem", fontWeight: 500, marginTop: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
-                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#34d399", display: "inline-block", boxShadow: "0 0 0 3px rgba(52, 211, 153, 0.22)" }} />
+              <div style={{ color: "#475569", fontSize: "0.76rem", fontWeight: 500, marginTop: "3px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <span style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: "#34d399", display: "inline-block", boxShadow: "0 0 0 3px rgba(52, 211, 153, 0.13)" }} />
                 Dedicated Tissue Dossiers • 120FPS Telemetry &amp; Version Synchronization
               </div>
             </div>
@@ -819,7 +817,7 @@ export default function TissueRecordsPage() {
               padding: "0.75rem 1.15rem"
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#34d399", fontWeight: 700, fontSize: "0.78rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#21976c", fontWeight: 700, fontSize: "0.78rem" }}>
               <Folder size={17} />
               <span>SECTOR</span>
             </div>
@@ -827,7 +825,7 @@ export default function TissueRecordsPage() {
 
             <div style={{ width: "1px", height: "22px", backgroundColor: "rgba(52, 211, 153, 0.2)", margin: "0 4px" }} />
 
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#5eead4", fontWeight: 700, fontSize: "0.78rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#15a28c", fontWeight: 700, fontSize: "0.78rem" }}>
               <Calendar size={17} />
               <span>CYCLE</span>
             </div>
@@ -886,7 +884,7 @@ export default function TissueRecordsPage() {
             }}
           >
             <Activity size={20} color="#34d399" style={{ animation: "pulse-subtle 1.2s infinite" }} />
-            <span style={{ color: "#6ee7b7", fontSize: "0.85rem", fontWeight: 600 }}>
+            <span style={{ color: "#1a9e69", fontSize: "0.85rem", fontWeight: 600 }}>
               Scanning active Tissue matrix for status and comment anomalies...
             </span>
           </div>
@@ -899,13 +897,13 @@ export default function TissueRecordsPage() {
                 style={{
                   marginBottom: "1rem",
                   cursor: "pointer",
-                  backgroundColor: "rgba(18, 10, 16, 0.9)",
+                  backgroundColor: "rgba(255, 255, 255, 0.92)",
                   backdropFilter: "blur(12px)",
                   border: "1px solid rgba(244, 63, 94, 0.35)",
-                  borderLeft: "5px solid #f43f5e",
+                  borderLeft: "5px solid #f32649",
                   padding: "1rem 1.25rem",
                   borderRadius: "14px",
-                  boxShadow: "0 8px 24px -4px rgba(244, 63, 94, 0.15)",
+                  boxShadow: "0 8px 24px -4px rgba(244, 63, 94, 0.09)",
                   transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                 }}
               >
@@ -915,10 +913,10 @@ export default function TissueRecordsPage() {
                       <AlertTriangle size={22} color="#fb7185" />
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#fda4af" }}>
+                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#b4041a" }}>
                         CRITICAL TISSUE STATUS ALERT
                       </h3>
-                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#fb7185" }}>
+                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#b3051e" }}>
                         <strong>{validationAlerts.length} EPS</strong> stuck in &quot;EN_ATTENTE_VALIDATION&quot;.
                       </p>
                     </div>
@@ -927,13 +925,13 @@ export default function TissueRecordsPage() {
                     <button onClick={handleExportValidationAlerts} disabled={isExportingAlerts} className="tissue-btn btn-tissue-danger">
                       <DownloadCloud size={15} /> {isExportingAlerts ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#fb7185", backgroundColor: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#b3051e", backgroundColor: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
                       {showValidationDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
                 </div>
                 {showValidationDetails && (
-                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(244, 63, 94, 0.2)", backgroundColor: "rgba(0, 0, 0, 0.25)", padding: "12px", borderRadius: "10px" }}>
+                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(244, 63, 94, 0.2)", backgroundColor: "rgba(255, 255, 255, 0.55)", padding: "12px", borderRadius: "10px" }}>
                     <div className="tissue-scroll" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "140px", overflowY: "auto" }}>
                       {validationAlerts.map((eps, idx) => (
                         <span
@@ -947,7 +945,7 @@ export default function TissueRecordsPage() {
                             fontSize: "0.78rem",
                             fontFamily: "monospace",
                             fontWeight: 700,
-                            color: "#fda4af",
+                            color: "#b4041a",
                             cursor: "pointer",
                             transition: "all 0.15s ease"
                           }}
@@ -968,13 +966,13 @@ export default function TissueRecordsPage() {
                 style={{
                   marginBottom: "1rem",
                   cursor: "pointer",
-                  backgroundColor: "rgba(20, 16, 8, 0.9)",
+                  backgroundColor: "rgba(255, 255, 255, 0.92)",
                   backdropFilter: "blur(12px)",
                   border: "1px solid rgba(245, 158, 11, 0.35)",
-                  borderLeft: "5px solid #f59e0b",
+                  borderLeft: "5px solid #f6a723",
                   padding: "1rem 1.25rem",
                   borderRadius: "14px",
-                  boxShadow: "0 8px 24px -4px rgba(245, 158, 11, 0.15)",
+                  boxShadow: "0 8px 24px -4px rgba(245, 158, 11, 0.09)",
                   transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                 }}
               >
@@ -984,25 +982,25 @@ export default function TissueRecordsPage() {
                       <MessageSquare size={22} color="#fbbf24" />
                     </div>
                     <div>
-                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#fcd34d" }}>
+                      <h3 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#0f1e3d" }}>
                         STALE TISSUE COMMENTS DETECTED
                       </h3>
-                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#fbbf24" }}>
+                      <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", fontWeight: 500, color: "#b48303" }}>
                         <strong>{commentAlerts.length} EPS</strong> have duplicated or unchanged pilot comments across versions.
                       </p>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    <button onClick={handleExportCommentAlerts} disabled={isExportingComments} className="tissue-btn" style={{ borderColor: "rgba(245, 158, 11, 0.4)", color: "#fcd34d", backgroundColor: "rgba(245, 158, 11, 0.1)" }}>
+                    <button onClick={handleExportCommentAlerts} disabled={isExportingComments} className="tissue-btn" style={{ borderColor: "rgba(245, 158, 11, 0.4)", color: "#0f1e3d", backgroundColor: "rgba(245, 158, 11, 0.1)" }}>
                       <DownloadCloud size={15} /> {isExportingComments ? "Extracting..." : "Export Logs"}
                     </button>
-                    <span style={{ fontSize: "0.76rem", color: "#fbbf24", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
+                    <span style={{ fontSize: "0.76rem", color: "#b48303", backgroundColor: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", padding: "0.45rem 0.85rem", fontWeight: 700, borderRadius: "8px" }}>
                       {showCommentDetails ? "Hide Targets" : "View Targets"}
                     </span>
                   </div>
                 </div>
                 {showCommentDetails && (
-                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(245, 158, 11, 0.2)", backgroundColor: "rgba(0, 0, 0, 0.25)", padding: "12px", borderRadius: "10px" }}>
+                  <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(245, 158, 11, 0.2)", backgroundColor: "rgba(255, 255, 255, 0.55)", padding: "12px", borderRadius: "10px" }}>
                     <div className="tissue-scroll" style={{ display: "flex", flexWrap: "wrap", gap: "6px", maxHeight: "140px", overflowY: "auto" }}>
                       {commentAlerts.map((eps, idx) => (
                         <span
@@ -1016,7 +1014,7 @@ export default function TissueRecordsPage() {
                             fontSize: "0.78rem",
                             fontFamily: "monospace",
                             fontWeight: 700,
-                            color: "#fcd34d",
+                            color: "#0f1e3d",
                             cursor: "pointer",
                             transition: "all 0.15s ease"
                           }}
@@ -1047,7 +1045,7 @@ export default function TissueRecordsPage() {
                 }}
               >
                 <ShieldCheck size={20} color="#34d399" />
-                <span style={{ color: "#6ee7b7", fontSize: "0.84rem", fontWeight: 700, letterSpacing: "0.02em" }}>
+                <span style={{ color: "#1a9e69", fontSize: "0.84rem", fontWeight: 700, letterSpacing: "0.02em" }}>
                   TISSUE SECTOR VERIFIED SECURE — 0 STATUS OR COMMENT ANOMALIES DETECTED
                 </span>
               </div>
@@ -1061,7 +1059,7 @@ export default function TissueRecordsPage() {
             className="modal-panel-anim"
             style={{
               marginBottom: "1.25rem",
-              color: "#a7f3d0",
+              color: "#0f1e3d",
               display: "flex",
               alignItems: "center",
               gap: "10px",
@@ -1070,7 +1068,7 @@ export default function TissueRecordsPage() {
               border: "1px solid rgba(52, 211, 153, 0.4)",
               borderLeft: "4px solid #10b981",
               borderRadius: "12px",
-              boxShadow: "0 8px 22px -4px rgba(16, 185, 129, 0.28)"
+              boxShadow: "0 8px 22px -4px rgba(16, 185, 129, 0.17)"
             }}
           >
             <CheckCircle size={20} color="#34d399" />
@@ -1117,7 +1115,7 @@ export default function TissueRecordsPage() {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(2, 6, 10, 0.72)",
+            backgroundColor: "rgba(255, 255, 255, 0.92)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -1128,7 +1126,7 @@ export default function TissueRecordsPage() {
           <div
             className="modal-panel-anim"
             style={{
-              background: "linear-gradient(180deg, rgba(6, 22, 20, 0.97) 0%, rgba(4, 12, 14, 0.98) 100%)",
+              background: "linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%)",
               border: "1px solid rgba(52, 211, 153, 0.35)",
               borderRadius: "20px",
               width: "700px",
@@ -1136,7 +1134,7 @@ export default function TissueRecordsPage() {
               maxHeight: "85vh",
               display: "flex",
               flexDirection: "column",
-              boxShadow: "0 28px 56px -12px rgba(0, 0, 0, 0.65), 0 0 32px -10px rgba(16, 185, 129, 0.25)",
+              boxShadow: "0 28px 56px -12px rgba(15, 30, 61, 0.18), 0 0 32px -10px rgba(16, 185, 129, 0.15)",
               overflow: "hidden"
             }}
           >
@@ -1147,10 +1145,10 @@ export default function TissueRecordsPage() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(6, 22, 20, 0) 100%)"
+                background: "linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(255, 255, 255, 0.55) 100%)"
               }}
             >
-              <h2 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+              <h2 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Crosshair color="#34d399" size={22} /> TISSUE EPS VERSION TIMELINE
               </h2>
               <button
@@ -1162,7 +1160,7 @@ export default function TissueRecordsPage() {
               </button>
             </div>
 
-            <div style={{ padding: "1rem 1.5rem", display: "flex", gap: "10px", backgroundColor: "rgba(6, 20, 19, 0.55)", borderBottom: "1px solid rgba(52, 211, 153, 0.15)" }}>
+            <div style={{ padding: "1rem 1.5rem", display: "flex", gap: "10px", backgroundColor: "rgba(255, 255, 255, 0.8)", borderBottom: "1px solid rgba(52, 211, 153, 0.15)" }}>
               <input
                 type="text"
                 placeholder="Enter Tissue EPS Reference ID..."
@@ -1182,15 +1180,15 @@ export default function TissueRecordsPage() {
               {loadingHistory && (
                 <div style={{ textAlign: "center", padding: "3rem 0" }}>
                   <Activity size={36} color="#34d399" style={{ margin: "0 auto 1rem", animation: "pulse-subtle 1s infinite" }} />
-                  <p style={{ color: "#6ee7b7", fontSize: "0.9rem", fontWeight: 600 }}>Retrieving Tissue version history...</p>
+                  <p style={{ color: "#1a9e69", fontSize: "0.9rem", fontWeight: 600 }}>Retrieving Tissue version history...</p>
                 </div>
               )}
 
               {!loadingHistory && epsHistoryData.length === 0 && historyEpsInput && (
-                <div style={{ textAlign: "center", padding: "3rem", border: "1px dashed rgba(52, 211, 153, 0.3)", backgroundColor: "rgba(6, 20, 19, 0.5)", borderRadius: "12px" }}>
+                <div style={{ textAlign: "center", padding: "3rem", border: "1px dashed rgba(52, 211, 153, 0.3)", backgroundColor: "rgba(255, 255, 255, 0.75)", borderRadius: "12px" }}>
                   <ShieldAlert size={42} color="#64748b" style={{ margin: "0 auto 0.75rem" }} />
-                  <p style={{ color: "#ecfdf5", fontSize: "1rem", fontWeight: 700, margin: 0 }}>No Tissue Version History Found</p>
-                  <p style={{ color: "#94a3b8", fontSize: "0.82rem", marginTop: "4px" }}>Verify the EPS identifier or active sector cycle.</p>
+                  <p style={{ color: "#0f1e3d", fontSize: "1rem", fontWeight: 700, margin: 0 }}>No Tissue Version History Found</p>
+                  <p style={{ color: "#475569", fontSize: "0.82rem", marginTop: "4px" }}>Verify the EPS identifier or active sector cycle.</p>
                 </div>
               )}
 
@@ -1206,7 +1204,7 @@ export default function TissueRecordsPage() {
                           marginBottom: "1.25rem",
                           position: "relative",
                           padding: "1.1rem 1.25rem",
-                          backgroundColor: isLatest ? "rgba(16, 185, 129, 0.16)" : "rgba(6, 20, 19, 0.55)",
+                          backgroundColor: isLatest ? "rgba(16, 185, 129, 0.16)" : "rgba(255, 255, 255, 0.8)",
                           border: `1px solid ${isLatest ? "rgba(52, 211, 153, 0.45)" : "rgba(52, 211, 153, 0.18)"}`,
                           borderRadius: "12px",
                           transition: "transform 0.2s ease, box-shadow 0.2s ease"
@@ -1221,15 +1219,15 @@ export default function TissueRecordsPage() {
                             height: "14px",
                             borderRadius: "50%",
                             backgroundColor: isLatest ? "#34d399" : "#0d9488",
-                            border: "3px solid #041212",
-                            boxShadow: "0 0 0 2px rgba(52, 211, 153, 0.35)"
+                            border: "3px solid rgba(37, 99, 235, 0.14)",
+                            boxShadow: "0 0 0 2px rgba(52, 211, 153, 0.21)"
                           }}
                         />
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "10px" }}>
                           <span
                             style={{
                               backgroundColor: isLatest ? "#10b981" : "rgba(16, 185, 129, 0.2)",
-                              color: isLatest ? "#ffffff" : "#6ee7b7",
+                              color: isLatest ? "#0f1e3d" : "#1a9e69",
                               padding: "4px 12px",
                               borderRadius: "6px",
                               fontSize: "0.78rem",
@@ -1238,19 +1236,19 @@ export default function TissueRecordsPage() {
                           >
                             {item.version} {isLatest ? "• LATEST" : ""}
                           </span>
-                          <span style={{ color: "#94a3b8", fontSize: "0.78rem", fontFamily: "monospace", fontWeight: 600 }}>
+                          <span style={{ color: "#475569", fontSize: "0.78rem", fontFamily: "monospace", fontWeight: 600 }}>
                             {new Date(item.importedAt).toLocaleString()}
                           </span>
                         </div>
                         <div
                           style={{
-                            backgroundColor: "rgba(4, 14, 14, 0.7)",
+                            backgroundColor: "rgba(255, 255, 255, 0.92)",
                             padding: "12px",
                             borderRadius: "8px",
-                            color: "#ecfdf5",
+                            color: "#0f1e3d",
                             fontSize: "0.86rem",
                             border: "1px solid rgba(52, 211, 153, 0.18)",
-                            borderLeft: `3px solid ${isLatest ? "#34d399" : "#475569"}`,
+                            borderLeft: `3px solid ${isLatest ? "#42d6a0" : "#475569"}`,
                             fontFamily: "'Inter', sans-serif"
                           }}
                         >
@@ -1268,10 +1266,10 @@ export default function TissueRecordsPage() {
 
       {/* MODAL 2: GLOBAL TRACK */}
       {isTrackModalOpen && (
-        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(2, 6, 10, 0.72)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(14px)" }}>
-          <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(6, 22, 20, 0.97) 0%, rgba(4, 12, 14, 0.98) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(0, 0, 0, 0.65)" }}>
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(255, 255, 255, 0.92)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(14px)" }}>
+          <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(15, 30, 61, 0.18)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "14px" }}>
-              <h2 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+              <h2 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Layers color="#34d399" size={24} /> Tissue Global Tracking Protocol
               </h2>
               <button onClick={() => setIsTrackModalOpen(false)} disabled={isTrackingGlobal} className="tissue-btn" style={{ padding: "6px" }}>
@@ -1279,8 +1277,8 @@ export default function TissueRecordsPage() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(6, 20, 19, 0.6)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.18)", flexWrap: "wrap" }}>
-              <span style={{ color: "#6ee7b7", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
+            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(255, 255, 255, 0.85)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.18)", flexWrap: "wrap" }}>
+              <span style={{ color: "#1a9e69", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
                 SECTOR: {globalCategory}
               </span>
               <TissueSelect width="145px" value={trackYear} options={trackYearOptions} onChange={setTrackYear} variant="emerald" />
@@ -1289,7 +1287,7 @@ export default function TissueRecordsPage() {
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
+              <label style={{ display: "block", color: "#475569", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
                 Tissue EPS Reference List (One per line or comma-separated)
               </label>
               <textarea
@@ -1316,10 +1314,10 @@ export default function TissueRecordsPage() {
 
       {/* MODAL 3: TEAM EXPORT PROTOCOL */}
       {isTeamModalOpen && (
-        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(2, 6, 10, 0.72)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(14px)" }}>
-          <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(6, 22, 20, 0.97) 0%, rgba(4, 12, 14, 0.98) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(0, 0, 0, 0.65)" }}>
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(255, 255, 255, 0.92)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(14px)" }}>
+          <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(15, 30, 61, 0.18)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "14px" }}>
-              <h2 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+              <h2 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Users color="#34d399" size={24} /> Tissue Team Export Protocol
               </h2>
               <button onClick={() => setIsTeamModalOpen(false)} disabled={isExportingTeam} className="tissue-btn" style={{ padding: "6px" }}>
@@ -1327,8 +1325,8 @@ export default function TissueRecordsPage() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(6, 20, 19, 0.6)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.18)", flexWrap: "wrap" }}>
-              <span style={{ color: "#6ee7b7", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
+            <div style={{ display: "flex", gap: "10px", marginBottom: "1.25rem", alignItems: "center", background: "rgba(255, 255, 255, 0.85)", padding: "0.85rem 1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.18)", flexWrap: "wrap" }}>
+              <span style={{ color: "#1a9e69", fontSize: "0.82rem", fontWeight: 800, backgroundColor: "rgba(16, 185, 129, 0.18)", padding: "5px 10px", borderRadius: "8px", border: "1px solid rgba(52, 211, 153, 0.35)" }}>
                 SECTOR: {globalCategory}
               </span>
               <TissueSelect width="160px" value={teamYear} options={trackYearOptions} onChange={setTeamYear} variant="teal" />
@@ -1336,7 +1334,7 @@ export default function TissueRecordsPage() {
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
+              <label style={{ display: "block", color: "#475569", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
                 Tissue Team EPS Payload
               </label>
               <textarea
@@ -1363,10 +1361,10 @@ export default function TissueRecordsPage() {
 
       {/* MODAL 4: OMNI SEARCH PROTOCOL */}
       {isOmniSearchModalOpen && (
-        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(2, 6, 10, 0.72)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(14px)" }}>
-          <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(6, 22, 20, 0.97) 0%, rgba(4, 12, 14, 0.98) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(0, 0, 0, 0.65)" }}>
+        <div className="modal-backdrop-anim" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(255, 255, 255, 0.92)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050, backdropFilter: "blur(14px)" }}>
+          <div className="modal-panel-anim" style={{ background: "linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.92) 100%)", border: "1px solid rgba(52, 211, 153, 0.35)", borderRadius: "20px", width: "720px", maxWidth: "95%", padding: "2rem", boxShadow: "0 28px 56px -12px rgba(15, 30, 61, 0.18)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", borderBottom: "1px solid rgba(52, 211, 153, 0.16)", paddingBottom: "14px" }}>
-              <h2 style={{ color: "#ecfdf5", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
+              <h2 style={{ color: "#0f1e3d", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "10px", fontWeight: 800 }}>
                 <Globe color="#2dd4bf" size={24} /> Tissue Omni Search Protocol
               </h2>
               <button onClick={() => setIsOmniSearchModalOpen(false)} disabled={isExportingOmniSearch} className="tissue-btn" style={{ padding: "6px" }}>
@@ -1375,13 +1373,13 @@ export default function TissueRecordsPage() {
             </div>
 
             <div style={{ marginBottom: "1.25rem", background: "rgba(16, 185, 129, 0.12)", padding: "0.9rem 1.1rem", borderRadius: "12px", border: "1px solid rgba(52, 211, 153, 0.25)" }}>
-              <p style={{ color: "#a7f3d0", margin: 0, fontSize: "0.84rem", lineHeight: 1.5, fontWeight: 500 }}>
-                <strong style={{ color: "#34d399" }}>CROSS-SECTOR TISSUE SEARCH:</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire Tissue database</span> and extract every version of the requested EPS IDs.
+              <p style={{ color: "#0f1e3d", margin: 0, fontSize: "0.84rem", lineHeight: 1.5, fontWeight: 500 }}>
+                <strong style={{ color: "#21976c" }}>CROSS-SECTOR TISSUE SEARCH:</strong> This protocol bypasses Category, Year, and Month filters to scan the <span style={{ textDecoration: "underline", fontWeight: 700 }}>entire Tissue database</span> and extract every version of the requested EPS IDs.
               </p>
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", color: "#94a3b8", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
+              <label style={{ display: "block", color: "#475569", marginBottom: "8px", fontSize: "0.82rem", fontWeight: 700 }}>
                 Global Tissue EPS Payload
               </label>
               <textarea

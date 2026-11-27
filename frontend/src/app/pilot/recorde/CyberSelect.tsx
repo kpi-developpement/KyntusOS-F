@@ -65,7 +65,7 @@ const CyberSelect = React.memo(({
         accent: "#a855f7",
         accentDark: "#c084fc",
         bgActive: "rgba(168, 85, 247, 0.15)",
-        borderActive: "#a855f7",
+        borderActive: "#8f24f5",
         ring: "rgba(168, 85, 247, 0.2)"
       };
     }
@@ -73,7 +73,7 @@ const CyberSelect = React.memo(({
       accent: "#38bdf8",
       accentDark: "#7dd3fc",
       bgActive: "rgba(56, 189, 248, 0.15)",
-      borderActive: "#38bdf8",
+      borderActive: "#21b5f7",
       ring: "rgba(56, 189, 248, 0.2)"
     };
   }, [variant]);
@@ -157,7 +157,7 @@ const CyberSelect = React.memo(({
               bottom: coords.openUpward ? `${window.innerHeight - coords.top}px` : "auto",
               left: `${coords.left}px`,
               width: `${coords.width}px`,
-              backgroundColor: "rgba(11, 15, 25, 0.98)", // Deep dark
+              backgroundColor: "rgba(255, 255, 255, 0.92)", // Deep dark
               backdropFilter: "blur(20px)",
               WebkitBackdropFilter: "blur(20px)",
               border: `1px solid ${theme.borderActive}`,
@@ -166,7 +166,7 @@ const CyberSelect = React.memo(({
               overflowY: "auto",
               padding: "6px",
               boxShadow:
-                "0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+                "0 20px 45px -10px rgba(15, 30, 61, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05)",
               zIndex: 2147483647,
               transformOrigin: coords.openUpward ? "bottom center" : "top center",
               animation: "cyberDropdownPortalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards"
@@ -187,7 +187,7 @@ const CyberSelect = React.memo(({
                 width: 5px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-track {
-                background: rgba(15, 23, 42, 0.5);
+                background: rgba(255, 255, 255, 0.75);
                 border-radius: 8px;
               }
               .cyber-select-portal-menu::-webkit-scrollbar-thumb {
@@ -215,7 +215,7 @@ const CyberSelect = React.memo(({
               }
               .cyber-select-option:hover {
                 background-color: rgba(56, 189, 248, 0.15);
-                color: #e0f2fe;
+                color: #0f1e3d;
                 transform: translateX(3px);
               }
             `}</style>
@@ -231,7 +231,7 @@ const CyberSelect = React.memo(({
                   }}
                   style={{
                     backgroundColor: isSelected ? theme.bgActive : "transparent",
-                    color: isSelected ? theme.accentDark : "#94a3b8",
+                    color: isSelected ? theme.accentDark : "#475569",
                     fontWeight: isSelected ? 700 : 500
                   }}
                 >
@@ -265,11 +265,11 @@ const CyberSelect = React.memo(({
       <div
         onClick={toggleOpen}
         style={{
-          backgroundColor: disabled ? "rgba(15, 23, 42, 0.4)" : isOpen ? "rgba(15, 23, 42, 0.9)" : "rgba(15, 23, 42, 0.6)",
+          backgroundColor: disabled ? "rgba(255, 255, 255, 0.65)" : isOpen ? "rgba(255, 255, 255, 0.92)" : "rgba(255, 255, 255, 0.85)",
           border: `1px solid ${isOpen ? theme.borderActive : "rgba(148, 163, 184, 0.3)"}`,
           padding: "0.52rem 0.8rem",
           borderRadius: "10px",
-          color: disabled ? "#475569" : isOpen ? theme.accentDark : "#f8fafc",
+          color: disabled ? "#475569" : isOpen ? theme.accentDark : "#0f1e3d",
           cursor: disabled ? "not-allowed" : "pointer",
           display: "flex",
           justifyContent: "space-between",

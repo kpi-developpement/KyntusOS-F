@@ -1,0 +1,33 @@
+.years { display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 12px; background: var(--k-surface-2); border: 1px solid var(--k-border); }
+.years span { min-width: 56px; text-align: center; font-weight: 800; color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.years button { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; border: 0; background: #fff; color: var(--k-blue-600); cursor: pointer; box-shadow: var(--k-shadow-sm); transition: transform 0.2s var(--k-spring), background-color 0.2s ease; }
+.years button:hover { transform: scale(1.08); background: var(--k-blue-50); }
+.years button:focus-visible { outline: 2px solid var(--k-blue-600); outline-offset: 2px; }
+
+.months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+.month {
+  position: relative; height: 44px; border-radius: 12px; border: 1px solid var(--k-border); background: #fff;
+  font: inherit; font-size: 0.84rem; font-weight: 700; color: var(--k-text-2); cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.25s var(--k-spring), color 0.2s ease;
+}
+.month:hover { border-color: var(--k-blue-300); transform: translateY(-2px); color: var(--k-blue-700); }
+.month:focus-visible { outline: 2px solid var(--k-blue-600); outline-offset: 2px; }
+.monthActive { color: #fff !important; border-color: transparent; }
+.monthPill { position: absolute; inset: 0; border-radius: 12px; background: var(--k-grad); box-shadow: 0 10px 22px -10px rgba(29, 78, 216, 0.7); }
+.monthLabel { position: relative; }
+.monthDot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--k-ok); box-shadow: 0 0 0 3px var(--k-ok-soft); }
+
+.dataArea { display: flex; flex-direction: column; gap: 14px; }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 5px; border-radius: 14px; background: rgba(255, 255, 255, 0.75); border: 1px solid var(--k-border); align-self: flex-start; max-width: 100%; }
+.tab { position: relative; flex-shrink: 0; padding: 8px 14px; border: 0; border-radius: 10px; background: transparent; font: inherit; font-size: 0.84rem; font-weight: 700; color: var(--k-text-2); cursor: pointer; }
+.tab:hover { color: var(--k-blue-700); }
+.tab:focus-visible { outline: 2px solid var(--k-blue-600); outline-offset: 2px; }
+.tabActive { color: #fff !important; }
+.tabPill { position: absolute; inset: 0; border-radius: 10px; background: var(--k-grad); }
+.tabLabel { position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tabLabel b { font-size: 0.72rem; padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, currentColor 15%, transparent); font-variant-numeric: tabular-nums; }
+
+.confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.85rem; font-weight: 600; color: var(--k-bad); }
+
+@media (max-width: 900px) { .months { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .months { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

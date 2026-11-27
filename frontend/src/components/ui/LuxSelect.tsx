@@ -41,12 +41,17 @@ export default function LuxSelect({ label, options, value, onChange, disabled, p
     <div className={`${styles.wrapper} ${disabled ? styles.disabled : ''}`} ref={ref}>
       {label && <span className={styles.label}>{label}</span>}
       
-      <div 
-        className={`${styles.trigger} ${isOpen ? styles.active : ''}`} 
+      <button
+        type="button"
+        className={`${styles.trigger} ${isOpen ? styles.active : ''}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        onKeyDown={(e) => { if (e.key === "Escape") setIsOpen(false); }}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        disabled={disabled}
       >
         <span className={value ? styles.textVal : styles.placeholder}>
-          {selectedLabel || placeholder || "SÉLECTIONNER..."}
+          {selectedLabel || placeholder || "Sélectionner…"}
         </span>
         
         {isOpen ? (
@@ -54,23 +59,30 @@ export default function LuxSelect({ label, options, value, onChange, disabled, p
         ) : (
             <ChevronsUpDown size={14} className={styles.arrow} />
         )}
-      </div>
+      </button>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <div className={styles.dropdown} role="listbox">
           {safeOptions.length > 0 ? (
             safeOptions.map((opt) => (
-              <div 
-                key={opt.value} 
+              <div
+                key={opt.value}
+                role="option"
+                aria-selected={opt.value === value}
+                tabIndex={0}
                 className={`${styles.option} ${opt.value === value ? styles.selected : ''}`}
                 onClick={() => { onChange(opt.value); setIsOpen(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(opt.value); setIsOpen(false); }
+                  if (e.key === "Escape") setIsOpen(false);
+                }}
               >
                 {opt.label}
                 {opt.value === value && <Check size={16} />}
               </div>
             ))
           ) : (
-            <div className={styles.empty}>// NO_DATA_AVAILABLE</div>
+            <div className={styles.empty}>Aucune option disponible</div>
           )}
         </div>
       )}

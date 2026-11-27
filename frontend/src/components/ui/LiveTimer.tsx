@@ -35,7 +35,7 @@ export default function LiveTimer({ startTime, cumulativeSeconds = 0 }: LiveTime
   return (
     <span style={{
       fontFamily: "'JetBrains Mono', monospace",
-      color: "#39ff14",
+      color: "#20cc00",
       fontWeight: "bold",
       fontSize: "0.9rem",
       display: "flex",
@@ -45,7 +45,7 @@ export default function LiveTimer({ startTime, cumulativeSeconds = 0 }: LiveTime
       padding: "2px 8px",
       borderRadius: "4px",
       border: "1px solid rgba(57, 255, 20, 0.3)",
-      boxShadow: "0 0 10px rgba(57, 255, 20, 0.1)"
+      boxShadow: "0 0 10px rgba(57, 255, 20, 0.06)"
     }}>
       <span style={{width: 6, height: 6, background: "#39ff14", borderRadius: "50%", display: "inline-block", animation: "pulse 1s infinite"}}></span>
       {format(elapsed)}

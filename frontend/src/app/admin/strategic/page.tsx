@@ -47,13 +47,13 @@ export default function StrategicPage() {
       {/* --- \ud83d\udea7 WORK IN PROGRESS BANNER \ud83d\udea7 --- */}
       <div style={{
           position: "absolute", top: 0, left: 0, width: "100%", height: "40px",
-          background: "repeating-linear-gradient(45deg, #ffd700, #ffd700 10px, #000 10px, #000 20px)",
+          background: "repeating-linear-gradient(45deg, #ffd700, #ffd700 10px, #ffffff 10px, #ffffff 20px)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          zIndex: 9999, boxShadow: "0 5px 20px rgba(0,0,0,0.8)",
+          zIndex: 9999, boxShadow: "0 5px 20px rgba(15, 30, 61, 0.18)",
           opacity: 0.9
       }}>
           <div style={{
-              background: "#000", color: "#ffd700", padding: "4px 20px", 
+              background: "#ffffff", color: "#0f1e3d", padding: "4px 20px", 
               fontWeight: "900", letterSpacing: "3px", fontSize: "0.8rem",
               border: "1px solid #ffd700", borderRadius: "4px", display: "flex", alignItems: "center", gap: 10
           }}>
@@ -71,7 +71,7 @@ export default function StrategicPage() {
             <div>
                 <h1 className={styles.title}>STRATEGIC MAP <span className={styles.vTag}>v4.0-BETA</span></h1>
                 <div className={styles.subtitle}>
-                  GLOBAL WORKFLOW TOPOLOGY // <span style={{color:"#ffd700"}}>EXPERIMENTAL</span>
+                  GLOBAL WORKFLOW TOPOLOGY // <span style={{color:"#0f1e3d"}}>EXPERIMENTAL</span>
                 </div>
             </div>
         </div>
@@ -80,7 +80,7 @@ export default function StrategicPage() {
             {/* Status Indicator */}
             <div className={styles.statBox}>
                 <span className={styles.label}>SYSTEM INTEGRITY</span>
-                <span className={`${styles.value}`} style={{color: "#ffd700", textShadow: "0 0 10px #ffd700"}}>
+                <span className={`${styles.value}`} style={{color: "#0f1e3d", textShadow: "0 0 10px transparent"}}>
                     <AlertTriangle size={16}/> UNSTABLE
                 </span>
             </div>
@@ -119,15 +119,15 @@ export default function StrategicPage() {
       <div className={styles.footer}>
           <div className={styles.legendGroup}>
               <div className={styles.legendItem}>
-                  <div className={styles.colorBox} style={{background:"#ff2d55", boxShadow:"0 0 10px #ff2d55"}}></div>
+                  <div className={styles.colorBox} style={{background:"#ff2d55", boxShadow:"0 0 10px rgba(255, 45, 85, 0.25)"}}></div>
                   <span>X: IDENTITY</span>
               </div>
               <div className={styles.legendItem}>
-                  <div className={styles.colorBox} style={{background:"#39ff14", boxShadow:"0 0 10px #39ff14"}}></div>
+                  <div className={styles.colorBox} style={{background:"#10b981", boxShadow:"0 0 10px rgba(16, 185, 129, 0.25)"}}></div>
                   <span>Y: TIME LOAD</span>
               </div>
               <div className={styles.legendItem}>
-                  <div className={styles.colorBox} style={{background:"#00f2ea", boxShadow:"0 0 10px #00f2ea"}}></div>
+                  <div className={styles.colorBox} style={{background:"#2563eb", boxShadow:"0 0 10px rgba(37, 99, 235, 0.25)"}}></div>
                   <span>Z: COMPLEXITY</span>
               </div>
           </div>
@@ -136,7 +136,7 @@ export default function StrategicPage() {
              <div className={styles.controlBadge}>
                 <Radio size={14} className={styles.blink} /> LIVE
              </div>
-             <div className={styles.controlBadge} style={{borderColor: "#ffd700", color: "#ffd700"}}>
+             <div className={styles.controlBadge} style={{borderColor: "#ffd700", color: "#0f1e3d"}}>
                 <AlertTriangle size={14} /> DEBUG MODE
              </div>
           </div>

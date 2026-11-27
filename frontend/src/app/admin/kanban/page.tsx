@@ -165,7 +165,7 @@ export default function AdminKanban() {
       {/* KANBAN BOARD */}
       <div className={styles.kanbanGrid}>
         <KanbanColumn title="FILE D'ATTENTE" icon={LayoutGrid} count={pending.length} type="PENDING" tasks={pending} onUpdate={updateTaskStatus} color="gray" />
-        <KanbanColumn title="EN COURS" icon={Zap} count={active.length} type="ACTIVE" tasks={active} onUpdate={updateTaskStatus} color="#00f2ea" />
+        <KanbanColumn title="EN COURS" icon={Zap} count={active.length} type="ACTIVE" tasks={active} onUpdate={updateTaskStatus} color="#2563eb" />
         
         {/* Validation Column Special */}
         <div className={`${styles.column} ${styles.colValidation}`}>
@@ -185,13 +185,13 @@ export default function AdminKanban() {
             </div>
         </div>
 
-        <KanbanColumn title="ARCHIVES (24H)" icon={Archive} count={history.length} type="HISTORY" tasks={history} onUpdate={updateTaskStatus} color="#39ff14" />
+        <KanbanColumn title="ARCHIVES (24H)" icon={Archive} count={history.length} type="HISTORY" tasks={history} onUpdate={updateTaskStatus} color="#10b981" />
       </div>
 
       {/* MODAL */}
       {modalConfig && (
         <div className={styles.modalOverlay}>
-            <div className={styles.cyberModal} style={{"--modal-color": modalConfig.type === "SUCCESS" ? "#39ff14" : "#ff0055"} as any}>
+            <div className={styles.cyberModal} style={{"--modal-color": modalConfig.type === "SUCCESS" ? "#10b981" : "#ff0055"} as any}>
                 <div className={styles.modalTitle}>{modalConfig.title}</div>
                 <p className={styles.modalText}>{modalConfig.message}</p>
                 <div className={styles.modalActions}>
@@ -223,7 +223,7 @@ const KanbanColumn = ({ title, icon: Icon, count, tasks, type, onUpdate, color }
 
 // 2. Empty Message
 const EmptyMsg = ({msg}: {msg: string}) => (
-    <div style={{textAlign: "center", padding: "40px", color: "rgba(255,255,255,0.2)", fontSize: "0.8rem", fontStyle: "italic"}}>{msg}</div>
+    <div style={{textAlign: "center", padding: "40px", color: "rgba(15, 30, 61, 0.2)", fontSize: "0.8rem", fontStyle: "italic"}}>{msg}</div>
 );
 
 // 3. Helper Time
@@ -251,7 +251,7 @@ const AdminCard = ({ task, onUpdate, type }: { task: any, onUpdate: any, type: s
                 <span>{task.template?.name}</span>
                 {/* Affiche une data contextuelle si dispo */}
                 {task.dynamicData && Object.values(task.dynamicData)[0] && 
-                    <span style={{color:"#00f2ea"}}>{String(Object.values(task.dynamicData)[0])}</span>
+                    <span style={{color:"#0052cc"}}>{String(Object.values(task.dynamicData)[0])}</span>
                 }
             </div>
 
@@ -279,7 +279,7 @@ const AdminCard = ({ task, onUpdate, type }: { task: any, onUpdate: any, type: s
                 )}
                 {type === "ACTIVE" && (
                      <div className={styles.adminControls} style={{width:"100%", justifyContent:"space-between", alignItems:"center"}}>
-                         <span style={{color:"#00f2ea", fontSize:"0.6rem", opacity:0.7}}>MONITORING...</span>
+                         <span style={{color:"#0052cc", fontSize:"0.6rem", opacity:0.7}}>MONITORING...</span>
                          <button className={styles.miniBtn} onClick={() => onUpdate(task, "A_FAIRE")} title="Reset"><RotateCcw size={14}/></button>
                      </div>
                 )}
@@ -291,7 +291,7 @@ const AdminCard = ({ task, onUpdate, type }: { task: any, onUpdate: any, type: s
                 )}
                 {type === "HISTORY" && (
                     <div style={{display:'flex', width:'100%', justifyContent:'space-between', alignItems:'center'}}>
-                        <span style={{fontSize:"0.6rem", fontWeight:"bold", color: task.status==="VALIDE" ? "#39ff14":"#ff0055"}}>{task.status}</span>
+                        <span style={{fontSize:"0.6rem", fontWeight:"bold", color: task.status==="VALIDE" ? "#20cc00":"#cc0044"}}>{task.status}</span>
                         <button className={styles.miniBtn} onClick={() => onUpdate(task, "DONE")} title="Backtrack"><ArrowLeft size={14}/></button>
                     </div>
                 )}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutList, KanbanSquare, History, LogOut, Terminal, 
-  Database, Cpu, BarChart2, Receipt, Cloud, Layers, Scale 
+  Database, Cpu, BarChart2, Receipt, Cloud, Layers, Scale, Home 
 } from "lucide-react";
 import styles from "./PilotNavbar.module.css";
 import { useEffect, useState, MouseEvent } from "react";
@@ -60,14 +60,15 @@ export default function PilotNavbar() {
         <div className={`${styles.screw} ${styles.br}`}></div>
 
         {/* BRAND ZONE */}
-        <div className={styles.brandZone}>
+        <Link href="/pilot/home" className={styles.brandZone} title="Retour à l'accueil" aria-label="Retour à l'accueil">
           <div className={styles.logoHex}>
             <Terminal size={20} strokeWidth={2.5} />
           </div>
           <div className={styles.logoText}>
             KYNTUS<span className={styles.logoAccent}>OS</span>
           </div>
-        </div>
+          <span className={styles.homeHint}><Home size={12} strokeWidth={2.6} /> Accueil</span>
+        </Link>
 
         {/* NAVIGATION CENTER */}
         <div className={styles.navZone}>

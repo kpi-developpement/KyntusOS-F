@@ -96,7 +96,7 @@ export default function AuditPage() {
                 {foundTask && (
                     <div style={{background: "#f9f9f9", padding: 20, borderRadius: 8, border: "1px solid #eee"}}>
                         <div style={{marginBottom: 10}}>
-                            <span style={{fontSize: "1.2rem", fontWeight: "bold", color: "#0070f3"}}>{foundTask.epsReference}</span>
+                            <span style={{fontSize: "1.2rem", fontWeight: "bold", color: "#005ecc"}}>{foundTask.epsReference}</span>
                         </div>
                         <p><strong>Pilote:</strong> {foundTask.assignee ? `👤 ${foundTask.assignee.username}` : "Non assigné"}</p>
                         <p><strong>Status:</strong> {foundTask.status}</p>
@@ -111,7 +111,7 @@ export default function AuditPage() {
                         <div style={{marginTop: 20}}>
                             {foundTask.flaggedError ? (
                                 <div style={{
-                                    background: "#ffebee", color: "#c62828", 
+                                    background: "#ffebee", color: "#aa2222", 
                                     padding: 10, borderRadius: 4, textAlign: "center", fontWeight: "bold"
                                 }}>
                                     🚨 DÉJÀ SIGNALÉ COMME ERREUR
@@ -148,7 +148,7 @@ export default function AuditPage() {
                                 <td style={{padding: 15, display: "flex", alignItems: "center", gap: 10}}>
                                     <div style={{
                                         width: 32, height: 32, 
-                                        background: "#e6f7ff", color: "#0070f3", 
+                                        background: "#e6f7ff", color: "#005ecc", 
                                         borderRadius: "50%", display: "flex", justifyContent: "center", alignItems: "center", 
                                         fontWeight: "bold", fontSize: "0.8rem"
                                     }}>
@@ -156,7 +156,7 @@ export default function AuditPage() {
                                     </div>
                                     <span style={{fontWeight: "500"}}>{p.username}</span>
                                 </td>
-                                <td style={{padding: 15, textAlign: "right", fontWeight: "bold", fontSize: "1.1rem", color: p.errorCount > 0 ? "#dc3545" : "#28a745"}}>
+                                <td style={{padding: 15, textAlign: "right", fontWeight: "bold", fontSize: "1.1rem", color: p.errorCount > 0 ? "#ae1e2c" : "#28a745"}}>
                                     {p.errorCount}
                                 </td>
                             </tr>

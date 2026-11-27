@@ -1,18 +1,72 @@
+/* ==========================================================================
+   KYNTUS OS // LIGHT AERO THEME
+   60% blanc (surfaces) · 40% bleu (accents, profondeur, interactions)
+   ========================================================================== */
 :root {
-  /* --- 🎨 KYNTUS VARIABLES --- */
-  --bg-deep: #02040a;
-  --bg-card: rgba(13, 17, 23, 0.8);
-  
-  --primary: #0070f3;
-  --neon-cyan: #00f2ea;
-  --neon-purple: #7928ca;
-  --neon-green: #39ff14;
-  
-  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-  --text-main: #ffffff;
-  --text-muted: #8899a6;
-  
+  /* --- Surfaces (60% blanc) --- */
+  --k-bg: #f5f9ff;
+  --k-bg-2: #eaf3ff;
+  --k-surface: rgba(255, 255, 255, 0.82);
+  --k-surface-solid: #ffffff;
+  --k-surface-2: #f3f8ff;
+  --k-border: rgba(37, 99, 235, 0.12);
+  --k-border-strong: rgba(37, 99, 235, 0.26);
+
+  /* --- Bleus (40%) --- */
+  --k-blue-50: #eff6ff;
+  --k-blue-100: #dbeafe;
+  --k-blue-200: #bfdbfe;
+  --k-blue-300: #93c5fd;
+  --k-blue-400: #60a5fa;
+  --k-blue-500: #3b82f6;
+  --k-blue-600: #2563eb;
+  --k-blue-700: #1d4ed8;
+  --k-blue-800: #1e40af;
+  --k-sky: #0ea5e9;
+  --k-navy: #0b1f4d;
+
+  /* --- Texte --- */
+  --k-text: #0f1e3d;
+  --k-text-2: #334766;
+  --k-muted: #64748b;
+  --k-faint: #94a3b8;
+
+  /* --- Statuts --- */
+  --k-ok: #059669;
+  --k-ok-soft: #d1fae5;
+  --k-bad: #e11d48;
+  --k-bad-soft: #ffe4e6;
+  --k-warn: #d97706;
+  --k-warn-soft: #fef3c7;
+
+  /* --- Profondeur --- */
+  --k-shadow-sm: 0 1px 2px rgba(15, 30, 61, 0.06), 0 1px 3px rgba(37, 99, 235, 0.06);
+  --k-shadow: 0 4px 14px -4px rgba(15, 30, 61, 0.1), 0 2px 6px rgba(37, 99, 235, 0.06);
+  --k-shadow-lg: 0 24px 48px -16px rgba(29, 78, 216, 0.22), 0 8px 18px -8px rgba(15, 30, 61, 0.1);
+  --k-ring: 0 0 0 4px rgba(59, 130, 246, 0.18);
+  --k-grad: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --k-grad-soft: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+
+  --k-radius: 16px;
+  --k-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --k-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Compat anciennes variables (pages existantes) --- */
+  --bg-deep: var(--k-bg);
+  --bg-card: var(--k-surface);
+  --primary: var(--k-blue-600);
+  --neon-cyan: #0ea5e9;
+  --neon-purple: #6366f1;
+  --neon-green: #10b981;
+  --neon-blue: var(--k-blue-600);
+  --neon-red: #e11d48;
+  --neon-orange: #f59e0b;
+  --glass-border: 1px solid var(--k-border);
+  --text-main: var(--k-text);
+  --text-muted: var(--k-muted);
   --radius-lg: 16px;
+  --pilot-bg: var(--k-bg);
+  --pilot-panel: var(--k-surface);
 }
 
 /* Base Clean */
@@ -21,27 +75,31 @@
 html, body {
   height: 100%;
   width: 100%;
-  background-color: var(--bg-deep); /* Fond Noir Fixe */
-  color: var(--text-main);
-  font-family: 'Inter', sans-serif;
+  background-color: var(--k-bg);
+  color: var(--k-text);
+  font-family: 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Background Grid (Style Tech) */
-body {
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
+::selection { background: var(--k-blue-200); color: var(--k-navy); }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--neon-cyan); }
+/* Scrollbar claire */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--k-blue-200); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--k-blue-400); background-clip: padding-box; }
 
-/* Animation Spin (Global hit kan7tajoha f bzaf d lblayess) */
+.dark-scroll::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.dark-scroll::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track { background: var(--k-blue-50); }
+.dark-scroll::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--k-blue-200); border-radius: 8px; }
+.dark-scroll::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--k-blue-400); }
+
+/* Animation Spin (utilisée par plusieurs pages) */
 @keyframes spin {
   from { --angle: 0deg; }
   to { --angle: 360deg; }
@@ -52,51 +110,102 @@ body {
   inherits: false;
 }
 
-
-/* ... (Garder le code existant pour l'Admin) ... */
-
-/* =========================================
-   🟢 KYNTUS PILOT THEME (ADD-ONS)
-   ========================================= */
-:root {
-  /* Pilot Specific Colors (Ne touche pas à l'Admin) */
-  --pilot-bg: #02040a;
-  --pilot-panel: rgba(10, 15, 25, 0.9);
-  
-  /* Neon Palette */
-  --neon-cyan: #00f2ea;
-  --neon-blue: #0070f3;
-  --neon-green: #39ff14;
-  --neon-red: #ff0055;
-  --neon-orange: #ffaa00;
+/* ==========================================================================
+   KX — PRIMITIVES PARTAGÉES (cartes, boutons, champs, puces, titres)
+   ========================================================================== */
+.kx-page {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: var(--k-text);
 }
 
-/* Scrollbar Sombre pour le mode Pilot */
-.dark-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.kx-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.kx-head-icon {
+  width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+  display: grid; place-items: center; color: #fff;
+  background: var(--k-grad);
+  box-shadow: 0 10px 24px -8px rgba(29, 78, 216, 0.55), inset 0 1px 0 rgba(255,255,255,0.35);
+  transition: transform 0.5s var(--k-spring);
 }
-.dark-scroll::-webkit-scrollbar-track {
-  background: #0a0f18;
+.kx-head:hover .kx-head-icon { transform: rotate(-8deg) scale(1.06); }
+.kx-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; color: var(--k-navy); }
+.kx-title em { font-style: normal; background: var(--k-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.kx-sub { margin-top: 4px; color: var(--k-muted); font-size: 0.92rem; line-height: 1.5; }
+.kx-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--k-blue-600); background: var(--k-blue-50); border: 1px solid var(--k-blue-100);
+  padding: 4px 10px; border-radius: 999px;
 }
-.dark-scroll::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
+
+.kx-card {
+  position: relative;
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: var(--k-radius);
+  box-shadow: var(--k-shadow);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  transition: box-shadow 0.35s var(--k-ease), border-color 0.35s var(--k-ease), transform 0.35s var(--k-ease);
 }
-.dark-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--neon-cyan);
+.kx-card-hover:hover { transform: translateY(-3px); box-shadow: var(--k-shadow-lg); border-color: var(--k-border-strong); }
+
+/* Halo qui suit le curseur (poser --mx/--my via JS ou laisser au centre) */
+.kx-glow { overflow: hidden; }
+.kx-glow::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(59, 130, 246, 0.12), transparent 60%);
+  transition: opacity 0.4s ease;
 }
-/* Custom Scrollbar for Dark Mode */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+.kx-glow:hover::before { opacity: 1; }
+
+.kx-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 18px; border-radius: 12px; border: 1px solid transparent;
+  font: inherit; font-size: 0.88rem; font-weight: 700; white-space: nowrap; cursor: pointer;
+  color: #fff; background: var(--k-grad);
+  box-shadow: 0 8px 20px -8px rgba(29, 78, 216, 0.6), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.2s var(--k-spring), box-shadow 0.25s ease, filter 0.2s ease, opacity 0.2s ease;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #0f172a; 
+.kx-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 28px -10px rgba(29, 78, 216, 0.7), inset 0 1px 0 rgba(255,255,255,0.3); filter: brightness(1.05); }
+.kx-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+.kx-btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.kx-btn-ghost { color: var(--k-blue-700); background: var(--k-surface-solid); border-color: var(--k-border-strong); box-shadow: var(--k-shadow-sm); }
+.kx-btn-ghost:hover:not(:disabled) { background: var(--k-blue-50); border-color: var(--k-blue-300); box-shadow: var(--k-shadow); filter: none; }
+.kx-btn-danger { background: linear-gradient(135deg, #fb7185, #e11d48); box-shadow: 0 8px 20px -8px rgba(225, 29, 72, 0.55); }
+
+.kx-input {
+  width: 100%; height: 42px; padding: 0 14px; border-radius: 12px;
+  border: 1px solid var(--k-border-strong); background: var(--k-surface-solid);
+  color: var(--k-text); font: inherit; font-size: 0.88rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155; 
-  border-radius: 10px;
+.kx-input:focus { outline: none; border-color: var(--k-blue-500); box-shadow: var(--k-ring); }
+.kx-input::placeholder { color: var(--k-faint); }
+
+.kx-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 600;
+  color: var(--k-blue-700); background: var(--k-blue-50); border: 1px solid var(--k-blue-100);
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #475569; 
+
+.kx-btn:focus-visible, .kx-input:focus-visible, .kx-focus:focus-visible { outline: 2px solid var(--k-blue-600); outline-offset: 2px; }
+
+/* Entrée en cascade */
+@keyframes kx-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.kx-rise { animation: kx-rise 0.6s var(--k-ease) both; }
+.kx-rise-1 { animation-delay: 0.06s; } .kx-rise-2 { animation-delay: 0.12s; }
+.kx-rise-3 { animation-delay: 0.18s; } .kx-rise-4 { animation-delay: 0.24s; }
+
+@keyframes kx-shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+@keyframes kx-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .kx-rise { animation: none; }
+  .kx-card, .kx-btn, .kx-head-icon { transition: none; }
 }

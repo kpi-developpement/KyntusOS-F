@@ -8,7 +8,7 @@ export default function TeamStatsPage() {
   const router = useRouter();
 
   return (
-    <div style={{ padding: "40px", minHeight: "100vh", position: "relative", zIndex: 1, backgroundColor: "rgba(2,4,10,0.85)" }}>
+    <div style={{ padding: "40px", minHeight: "100vh", position: "relative", zIndex: 1, backgroundColor: "rgba(255, 255, 255, 0.92)" }}>
       
       {/* BACKGROUND ACTIF */}
       <div style={{position:'fixed', top:0, left:0, width:'100%', height:'100%', zIndex:-1, pointerEvents:'none', opacity: 0.6}}>
@@ -19,8 +19,8 @@ export default function TeamStatsPage() {
         <button 
             onClick={() => router.back()}
             style={{
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "white", padding: "10px 15px", borderRadius: "10px", cursor: "pointer",
+                background: "rgba(37, 99, 235, 0.07)", border: "1px solid rgba(37, 99, 235, 0.18)",
+                color: "#0f1e3d", padding: "10px 15px", borderRadius: "10px", cursor: "pointer",
                 fontSize: "1.2rem"
             }}
         >

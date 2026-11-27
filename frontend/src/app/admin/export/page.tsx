@@ -107,9 +107,9 @@ export default function ExportPage() {
 
         {/* INFO BOX */}
         <div className={styles.infoBox}>
-          <Database size={18} color="#00f2ea" />
+          <Database size={18} color="#2563eb" />
           <span>
-            Seules les tâches avec le statut <strong style={{color:"#39ff14"}}>VALIDÉ</strong> seront incluses dans ce rapport.
+            Seules les tâches avec le statut <strong style={{color:"#059669"}}>VALIDÉ</strong> seront incluses dans ce rapport.
           </span>
         </div>
 

@@ -1,56 +1,43 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence } from "framer-motion";
 import KanbanCard from "./KanbanCard";
 import styles from "../PilotKanban.module.css";
 
-const COLUMNS_CONFIG = [
-  { id: "A_FAIRE", title: "À FAIRE", color: "#00f2ea" },
-  { id: "EN_COURS", title: "EN COURS", color: "#f59e0b" },
-  { id: "DONE", title: "TERMINÉ", color: "#39ff14" },
-  { id: "VALIDE", title: "VALIDÉ (COACH)", color: "#b026ff" },
-  { id: "REJETE", title: "REJETÉ", color: "#ef4444" }
+export type KanbanTask = { id: number; status: string; epsReference?: string; dynamicData?: Record<string, unknown> };
+
+const COLUMNS = [
+  { id: "A_FAIRE", title: "À faire", color: "#64748b" },
+  { id: "EN_COURS", title: "En cours", color: "#2563eb" },
+  { id: "DONE", title: "Terminé", color: "#0ea5e9" },
+  { id: "VALIDE", title: "Validé (coach)", color: "#059669" },
+  { id: "REJETE", title: "Rejeté", color: "#e11d48" },
 ];
 
-interface KanbanBoardProps {
-  tasks: any[];
-  onMoveTask: (taskId: number, newStatus: string) => void;
-}
-
-export default function KanbanBoard({ tasks, onMoveTask }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks, onMoveTask }: { tasks: KanbanTask[]; onMoveTask: (id: number, s: string) => void }) {
   return (
-    <div className={styles.boardContainer}>
-      {COLUMNS_CONFIG.map((col, colIndex) => {
-        const columnTasks = tasks.filter(t => t.status === col.id);
-        const prevStatus = colIndex > 0 ? COLUMNS_CONFIG[colIndex - 1].id : null;
-        const nextStatus = colIndex < COLUMNS_CONFIG.length - 1 ? COLUMNS_CONFIG[colIndex + 1].id : null;
-
+    <div className={styles.board}>
+      {COLUMNS.map((col, i) => {
+        const list = tasks.filter((t) => t.status === col.id);
+        const prev = i > 0 ? COLUMNS[i - 1] : null;
+        const next = i < COLUMNS.length - 1 ? COLUMNS[i + 1] : null;
         return (
-          <div key={col.id} className={styles.kanbanColumn}>
-            {/* L-Header dyal L-Colonne */}
-            <div className={styles.columnHeader} style={{ borderBottomColor: col.color }}>
-              <div className={styles.columnTitle} style={{ color: col.color, textShadow: `0 0 10px ${col.color}80` }}>
-                {col.title}
-              </div>
-              <div className={styles.columnBadge} style={{ backgroundColor: `${col.color}20`, color: col.color, border: `1px solid ${col.color}` }}>
-                {columnTasks.length}
-              </div>
-            </div>
-
-            {/* L-Tâches L-dakhel */}
+          <section key={col.id} className={styles.column} style={{ "--c": col.color, animationDelay: `${i * 0.06}s` } as React.CSSProperties}>
+            <header className={styles.columnHead}>
+              <span className={styles.columnDot} />
+              <h2>{col.title}</h2>
+              <span className={styles.columnCount}>{list.length}</span>
+            </header>
             <div className={styles.columnBody}>
-              {columnTasks.map(task => (
-                <KanbanCard 
-                  key={task.id} 
-                  task={task} 
-                  color={col.color} 
-                  onMove={onMoveTask} 
-                  prevStatus={prevStatus} 
-                  nextStatus={nextStatus} 
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {list.map((t) => (
+                  <KanbanCard key={t.id} task={t} color={col.color} onMove={onMoveTask} prev={prev} next={next} />
+                ))}
+              </AnimatePresence>
+              {list.length === 0 && <div className={styles.columnEmpty}>Aucune tâche</div>}
             </div>
-          </div>
+          </section>
         );
       })}
     </div>

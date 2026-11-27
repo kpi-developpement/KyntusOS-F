@@ -22,7 +22,7 @@ export default function UserManagementPage() {
     return (
       <div style={{
         minHeight: '100vh', 
-        background:'#010308', 
+        background:'#ffffff', 
         display:'flex', 
         alignItems:'center', 
         justifyContent:'center', 

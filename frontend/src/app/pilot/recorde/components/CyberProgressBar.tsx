@@ -13,9 +13,9 @@ export default function CyberProgressBar({ progress, statusText }: CyberProgress
       width: "100%", 
       padding: "1.25rem 1.5rem", 
       backgroundColor: "#ffffff", 
-      border: "1px solid #bfdbfe", 
+      border: "1px solid #1d80fb", 
       borderRadius: "14px",
-      boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.08)",
+      boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.05)",
       marginTop: "1.25rem",
       display: "flex",
       flexDirection: "column",
@@ -35,7 +35,7 @@ export default function CyberProgressBar({ progress, statusText }: CyberProgress
           {statusText}
         </span>
         <span style={{ 
-          color: isComplete ? "#059669" : "#2563eb", 
+          color: isComplete ? "#059669" : "#0f3fa8", 
           fontFamily: "'Inter', -apple-system, sans-serif", 
           fontSize: "1.65rem", 
           fontWeight: 800,
@@ -65,12 +65,12 @@ export default function CyberProgressBar({ progress, statusText }: CyberProgress
           borderRadius: "999px",
           transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease",
           position: "relative",
-          boxShadow: isComplete ? "0 0 12px rgba(16, 185, 129, 0.4)" : "0 0 12px rgba(37, 99, 235, 0.4)"
+          boxShadow: isComplete ? "0 0 12px rgba(16, 185, 129, 0.24)" : "0 0 12px rgba(37, 99, 235, 0.24)"
         }}>
           <div style={{
             position: "absolute",
             top: 0, left: 0, right: 0, bottom: 0,
-            backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.28) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.28) 75%, transparent 75%, transparent)",
+            backgroundImage: "linear-gradient(45deg, rgba(37, 99, 235, 0.1) 25%, transparent 25%, transparent 50%, rgba(37, 99, 235, 0.1) 50%, rgba(37, 99, 235, 0.1) 75%, transparent 75%, transparent)",
             backgroundSize: "1rem 1rem",
             animation: "move-stripes 0.75s linear infinite",
             opacity: isComplete ? 0 : 1
@@ -89,7 +89,7 @@ export default function CyberProgressBar({ progress, statusText }: CyberProgress
         justifyContent: "space-between"
       }}>
         <span>SYS.UPLOAD.PROTOCOL_V2</span>
-        <span style={{ color: isComplete ? "#059669" : "#2563eb" }}>
+        <span style={{ color: isComplete ? "#059669" : "#0f3fa8" }}>
           {isComplete ? "PROCESS_COMPLETE" : "SYNCHRONIZING_STREAM..."}
         </span>
       </div>

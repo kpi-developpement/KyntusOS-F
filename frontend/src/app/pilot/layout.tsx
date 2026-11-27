@@ -8,7 +8,6 @@ import InteractiveBackground from "@/components/ui/InteractiveBackground"; // Ha
 import PilotNavbar from "@/components/layout/PilotNavbar"; 
 import Toaster from "@/components/ui/Toaster";
 import CyberLoader from "@/components/ui/CyberLoader"; 
-import HoloBackButton from "@/components/ui/HoloBackButton"; 
 import styles from "./PilotLayout.module.css";
 
 export default function PilotLayout({ children }: { children: React.ReactNode }) {
@@ -45,7 +44,6 @@ export default function PilotLayout({ children }: { children: React.ReactNode })
             minHeight: "100vh"
         }}>
             {!isHome && <PilotNavbar />}
-            {!isHome && <HoloBackButton />}
 
             <div 
               className={!isHome ? styles.contentWrapper : ""} 

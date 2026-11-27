@@ -4,60 +4,41 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Hash } from "lucide-react";
 import styles from "../PilotKanban.module.css";
+import type { KanbanTask } from "./KanbanBoard";
 
-interface KanbanCardProps {
-  task: any;
-  color: string;
-  onMove: (taskId: number, newStatus: string) => void;
-  prevStatus: string | null;
-  nextStatus: string | null;
-}
+type Col = { id: string; title: string } | null;
 
-export default function KanbanCard({ task, color, onMove, prevStatus, nextStatus }: KanbanCardProps) {
+export default function KanbanCard({
+  task, color, onMove, prev, next,
+}: { task: KanbanTask; color: string; onMove: (id: number, s: string) => void; prev: Col; next: Col }) {
   return (
-    <motion.div 
-      layout // 👈 THE MAGIC: Kay-kheliha t-tir mlli kat-beddel blassetha!
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className={styles.cyberCard}
-      style={{ borderLeftColor: color, boxShadow: `0 4px 15px ${color}15` }}
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 420, damping: 30 }}
+      className={styles.card}
+      style={{ "--c": color } as React.CSSProperties}
     >
-      <div className={styles.cardHeader}>
-        <span className={styles.epsBadge} style={{ color: color, backgroundColor: `${color}15`, border: `1px solid ${color}40` }}>
-          <Hash size={12} /> {task.epsReference || "NO_REF"}
-        </span>
-      </div>
-
-      <div className={styles.cardBody}>
-        {/* N-beynou chwiya dyal l-Data Dynamique */}
-        {task.dynamicData && Object.keys(task.dynamicData).slice(0, 2).map(k => (
-          <div key={k} className={styles.dataRow}>
-            <span className={styles.dataKey}>{k}:</span>
-            <span className={styles.dataValue}>{task.dynamicData[k] || "-"}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.cardActions}>
-        <button 
-          disabled={!prevStatus} 
-          onClick={() => prevStatus && onMove(task.id, prevStatus)}
-          className={styles.moveBtn}
-        >
+      <span className={styles.eps}><Hash size={12} /> {task.epsReference || "Sans référence"}</span>
+      {task.dynamicData && (
+        <dl className={styles.data}>
+          {Object.keys(task.dynamicData).slice(0, 2).map((k) => (
+            <div key={k}><dt>{k}</dt><dd>{String(task.dynamicData?.[k] ?? "—")}</dd></div>
+          ))}
+        </dl>
+      )}
+      <div className={styles.actions}>
+        <button type="button" disabled={!prev} onClick={() => prev && onMove(task.id, prev.id)} aria-label={prev ? `Reculer vers ${prev.title}` : "Première colonne"} title={prev?.title}>
           <ChevronLeft size={16} />
         </button>
-        <div className={styles.glowLine} style={{ background: color }}></div>
-        <button 
-          disabled={!nextStatus} 
-          onClick={() => nextStatus && onMove(task.id, nextStatus)}
-          className={styles.moveBtn}
-        >
+        <span className={styles.track} />
+        <button type="button" disabled={!next} onClick={() => next && onMove(task.id, next.id)} aria-label={next ? `Avancer vers ${next.title}` : "Dernière colonne"} title={next?.title}>
           <ChevronRight size={16} />
         </button>
       </div>
-    </motion.div>
+    </motion.article>
   );
 }

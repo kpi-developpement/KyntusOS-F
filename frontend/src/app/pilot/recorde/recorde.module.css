@@ -4,7 +4,7 @@
   min-height: 100%; /* Matches layout */
   padding: 0; /* Let PilotLayout handle padding */
   background-color: transparent; /* No conflicting background here! */
-  color: #f8fafc;
+  color: #0f1e3d;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 

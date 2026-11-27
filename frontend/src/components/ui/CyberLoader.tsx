@@ -5,25 +5,25 @@ import styles from "./CyberLoader.module.css";
 
 export default function CyberLoader() {
   const [stage, setStage] = useState<"LOADING" | "EXITING" | "HIDDEN">("LOADING");
-  const [text, setText] = useState("INITIALIZING...");
+  const [text, setText] = useState("Chargement");
 
   useEffect(() => {
     // 1. Changement de texte stylé
-    setTimeout(() => setText("LOADING MODULES..."), 800);
-    setTimeout(() => setText("DECRYPTING KEYS..."), 1500);
+    const t1 = setTimeout(() => setText("Préparation"), 500);
     
     // 2. Début de la fin (Exit Animation)
     const exitTimer = setTimeout(() => {
-      setText("ACCESS GRANTED");
+      setText("Prêt");
       setStage("EXITING");
-    }, 2200); // Durée du chargement (2.2s)
+    }, 1100);
 
     // 3. Suppression totale du DOM après l'anim
     const removeTimer = setTimeout(() => {
       setStage("HIDDEN");
-    }, 2800); // 2.2s + 0.6s (durée anim CSS)
+    }, 1600);
 
     return () => {
+      clearTimeout(t1);
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
     };

@@ -242,7 +242,7 @@ export default function TaskDispatchPage() {
             {/* GAUCHE : FLUX */}
             <div className={styles.panel}>
                 <div className={styles.panelHeader}>
-                    <div className={styles.sectionTitle}><Radio size={16} color="#00f2ea"/> FLUX ENTRANT</div>
+                    <div className={styles.sectionTitle}><Radio size={16} color="#2563eb"/> FLUX ENTRANT</div>
                     <div className={styles.sectionCount}>{mode==='MANUAL' ? tasks.length : 'AUTO'}</div>
                 </div>
                 <div className={styles.scrollArea}>
@@ -256,7 +256,7 @@ export default function TaskDispatchPage() {
                                 <span className={styles.taskMeta}>ID_REF: {t.id}</span>
                             </div>
                             <div className={styles.checkbox}>
-                                {selectedTaskIds.includes(t.id) && <Check size={14} color="#00f2ea"/>}
+                                {selectedTaskIds.includes(t.id) && <Check size={14} color="#2563eb"/>}
                             </div>
                         </div>
                     )) : (
@@ -271,7 +271,7 @@ export default function TaskDispatchPage() {
             {/* DROITE : PILOTES */}
             <div className={styles.panel}>
                 <div className={styles.panelHeader}>
-                    <div className={styles.sectionTitle}><Users size={16} color="#39ff14"/> UNITÉS</div>
+                    <div className={styles.sectionTitle}><Users size={16} color="#10b981"/> UNITÉS</div>
                     <div className={styles.sectionCount}>{selectedPilotIds.length}</div>
                 </div>
                 <div className={styles.scrollArea}>

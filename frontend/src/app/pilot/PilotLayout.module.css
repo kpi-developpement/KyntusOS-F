@@ -4,8 +4,8 @@
   min-height: 100vh;
   width: 100%;
   /* Fond Noir Profond (Base) */
-  background-color: #02040a; 
-  color: white;
+  background-color: var(--k-bg);
+  color: var(--k-text);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
 }

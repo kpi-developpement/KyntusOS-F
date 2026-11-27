@@ -1,96 +1,91 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { Activity } from "lucide-react"; 
-import SystemIdle from "@/components/ui/SystemIdle";
+import { useCallback, useEffect, useState } from "react";
+import { KanbanSquare, Loader2, Target } from "lucide-react";
 import { toast } from "@/components/ui/Toaster";
-
-import KanbanHeader from "./components/KanbanHeader";
-import KanbanBoard from "./components/KanbanBoard";
+import { KxHeader, KxEmpty } from "@/components/kx";
+import LuxSelect from "@/components/ui/LuxSelect";
+import KanbanBoard, { type KanbanTask } from "./components/KanbanBoard";
 import styles from "./PilotKanban.module.css";
 
-// 🚀 DYNAMIC IMPORT DYAL THREE.JS BACKGROUND
-const TacticalBackground = dynamic(() => import("./ux/TacticalBackground"), { ssr: false });
-
 export default function PilotKanban() {
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [tasks, setTasks] = useState<KanbanTask[]>([]);
+  const [templates, setTemplates] = useState<{ id: number; name: string }[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id?: number; username?: string } | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("kyntus_user");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique au montage
     if (stored) setUser(JSON.parse(stored));
-
-    // ✅ L-FIX 1: Chemin relatif (L'Proxy gha y-tkellef b l-baqi)
     fetch("/api/templates")
-        .then(res => res.json())
-        .then(data => { if (Array.isArray(data)) setTemplates(data); })
-        .catch(err => console.error(err));
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d)) setTemplates(d); })
+      .catch((e) => console.error(e));
   }, []);
 
-  const refreshTasks = () => {
+  const refreshTasks = useCallback(() => {
     if (!user || !selectedTemplate) return;
     setLoading(true);
-    // ✅ L-FIX 2: Chemin relatif
     fetch(`/api/tasks?assigneeId=${user.id}&templateId=${selectedTemplate}`)
-        .then(res => res.json())
-        .then(data => { if (Array.isArray(data)) setTasks(data); else setTasks([]); })
-        .catch(e => console.error(e))
-        .finally(() => setLoading(false));
-  };
+      .then((r) => r.json())
+      .then((d) => setTasks(Array.isArray(d) ? d : []))
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  }, [user, selectedTemplate]);
 
-  useEffect(() => { refreshTasks(); }, [user, selectedTemplate]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- chargement à la sélection d'une mission
+  useEffect(() => { refreshTasks(); }, [refreshTasks]);
 
-  // 🔄 THE MAGIC: Mlli t-klicki, kat-tbddel f' l-Front b-zzerba w kat-sifet l-Back
   const handleMoveTask = async (taskId: number, newStatus: string) => {
-    // Optimistic UI Update (Smuuuth Animation)
-    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
-    
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
     try {
-      // ✅ L-FIX 3: Chemin relatif
       const res = await fetch(`/api/tasks/${taskId}/status`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus })
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error("Erreur Backend");
-      toast({ message: `TÂCHE DÉPLACÉE VERS ${newStatus} 🎯`, type: "success" });
-    } catch (e) {
-      toast({ message: "ERREUR SYNCHRO - REVERTING", type: "error" });
-      refreshTasks(); 
+      toast({ message: `Tâche déplacée vers ${newStatus.replace("_", " ").toLowerCase()}`, type: "success" });
+    } catch {
+      toast({ message: "Synchronisation impossible, retour à l'état précédent", type: "error" });
+      refreshTasks();
     }
   };
 
-  const missionOptions = templates.map(t => ({ value: t.id.toString(), label: `MISSION: ${t.name.toUpperCase()}` }));
+  const options = templates.map((t) => ({ value: t.id.toString(), label: t.name }));
 
   return (
-    <div className={styles.container}>
-        <TacticalBackground />
-        
-        <KanbanHeader 
-          user={user} 
-          missionOptions={missionOptions} 
-          selectedTemplate={selectedTemplate} 
-          setSelectedTemplate={setSelectedTemplate}
-          tasksCount={tasks.length} 
-        />
+    <main className="kx-page" style={{ maxWidth: 1600 }}>
+      <KxHeader
+        icon={KanbanSquare}
+        eyebrow="Tactical"
+        title={<>Tableau de <em>tâches</em></>}
+        subtitle={`Pilote ${user?.username || "—"} · faites avancer vos tâches d'une colonne à l'autre.`}
+        actions={
+          <div className={styles.headerTools}>
+            {selectedTemplate && <span className={styles.activeCount}><span className={styles.pulse} />{tasks.length} tâches</span>}
+            <div className={styles.mission}>
+              <LuxSelect options={options} value={selectedTemplate} onChange={setSelectedTemplate} placeholder="Choisir une mission" />
+            </div>
+          </div>
+        }
+      />
 
-        {!selectedTemplate ? (
-            <div className={styles.emptyStateWrapper}><SystemIdle /></div>
-        ) : loading ? (
-            <div className={styles.emptyStateWrapper}>
-                <div style={{textAlign:"center", color:"#39ff14", fontFamily:"monospace"}}>
-                    <Activity className="spin" size={40} style={{marginBottom:20}}/>
-                    <div style={{letterSpacing:3}}>SCANNING SECTORS...</div>
-                </div>
-            </div>
-        ) : (
-            <div style={{flex: 1, display:"flex", flexDirection:"column", animation:"fadeIn 0.5s", overflow: "hidden"}}>
-                <KanbanBoard tasks={tasks} onMoveTask={handleMoveTask} />
-            </div>
-        )}
-    </div>
+      {!selectedTemplate ? (
+        <div className={styles.idle}>
+          <KxEmpty icon={Target} title="Aucune mission chargée">
+            <span>Choisissez une mission en haut à droite pour afficher son tableau.</span>
+          </KxEmpty>
+        </div>
+      ) : loading ? (
+        <div className={styles.idle}>
+          <KxEmpty icon={Loader2} title="Chargement des tâches…" />
+        </div>
+      ) : (
+        <KanbanBoard tasks={tasks} onMoveTask={handleMoveTask} />
+      )}
+    </main>
   );
 }

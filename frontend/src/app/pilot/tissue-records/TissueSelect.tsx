@@ -64,7 +64,7 @@ const TissueSelect = React.memo(({
         accent: "#fbbf24",
         accentBright: "#fde68a",
         bgActive: "rgba(245, 158, 11, 0.18)",
-        borderActive: "#f59e0b",
+        borderActive: "#f6a723",
         ring: "rgba(245, 158, 11, 0.22)"
       };
     }
@@ -73,7 +73,7 @@ const TissueSelect = React.memo(({
         accent: "#c084fc",
         accentBright: "#e9d5ff",
         bgActive: "rgba(168, 85, 247, 0.18)",
-        borderActive: "#a855f7",
+        borderActive: "#8f24f5",
         ring: "rgba(168, 85, 247, 0.22)"
       };
     }
@@ -165,7 +165,7 @@ const TissueSelect = React.memo(({
               bottom: coords.openUpward ? `${window.innerHeight - coords.top}px` : "auto",
               left: `${coords.left}px`,
               width: `${coords.width}px`,
-              backgroundColor: "rgba(6, 18, 17, 0.98)",
+              backgroundColor: "rgba(255, 255, 255, 0.92)",
               backdropFilter: "blur(22px)",
               WebkitBackdropFilter: "blur(22px)",
               border: `1px solid ${theme.borderActive}`,
@@ -174,7 +174,7 @@ const TissueSelect = React.memo(({
               overflowY: "auto",
               padding: "6px",
               boxShadow:
-                "0 22px 48px -10px rgba(0, 0, 0, 0.65), 0 0 24px -6px rgba(16, 185, 129, 0.25)",
+                "0 22px 48px -10px rgba(15, 30, 61, 0.18), 0 0 24px -6px rgba(16, 185, 129, 0.15)",
               zIndex: 2147483647,
               transformOrigin: coords.openUpward ? "bottom center" : "top center",
               animation: "tissueDropdownIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards"
@@ -186,7 +186,7 @@ const TissueSelect = React.memo(({
                 100% { opacity: 1; transform: scale(1) translateY(0); }
               }
               .tissue-select-portal-menu::-webkit-scrollbar { width: 5px; }
-              .tissue-select-portal-menu::-webkit-scrollbar-track { background: rgba(6, 24, 22, 0.6); border-radius: 8px; }
+              .tissue-select-portal-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.85); border-radius: 8px; }
               .tissue-select-portal-menu::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.35); border-radius: 8px; }
               .tissue-select-portal-menu::-webkit-scrollbar-thumb:hover { background: #34d399; }
               .tissue-select-option {
@@ -205,7 +205,7 @@ const TissueSelect = React.memo(({
               .tissue-select-option:last-child { margin-bottom: 0; }
               .tissue-select-option:hover {
                 background-color: rgba(16, 185, 129, 0.16);
-                color: #ecfdf5;
+                color: #0f1e3d;
                 transform: translateX(3px);
               }
             `}</style>
@@ -221,7 +221,7 @@ const TissueSelect = React.memo(({
                   }}
                   style={{
                     backgroundColor: isSelected ? theme.bgActive : "transparent",
-                    color: isSelected ? theme.accentBright : "#94a3b8",
+                    color: isSelected ? theme.accentBright : "#475569",
                     fontWeight: isSelected ? 700 : 500
                   }}
                 >
@@ -255,11 +255,11 @@ const TissueSelect = React.memo(({
       <div
         onClick={toggleOpen}
         style={{
-          backgroundColor: disabled ? "rgba(6, 20, 19, 0.45)" : isOpen ? "rgba(6, 24, 22, 0.92)" : "rgba(6, 20, 19, 0.7)",
+          backgroundColor: disabled ? "rgba(255, 255, 255, 0.7)" : isOpen ? "rgba(255, 255, 255, 0.92)" : "rgba(255, 255, 255, 0.92)",
           border: `1px solid ${isOpen ? theme.borderActive : "rgba(52, 211, 153, 0.22)"}`,
           padding: "0.52rem 0.82rem",
           borderRadius: "11px",
-          color: disabled ? "#475569" : isOpen ? theme.accentBright : "#ecfdf5",
+          color: disabled ? "#475569" : isOpen ? theme.accentBright : "#0f1e3d",
           cursor: disabled ? "not-allowed" : "pointer",
           display: "flex",
           justifyContent: "space-between",
