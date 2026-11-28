@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { Cpu, DownloadCloud, Database } from "lucide-react";
-import * as XLSX from "xlsx";
 import { KxHeader, KxDropzone, KxAlert, KxTable } from "@/components/kx";
 
 const API_BASE = "";
@@ -46,6 +45,8 @@ export default function ParametragePage() {
       setLastBlob(blob);
       download(blob);
 
+      // Chargé à la demande : xlsx pèse lourd et n'est utile qu'après la génération
+      const XLSX = await import("xlsx");
       const workbook = XLSX.read(new Uint8Array(await blob.arrayBuffer()), { type: "array" });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { defval: "" });

@@ -12,7 +12,7 @@
 .modeText small { font-size: 0.78rem; opacity: 0.75; }
 
 /* Filtres */
-.filters { padding: 18px; border-radius: var(--k-radius-lg); background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82)); border: 1px solid var(--k-hairline); box-shadow: var(--k-shadow), var(--k-inner); position: relative; z-index: 5; }
+.filters { padding: 18px; border-radius: var(--k-radius-lg); background: #ffffff; border: 1px solid var(--k-hairline); box-shadow: var(--k-shadow), var(--k-inner); position: relative; z-index: 5; }
 .filterGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .multi { position: relative; display: flex; flex-direction: column; gap: 6px; }
 .multiLabel { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: var(--k-muted); text-transform: uppercase; }
@@ -31,7 +31,7 @@
 
 /* Panneaux */
 .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
-.panel { display: flex; flex-direction: column; min-height: 420px; max-height: 62vh; border-radius: var(--k-radius-lg); background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82)); border: 1px solid var(--k-hairline); box-shadow: var(--k-shadow), var(--k-inner); overflow: hidden; }
+.panel { display: flex; flex-direction: column; min-height: 420px; max-height: 62vh; border-radius: var(--k-radius-lg); background: #ffffff; border: 1px solid var(--k-hairline); box-shadow: var(--k-shadow), var(--k-inner); overflow: hidden; }
 .panelHead { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--k-border); }
 .panelTitle { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; color: var(--k-navy); }
 .panelTitle svg { color: var(--k-blue-600); }

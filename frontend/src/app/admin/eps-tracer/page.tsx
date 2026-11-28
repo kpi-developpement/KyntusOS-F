@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 import {
   Radar,
   ClipboardPaste,
@@ -227,7 +226,9 @@ export default function EpsTracerPage() {
   const maxPilot = pilots[0]?.[1] || 1;
 
   // -------------------------------------------------------------- EXCEL
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    // Chargé à la demande : xlsx pèse lourd et n'est utile qu'à l'export
+    const XLSX = await import("xlsx");
     if (!result) return;
     const data = filtered;
 

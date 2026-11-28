@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import * as XLSX from "xlsx";
 import {
   UploadCloud,
   Cpu,
@@ -198,6 +197,8 @@ export default function FacturePage() {
       await new Promise((r) => setTimeout(r, 30));
 
       const arrayBuffer = await blob.arrayBuffer();
+      // Chargé à la demande : xlsx pèse lourd et n'est utile qu'après la génération
+      const XLSX = await import("xlsx");
       const workbook = XLSX.read(arrayBuffer, { type: "array", dense: true, cellFormula: false, cellHTML: false });
 
       const parsedSheets: Record<string, any[]> = {};

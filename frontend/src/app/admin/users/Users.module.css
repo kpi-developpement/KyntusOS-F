@@ -9,7 +9,7 @@
 /* Panneau générique */
 .panel, .roster, .deck {
   border-radius: var(--k-radius-lg);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+  background: #ffffff;
   border: 1px solid var(--k-hairline);
   box-shadow: var(--k-shadow), var(--k-inner);
   backdrop-filter: blur(18px) saturate(170%);

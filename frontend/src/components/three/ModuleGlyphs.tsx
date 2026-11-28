@@ -6,9 +6,9 @@
  * Matériaux « verre émaillé » (clearcoat + iridescence), lumière 100 % locale
  * (Lightformers) : aucun fichier HDR téléchargé.
  */
-import { useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { View, Environment, Lightformer, Float, RoundedBox, PerspectiveCamera } from "@react-three/drei";
+import { useEffect, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { View, Environment, Lightformer, Float, RoundedBox, PerspectiveCamera, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 
 export type GlyphKind =
@@ -23,10 +23,6 @@ function GlassMaterial({ color, locked }: { color: string; locked?: boolean }) {
       metalness={0.15}
       clearcoat={1}
       clearcoatRoughness={0.08}
-      iridescence={locked ? 0 : 0.55}
-      iridescenceIOR={1.35}
-      sheen={0.4}
-      sheenColor="#ffffff"
     />
   );
 }
@@ -35,7 +31,7 @@ function Shape({ kind, color, locked }: { kind: GlyphKind; color: string; locked
   const m = <GlassMaterial color={color} locked={locked} />;
   switch (kind) {
     case "analyse":
-      return <mesh>{m}<torusKnotGeometry args={[0.62, 0.22, 160, 24]} /></mesh>;
+      return <mesh>{m}<torusKnotGeometry args={[0.62, 0.22, 96, 16]} /></mesh>;
     case "tableau":
     case "dispatch":
       return (
@@ -107,21 +103,40 @@ function Shape({ kind, color, locked }: { kind: GlyphKind; color: string; locked
 
 function Spinner({ kind, color, active, locked }: { kind: GlyphKind; color: string; active: boolean; locked?: boolean }) {
   const ref = useRef<THREE.Group>(null);
+  const invalidate = useThree((st) => st.invalidate);
+  // Rendu à la demande : on ne redessine que quand quelque chose bouge
+  useEffect(() => { invalidate(); }, [active, locked, invalidate]);
   useFrame((state, dt) => {
     const g = ref.current;
     if (!g) return;
-    const speed = locked ? 0 : active ? 1.8 : 0.35;
-    g.rotation.y += dt * speed;
-    const target = active && !locked ? 1.12 : 1;
-    g.scale.setScalar(THREE.MathUtils.lerp(g.scale.x, target, 0.12));
-    // Suit légèrement le pointeur
-    g.rotation.x = THREE.MathUtils.lerp(g.rotation.x, locked ? 0.2 : state.pointer.y * -0.35 + 0.15, 0.06);
+    const on = active && !locked;
+    const targetScale = on ? 1.12 : 1;
+    const targetTilt = on ? state.pointer.y * -0.35 + 0.15 : 0.2;
+    if (on) g.rotation.y += Math.min(dt, 0.05) * 1.8;
+    g.scale.setScalar(THREE.MathUtils.lerp(g.scale.x, targetScale, 0.14));
+    g.rotation.x = THREE.MathUtils.lerp(g.rotation.x, targetTilt, 0.1);
+    const settling = Math.abs(g.scale.x - targetScale) > 0.002 || Math.abs(g.rotation.x - targetTilt) > 0.002;
+    if (on || settling) state.invalidate();
   });
   return (
-    <Float speed={locked ? 0 : 2.2} rotationIntensity={locked ? 0 : 0.35} floatIntensity={locked ? 0 : 0.6}>
-      <group ref={ref}><Shape kind={kind} color={color} locked={locked} /></group>
+    <Float speed={active && !locked ? 2.2 : 0} rotationIntensity={0.35} floatIntensity={0.6}>
+      <group ref={ref} rotation={[0.2, 0.6, 0]}><Shape kind={kind} color={color} locked={locked} /></group>
     </Float>
   );
+}
+
+/** Le canvas ne se redessine pas seul : on le réveille au scroll / resize pour suivre les cartes. */
+function WakeOnScroll() {
+  const invalidate = useThree((st) => st.invalidate);
+  useEffect(() => {
+    const wake = () => invalidate();
+    window.addEventListener("scroll", wake, { passive: true });
+    window.addEventListener("resize", wake);
+    // Quelques images au démarrage (environnement + polices)
+    const ids = [60, 250, 600, 1200].map((ms) => setTimeout(wake, ms));
+    return () => { window.removeEventListener("scroll", wake); window.removeEventListener("resize", wake); ids.forEach(clearTimeout); };
+  }, [invalidate]);
+  return null;
 }
 
 function Lights() {
@@ -129,7 +144,7 @@ function Lights() {
     <>
       <ambientLight intensity={0.55} />
       <directionalLight position={[3, 4, 5]} intensity={1.4} />
-      <Environment resolution={64} frames={1}>
+      <Environment resolution={32} frames={1}>
         <Lightformer form="rect" intensity={3} position={[0, 4, 3]} scale={[8, 2, 1]} color="#ffffff" />
         <Lightformer form="rect" intensity={2} position={[-4, 0, 2]} rotation-y={Math.PI / 2} scale={[6, 3, 1]} color="#bfdbfe" />
         <Lightformer form="ring" intensity={1.5} position={[4, 1, 1]} scale={2} color="#93c5fd" />
@@ -165,13 +180,18 @@ function ClearAll() {
 
 /** Le canvas partagé : à rendre une fois par page qui utilise des GlyphView. */
 export function GlyphCanvas() {
+  // Résolution adaptative : si la machine peine, on redescend en DPR 1
+  const [dpr, setDpr] = useState(1.5);
   return (
     <Canvas
       style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 30 }}
       eventSource={typeof document !== "undefined" ? document.body : undefined}
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: true }}
+      dpr={dpr}
+      frameloop="demand"
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
     >
+      <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
+      <WakeOnScroll />
       <ClearAll />
       <View.Port />
     </Canvas>

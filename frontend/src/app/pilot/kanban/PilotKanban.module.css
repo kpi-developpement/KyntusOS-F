@@ -14,7 +14,7 @@
 .column {
   --c: var(--k-blue-600);
   display: flex; flex-direction: column; min-height: 60vh;
-  border-radius: 18px; background: rgba(255, 255, 255, 0.7); border: 1px solid var(--k-border);
+  border-radius: 18px; background: #ffffff; border: 1px solid var(--k-border);
   box-shadow: var(--k-shadow-sm); backdrop-filter: blur(14px);
   animation: kx-rise 0.55s var(--k-ease) both;
 }

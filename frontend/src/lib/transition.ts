@@ -13,7 +13,7 @@
  * nouvelle page est rendue, à chaque changement de route.
  */
 
-type Router = { push: (href: string) => void };
+type Router = { push: (href: string) => void; prefetch?: (href: string) => void };
 type VTDocument = Document & { startViewTransition?: (cb: () => Promise<void> | void) => { finished: Promise<void> } };
 
 let pending: (() => void) | null = null;
@@ -22,7 +22,9 @@ export function resolvePendingTransition() {
   if (!pending) return;
   const done = pending;
   pending = null;
-  requestAnimationFrame(() => requestAnimationFrame(done));
+  // Pas de requestAnimationFrame ici : pendant une View Transition le rendu est
+  // suspendu, rAF ne se déclenche pas et l'écran restait figé jusqu'au timeout.
+  setTimeout(done, 0);
 }
 
 export function navigate(router: Router, href: string, opts?: { x?: number; y?: number; morph?: HTMLElement | null }) {
@@ -32,6 +34,8 @@ export function navigate(router: Router, href: string, opts?: { x?: number; y?: 
     router.push(href);
     return;
   }
+  // La page cible est préchargée pour que l'écran ne reste jamais figé longtemps
+  try { router.prefetch?.(href); } catch { /* prefetch facultatif */ }
   const root = document.documentElement;
   root.style.setProperty("--vt-x", `${opts?.x ?? window.innerWidth / 2}px`);
   root.style.setProperty("--vt-y", `${opts?.y ?? window.innerHeight / 2}px`);
@@ -43,7 +47,8 @@ export function navigate(router: Router, href: string, opts?: { x?: number; y?: 
       new Promise<void>((resolve) => {
         pending = resolve;
         router.push(href);
-        setTimeout(() => { if (pending === resolve) { pending = null; resolve(); } }, 2500);
+        // Filet de sécurité : au pire 700 ms de gel, jamais plus
+        setTimeout(() => { if (pending === resolve) { pending = null; resolve(); } }, 700);
       })
   );
   vt.finished.finally(() => {

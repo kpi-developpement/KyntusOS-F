@@ -2,7 +2,6 @@
 
 import React, { useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import * as XLSX from "xlsx";
 import {
   Scale,
   UploadCloud,
@@ -178,6 +177,8 @@ export default function ContestationPage() {
       setStats(parseStats(res.headers.get("X-Contestation-Stats")));
       setBlob(b);
 
+      // Chargé à la demande : xlsx pèse lourd et n'est utile qu'après la génération
+      const XLSX = await import("xlsx");
       const wb = XLSX.read(await b.arrayBuffer(), { type: "array", dense: true });
       const sheet = wb.Sheets[wb.SheetNames[0]];
       const data = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });

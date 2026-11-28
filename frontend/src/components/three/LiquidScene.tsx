@@ -26,7 +26,7 @@ function Blob({ excited }: { excited: boolean }) {
   });
   return (
     <mesh ref={ref} scale={1.05} position={[1.45, 1.05, 0]}>
-      <icosahedronGeometry args={[1, 64]} />
+      <icosahedronGeometry args={[1, 20]} />
       <MeshDistortMaterial
         ref={mat as never}
         color="#dbeafe"
@@ -56,8 +56,8 @@ function Pearls() {
       {pearls.map((b, i) => (
         <Float key={i} speed={1.5 + i * 0.3} rotationIntensity={0.6} floatIntensity={1.4}>
           <mesh position={b.p as unknown as [number, number, number]} scale={b.s}>
-            <sphereGeometry args={[1, 48, 48]} />
-            <meshPhysicalMaterial color={b.c} roughness={0.02} metalness={0.2} clearcoat={1} transmission={0.6} thickness={0.8} ior={1.4} />
+            <sphereGeometry args={[1, 24, 24]} />
+            <meshPhysicalMaterial color={b.c} roughness={0.05} metalness={0.2} clearcoat={1} transparent opacity={0.72} iridescence={0.6} />
           </mesh>
         </Float>
       ))}
@@ -67,12 +67,12 @@ function Pearls() {
 
 export default function LiquidScene({ excited = false }: { excited?: boolean }) {
   return (
-    <Canvas camera={{ position: [0, 0, 6], fov: 40 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }} style={{ position: "absolute", inset: 0 }}>
+    <Canvas camera={{ position: [0, 0, 6], fov: 40 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }} style={{ position: "absolute", inset: 0 }}>
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 4]} intensity={1.6} />
       <Blob excited={excited} />
       <Pearls />
-      <Environment resolution={256} frames={1}>
+      <Environment resolution={64} frames={1}>
         <Lightformer form="rect" intensity={4} position={[0, 5, 2]} scale={[10, 3, 1]} color="#ffffff" />
         <Lightformer form="rect" intensity={3} position={[-5, 0, 1]} rotation-y={Math.PI / 2} scale={[8, 4, 1]} color="#93c5fd" />
         <Lightformer form="rect" intensity={2.5} position={[5, -1, 1]} rotation-y={-Math.PI / 2} scale={[8, 4, 1]} color="#a5b4fc" />

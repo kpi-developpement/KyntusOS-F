@@ -42,22 +42,25 @@ export function KxCursor() {
         setLabel(labelled?.dataset.cursor || "");
       }
       if (dot.current) dot.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      wake();
     };
     const down = () => ring.current?.setAttribute("data-down", "1");
     const up = () => ring.current?.removeAttribute("data-down");
     const leave = () => ring.current?.setAttribute("data-hidden", "1");
     const enter = () => ring.current?.removeAttribute("data-hidden");
 
-    // Ressort amorti (raideur / amortissement) plutôt qu'un easing linéaire
+    // Ressort amorti ; la boucle s'arrête dès que l'anneau a rejoint la souris
+    let running = false;
     const tick = () => {
-      const k = 0.18, d = 0.62;
+      const k = 0.2, d = 0.6;
       vx = (vx + (x - rx) * k) * d;
       vy = (vy + (y - ry) * k) * d;
       rx += vx; ry += vy;
       if (ring.current) ring.current.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+      if (Math.abs(x - rx) + Math.abs(y - ry) + Math.abs(vx) + Math.abs(vy) < 0.3) { running = false; return; }
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    const wake = () => { if (!running) { running = true; raf = requestAnimationFrame(tick); } };
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerdown", down);
     window.addEventListener("pointerup", up);
@@ -116,22 +119,39 @@ export function KineticText({ text, className, radius = 140, min = 500, max = 85
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const letters = Array.from(el.querySelectorAll<HTMLSpanElement>("[data-l]"));
     let raf = 0, px = -9999, py = -9999;
+    // Centres des lettres en coordonnées page, recalculés seulement au resize
+    let centers: { x: number; y: number }[] = [];
+    let box = { top: 0, bottom: 0, left: 0, right: 0 };
+    const measure = () => {
+      const sx = window.scrollX, sy = window.scrollY;
+      centers = letters.map((l) => { const r = l.getBoundingClientRect(); return { x: r.left + sx + r.width / 2, y: r.top + sy + r.height / 2 }; });
+      const r = el.getBoundingClientRect();
+      box = { top: r.top + sy - radius, bottom: r.bottom + sy + radius, left: r.left + sx - radius, right: r.right + sx + radius };
+    };
+    const t0 = setTimeout(measure, 900); // après l'animation d'entrée des lettres
+    let near = false;
     const apply = () => {
       raf = 0;
-      for (const l of letters) {
-        const r = l.getBoundingClientRect();
-        const d = Math.hypot(px - (r.left + r.width / 2), py - (r.top + r.height / 2));
+      const gx = px + window.scrollX, gy = py + window.scrollY;
+      const inside = gx > box.left && gx < box.right && gy > box.top && gy < box.bottom;
+      if (!inside && !near) return; // curseur loin : rien à faire
+      near = inside;
+      for (let i = 0; i < letters.length; i++) {
+        const c = centers[i];
+        if (!c) continue;
+        const d = inside ? Math.hypot(gx - c.x, gy - c.y) : radius;
         const k = Math.max(0, 1 - d / radius);
         const e = k * k * (3 - 2 * k); // smoothstep
-        l.style.fontWeight = String(Math.round(min + (max - min) * e));
-        l.style.transform = `translateY(${(-e * 6).toFixed(2)}px)`;
+        letters[i].style.fontWeight = String(Math.round(min + (max - min) * e));
+        letters[i].style.transform = e ? `translateY(${(-e * 6).toFixed(2)}px)` : "";
       }
     };
     const move = (ev: PointerEvent) => { px = ev.clientX; py = ev.clientY; if (!raf) raf = requestAnimationFrame(apply); };
     const leave = () => { px = py = -9999; if (!raf) raf = requestAnimationFrame(apply); };
     window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("resize", measure);
     el.addEventListener("pointerleave", leave);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("pointermove", move); el.removeEventListener("pointerleave", leave); };
+    return () => { clearTimeout(t0); cancelAnimationFrame(raf); window.removeEventListener("pointermove", move); window.removeEventListener("resize", measure); el.removeEventListener("pointerleave", leave); };
   }, [radius, min, max]);
 
   return (

@@ -39,7 +39,7 @@
 /* ---------- CARD ---------- */
 .card {
   position: relative; overflow: hidden;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.8));
+  background: #ffffff;
   border: 1px solid var(--k-hairline); border-radius: var(--k-radius-lg);
   box-shadow: var(--k-shadow), var(--k-inner);
   backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%);
