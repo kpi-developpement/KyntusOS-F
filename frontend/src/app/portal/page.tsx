@@ -6,22 +6,20 @@ import { motion } from "framer-motion";
 import {
   ArrowRight, Terminal, LayoutGrid, Target, Radio, ScanSearch, UsersRound, Map, type LucideIcon,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import AuthGuard from "@/components/layout/AuthGuard";
 import { navigate } from "@/lib/transition";
 import { KineticText, Magnetic } from "@/components/motion";
-import type { GlyphKind } from "@/components/three/ModuleGlyphs";
+import OrbGlyph from "@/components/motion/OrbGlyph";
 import styles from "./Portal.module.css";
 
-const GlyphCanvas = dynamic(() => import("@/components/three/ModuleGlyphs").then((m) => m.GlyphCanvas), { ssr: false });
-const GlyphView = dynamic(() => import("@/components/three/ModuleGlyphs").then((m) => m.GlyphView), { ssr: false });
 
-const SHORTCUTS: { href: string; label: string; desc: string; icon: LucideIcon; kind: GlyphKind; color: string }[] = [
-  { href: "/admin/tasks", label: "Dispatch", desc: "Répartir les tâches", icon: Target, kind: "dispatch", color: "#2563eb" },
-  { href: "/admin/live-board", label: "Live monitor", desc: "Suivre les pilotes", icon: Radio, kind: "live", color: "#0ea5e9" },
-  { href: "/admin/check", label: "Inspecteur", desc: "Retrouver un EPS", icon: ScanSearch, kind: "inspect", color: "#4f46e5" },
-  { href: "/admin/strategic", label: "Carte stratégique", desc: "Vue d'ensemble", icon: Map, kind: "map", color: "#0284c7" },
-  { href: "/admin/stats", label: "Équipe", desc: "Classement et charge", icon: UsersRound, kind: "team", color: "#1d4ed8" },
+
+const SHORTCUTS: { href: string; label: string; desc: string; icon: LucideIcon; color: string }[] = [
+  { href: "/admin/tasks", label: "Dispatch", desc: "Répartir les tâches", icon: Target, color: "#2563eb" },
+  { href: "/admin/live-board", label: "Live monitor", desc: "Suivre les pilotes", icon: Radio, color: "#0ea5e9" },
+  { href: "/admin/check", label: "Inspecteur", desc: "Retrouver un EPS", icon: ScanSearch, color: "#4f46e5" },
+  { href: "/admin/strategic", label: "Carte stratégique", desc: "Vue d'ensemble", icon: Map, color: "#0284c7" },
+  { href: "/admin/stats", label: "Équipe", desc: "Classement et charge", icon: UsersRound, color: "#1d4ed8" },
 ];
 
 function greeting() {
@@ -47,7 +45,6 @@ export default function PortalPage() {
   return (
     <AuthGuard>
       <main className={styles.page}>
-        <GlyphCanvas />
         <header className={styles.top}>
           <span className={styles.brand}>
             <span className={styles.mark}><Terminal size={17} strokeWidth={2.6} /></span>
@@ -93,7 +90,7 @@ export default function PortalPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.26 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
               >
-                <span className={styles.tileStage}><GlyphView kind={s.kind} color={s.color} active={hovered === s.href} className={styles.tileGlyph} /></span>
+                <span className={styles.tileStage}><span className={styles.tileGlyph}><OrbGlyph icon={Icon} color={s.color} active={hovered === s.href} /></span></span>
                 <span className={styles.tileIcon}><Icon size={16} /></span>
                 <span className={styles.tileText}><b>{s.label}</b><small>{s.desc}</small></span>
                 <ArrowRight size={16} className={styles.tileArrow} />

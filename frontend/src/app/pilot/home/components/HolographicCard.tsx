@@ -1,20 +1,12 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Lock } from "lucide-react";
 import type { PilotModule } from "@/lib/modules";
-import type { GlyphKind } from "@/components/three/ModuleGlyphs";
+import OrbGlyph from "@/components/motion/OrbGlyph";
 import styles from "../Home.module.css";
 
-const GlyphView = dynamic(() => import("@/components/three/ModuleGlyphs").then((m) => m.GlyphView), { ssr: false });
-
-const KIND: Record<string, GlyphKind> = {
-  "/pilot/board": "analyse", "/pilot/kanban": "tableau", "/pilot/facture": "facture", "/pilot/contestation": "contestation",
-  "/pilot/api": "api", "/pilot/recorde": "terrain", "/pilot/tissue-records": "tissue", "/pilot/ventilation": "ventilation",
-  "/pilot/parametrage": "parametrage", "/pilot/history": "history",
-};
 
 /** Carte module : objet 3D vivant, inclinaison au survol, verrou si l'admin n'a pas ouvert le module. */
 export default function HolographicCard({
@@ -75,7 +67,7 @@ export default function HolographicCard({
         <span className={styles.cardSheen} aria-hidden="true" />
         <span className={styles.stage} aria-hidden="true">
           <span className={styles.stageGlow} />
-          <GlyphView kind={KIND[mod.path] || "home"} color={mod.color} active={hover} locked={locked} className={styles.glyph} />
+          <span className={styles.glyph}><OrbGlyph icon={mod.icon} color={mod.color} active={hover} locked={locked} /></span>
           <span className={`${styles.status} ${locked ? styles.stLocked : mod.key === "contestation" ? styles.stNew : styles.stOn}`}>
             {locked ? <><Lock size={11} strokeWidth={2.6} /> Verrouillé</> : <><span className={styles.statusDot} />{mod.key === "contestation" ? "Nouveau" : "Disponible"}</>}
           </span>

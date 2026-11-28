@@ -1,0 +1,110 @@
+.orb {
+  --c: #2563eb;
+  position: relative;
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  transition: transform 0.6s var(--k-spring);
+}
+.active { transform: scale(1.06); }
+
+.halo {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 30%, transparent), transparent);
+  opacity: 0.55;
+  transition: opacity 0.4s ease, transform 0.6s var(--k-spring);
+}
+.active .halo { opacity: 1; transform: scale(1.18); }
+
+.ring1, .ring2 {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+.ring1 {
+  inset: 6px;
+  border: 1.5px dashed color-mix(in srgb, var(--c) 40%, transparent);
+  animation: spin 22s linear infinite;
+}
+.ring2 {
+  inset: 22px;
+  border: 1.5px solid color-mix(in srgb, var(--c) 18%, transparent);
+  border-top-color: color-mix(in srgb, var(--c) 70%, transparent);
+  animation: spin 7s linear infinite reverse;
+}
+
+.orbit, .orbit2 { position: absolute; inset: 6px; will-change: transform; }
+.orbit { animation: spin 9s linear infinite; }
+.orbit2 { inset: 22px; animation: spin 5.5s linear infinite reverse; }
+.orbit i, .orbit2 i {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 18%, transparent);
+}
+.orbit2 i { width: 6px; height: 6px; margin-left: -3px; top: -3px; background: #fff; border: 1.5px solid var(--c); box-shadow: none; }
+
+.core {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--c) 55%, #ffffff) 0%, var(--c) 55%, color-mix(in srgb, var(--c) 70%, #0b1f4d) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 -3px 0 rgba(15, 30, 61, 0.18) inset,
+    0 18px 30px -12px color-mix(in srgb, var(--c) 75%, transparent);
+  animation: bob 4.5s ease-in-out infinite;
+  will-change: transform;
+  transition: border-radius 0.5s var(--k-spring);
+}
+.active .core { border-radius: 50%; }
+.coreShine {
+  position: absolute;
+  top: -40%;
+  left: -60%;
+  width: 50%;
+  height: 180%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: rotate(20deg) translateX(0);
+  animation: shine 4.5s ease-in-out infinite;
+}
+
+.shadow {
+  position: absolute;
+  bottom: 4px;
+  width: 64px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 40%, transparent), transparent);
+  animation: shadowBob 4.5s ease-in-out infinite;
+}
+
+/* Survol : tout accélère (les animations rapides sont des couches dédiées, pas de changement de durée) */
+.active .ring2 { animation-duration: 2.4s; }
+.active .orbit { animation-duration: 3s; }
+
+/* Verrouillé : figé et désaturé */
+.locked { filter: grayscale(1); opacity: 0.6; }
+.locked .ring1, .locked .ring2, .locked .orbit, .locked .orbit2, .locked .core, .locked .coreShine, .locked .shadow { animation-play-state: paused; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes bob { 50% { transform: translateY(-7px) rotate(-3deg); } }
+@keyframes shadowBob { 50% { transform: scaleX(0.75); opacity: 0.6; } }
+@keyframes shine { 0%, 55% { transform: rotate(20deg) translateX(0); } 100% { transform: rotate(20deg) translateX(420%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ring1, .ring2, .orbit, .orbit2, .core, .coreShine, .shadow { animation: none; }
+}

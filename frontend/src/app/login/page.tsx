@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -36,6 +36,18 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [shake, setShake] = useState(0);
   const [pwFocus, setPwFocus] = useState(false);
+  const [userFocus, setUserFocus] = useState(false);
+  const [remember, setRemember] = useState(false);
+  const [welcomeBack, setWelcomeBack] = useState("");
+
+  // « Se souvenir de moi » : on ne garde que l'identifiant, jamais le mot de passe
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("kx-remember-user");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- pré-remplissage unique au montage
+      if (saved) { setUsername(saved); setRemember(true); setWelcomeBack(saved); }
+    } catch { /* stockage indisponible */ }
+  }, []);
   const sceneRef = useRef<HTMLDivElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
 
@@ -70,6 +82,10 @@ export default function LoginPage() {
 
       if (res.ok) {
         const user = await res.json();
+        try {
+          if (remember) localStorage.setItem("kx-remember-user", username.trim());
+          else localStorage.removeItem("kx-remember-user");
+        } catch { /* stockage indisponible */ }
         setStatus("SUCCESS");
         login(user);
         const dest = user.role === "ADMIN" ? "/portal" : user.role === "PILOT" ? "/pilot/home" : "/";
@@ -157,43 +173,47 @@ export default function LoginPage() {
       <section className={styles.formSide}>
         <motion.div
           key={shake}
-          className={`${styles.card} ${done ? styles.cardDone : ""}`}
-          initial={shake ? { x: 0 } : { opacity: 0, y: 18 }}
-          animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : done ? { opacity: 1, y: 0, scale: 0.98 } : { opacity: 1, y: 0 }}
-          transition={shake ? { duration: 0.45 } : { duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className={`${styles.card} ${done ? styles.cardDone : ""} ${status === "ERROR" ? styles.cardError : ""}`}
+          initial={shake ? { x: 0 } : { opacity: 0, y: 24, scale: 0.98 }}
+          animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : done ? { opacity: 1, y: 0, scale: 0.98 } : { opacity: 1, y: 0, scale: 1 }}
+          transition={shake ? { duration: 0.45 } : { type: "spring", stiffness: 160, damping: 22, delay: 0.3 }}
         >
-          <div className={styles.cardHead}>
-            <span className={styles.mascot}><LoginMascot mood={mood} /></span>
-            <h2>Connexion</h2>
-            <p>Entrez vos identifiants pour accéder à votre espace.</p>
-          </div>
+          <span className={styles.cardBorder} aria-hidden="true" />
+          <div className={styles.cardInner}>
+            <div className={styles.cardHead}>
+              <span className={styles.mascot}><LoginMascot mood={mood} /></span>
+              <AnimatePresence mode="wait">
+                <motion.div key={welcomeBack ? "back" : "new"} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                  <h2>{welcomeBack ? <>Bon retour, <em>{welcomeBack}</em></> : <>Connexion</>}</h2>
+                  <p>{welcomeBack ? "Entrez votre mot de passe pour reprendre où vous en étiez." : "Entrez vos identifiants pour accéder à votre espace."}</p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-          <form onSubmit={handleLogin} className={styles.form} noValidate>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Identifiant</span>
-              <span className={styles.inputWrap}>
-                <User size={17} className={styles.inputIcon} />
+            <form onSubmit={handleLogin} className={styles.form} noValidate>
+              <motion.div className={`${styles.float} ${userFocus ? styles.floatFocus : ""} ${username ? styles.floatFilled : ""}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+                <User size={18} className={styles.floatIcon} />
                 <input
+                  id="kx-user"
                   type="text"
                   autoComplete="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="prenom.nom"
+                  onChange={(e) => { setUsername(e.target.value); if (welcomeBack) setWelcomeBack(""); }}
+                  onFocus={() => setUserFocus(true)}
+                  onBlur={() => setUserFocus(false)}
                   disabled={busy || done}
-                  autoFocus
+                  autoFocus={!welcomeBack}
                   required
                 />
-              </span>
-            </label>
+                <label htmlFor="kx-user">Identifiant</label>
+                <span className={styles.floatLine} />
+                {username && <Check size={16} className={styles.floatOk} />}
+              </motion.div>
 
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>
-                Mot de passe
-                {capsLock && <span className={styles.caps}>Verr. Maj activé</span>}
-              </span>
-              <span className={styles.inputWrap}>
-                <Lock size={17} className={styles.inputIcon} />
+              <motion.div className={`${styles.float} ${pwFocus ? styles.floatFocus : ""} ${password ? styles.floatFilled : ""}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.52 }}>
+                <Lock size={18} className={styles.floatIcon} />
                 <input
+                  id="kx-pass"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   value={password}
@@ -201,55 +221,76 @@ export default function LoginPage() {
                   onKeyUp={(e) => setCapsLock(e.getModifierState?.("CapsLock") ?? false)}
                   onFocus={() => setPwFocus(true)}
                   onBlur={() => setPwFocus(false)}
-                  placeholder="••••••••"
                   disabled={busy || done}
+                  autoFocus={!!welcomeBack}
                   required
                 />
-                <button
-                  type="button"
-                  className={styles.eye}
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                >
-                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                <label htmlFor="kx-pass">Mot de passe</label>
+                <span className={styles.floatLine} />
+                <button type="button" className={styles.eye} onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.span key={showPassword ? "off" : "on"} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.18 }} style={{ display: "grid" }}>
+                      {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                    </motion.span>
+                  </AnimatePresence>
                 </button>
-              </span>
-            </label>
+              </motion.div>
 
-            <AnimatePresence>
-              {status === "ERROR" && errorMsg && (
-                <motion.div
-                  className={styles.error}
-                  role="alert"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
-                  <AlertTriangle size={16} /> <span>{errorMsg}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <button ref={submitRef} type="submit" className={`${styles.submit} ${done ? styles.submitDone : ""}`} disabled={busy || done || !username.trim() || !password}>
-              <AnimatePresence mode="wait" initial={false}>
-                {done ? (
-                  <motion.span key="ok" className={styles.submitInner} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-                    <Check size={18} strokeWidth={3} /> Bienvenue
-                  </motion.span>
-                ) : busy ? (
-                  <motion.span key="busy" className={styles.submitInner} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    <Loader2 size={18} className="kx-spin" /> Vérification…
-                  </motion.span>
-                ) : (
-                  <motion.span key="idle" className={styles.submitInner} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                    Se connecter <ArrowRight size={17} className={styles.arrow} />
-                  </motion.span>
+              <AnimatePresence>
+                {capsLock && (
+                  <motion.div className={styles.caps} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                    Verr. Maj activé
+                  </motion.div>
                 )}
               </AnimatePresence>
-            </button>
-          </form>
 
-          <p className={styles.help}>Mot de passe oublié ? Contactez votre administrateur.</p>
+              <motion.div className={styles.row} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}>
+                <button type="button" role="switch" aria-checked={remember} className={`${styles.remember} ${remember ? styles.rememberOn : ""}`} onClick={() => setRemember((v) => !v)}>
+                  <span className={styles.switch}><span /></span>
+                  Se souvenir de moi
+                </button>
+                <span className={styles.secure}><ShieldCheck size={14} /> Connexion chiffrée</span>
+              </motion.div>
+
+              <AnimatePresence>
+                {status === "ERROR" && errorMsg && (
+                  <motion.div className={styles.error} role="alert" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                    <AlertTriangle size={16} /> <span>{errorMsg}</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.button
+                ref={submitRef}
+                type="submit"
+                className={`${styles.submit} ${busy ? styles.submitBusy : ""} ${done ? styles.submitDone : ""}`}
+                disabled={busy || done || !username.trim() || !password}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.68 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <span className={styles.submitProgress} aria-hidden="true" />
+                <AnimatePresence mode="wait" initial={false}>
+                  {done ? (
+                    <motion.span key="ok" className={styles.submitInner} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                      <Check size={18} strokeWidth={3} /> Bienvenue
+                    </motion.span>
+                  ) : busy ? (
+                    <motion.span key="busy" className={styles.submitInner} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                      <Loader2 size={18} className="kx-spin" /> Vérification…
+                    </motion.span>
+                  ) : (
+                    <motion.span key="idle" className={styles.submitInner} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                      Se connecter <ArrowRight size={17} className={styles.arrow} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            </form>
+
+            <p className={styles.help}>Mot de passe oublié ? Contactez votre administrateur.</p>
+          </div>
         </motion.div>
       </section>
     </div>

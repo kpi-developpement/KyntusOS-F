@@ -205,7 +205,7 @@
   filter: blur(4px); transition: transform 0.4s var(--k-spring), opacity 0.3s ease;
 }
 .card:hover .stageGlow { transform: translateX(-50%) scale(1.25); }
-.glyph { position: absolute; inset: 0; }
+.glyph { position: absolute; inset: 0; display: grid; place-items: center; padding-bottom: 6px; }
 
 .status {
   position: absolute; top: 10px; right: 10px; z-index: 3;

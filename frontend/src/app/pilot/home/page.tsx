@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
 import { Terminal, Search, LogOut, Sparkles, CornerDownLeft, Lock } from "lucide-react";
@@ -13,7 +12,6 @@ import { navigate } from "@/lib/transition";
 import { KineticText, Magnetic, SmoothScroll } from "@/components/motion";
 import styles from "./Home.module.css";
 
-const GlyphCanvas = dynamic(() => import("@/components/three/ModuleGlyphs").then((m) => m.GlyphCanvas), { ssr: false });
 
 const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -81,7 +79,6 @@ export default function PilotHomePage() {
   return (
     <main className={styles.page}>
       <SmoothScroll />
-      <GlyphCanvas />
 
       <header className={styles.topbar}>
         <div className={styles.brand}>
