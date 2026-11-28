@@ -1,11 +1,11 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-27 18:09 · 28 files · ~12,717 tokens_
+_llm_extractor v3.0 · 2026-11-28 10:47 · 28 files · ~12,728 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion
-**Files:** java 107, tsx 83, css 40, ts 6, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1
+**Files:** java 107, tsx 83, css 40, ts 6, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1, text 1
 **Manifests:**
 - `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
@@ -99,6 +99,7 @@ KyntusOS-F/
     Dockerfile [omitted]
     pom.xml [omitted]
   frontend/
+    public/ (1 files omitted)
     src/
       app/
         admin/ (31 files omitted)
@@ -1024,4 +1025,4 @@ export function KxTable({
 }
 ```
 ## Not included
-- omitted (budget): 219 files — see `[omitted]` in Structure
+- omitted (budget): 220 files — see `[omitted]` in Structure
