@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Power, Key, LayoutDashboard, Terminal, Cpu, Database, Settings2, Search, Check } from "lucide-react";
+import { Users, Power, Key, Search, Check, ShieldCheck, ShieldOff } from "lucide-react";
+import { PERMISSION_MODULES } from "@/lib/modules";
 import { KxEmpty, KxAlert } from "@/components/kx";
 import styles from "../Users.module.css";
 
 type Pilot = { id: number; username: string; role: string; active: boolean; permissions?: Record<string, boolean> };
 
-const MODULES = [
-  { id: "tableau", label: "Tableau de tâches", icon: LayoutDashboard },
-  { id: "analyse", label: "Analyse data", icon: Terminal },
-  { id: "facture", label: "Facturation", icon: Cpu },
-  { id: "ventilation", label: "Ventilation", icon: Database },
-  { id: "parametrage", label: "Paramétrage", icon: Settings2 },
-];
+const MODULES = PERMISSION_MODULES.map((m) => ({ id: m.key, label: m.title, icon: m.icon, hint: m.hint }));
 
 export default function NetworkControlTab() {
   const [pilots, setPilots] = useState<Pilot[]>([]);
@@ -51,12 +46,25 @@ export default function NetworkControlTab() {
     else setMsg({ type: "bad", text: "La réinitialisation a échoué." });
   };
 
-  const togglePerm = async (moduleId: string) => {
+  const savePerms = async (updated: Record<string, boolean>, okText?: string) => {
     if (!selected) return;
-    const updated = { ...(selected.permissions || {}), [moduleId]: !(selected.permissions?.[moduleId] || false) };
+    const previous = selected.permissions;
     patchLocal(selected.id, { permissions: updated });
     const res = await fetch(`/api/users/${selected.id}/permissions`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated) }).catch(() => null);
-    if (!res?.ok) { patchLocal(selected.id, { permissions: selected.permissions }); setMsg({ type: "bad", text: "Permission non enregistrée." }); }
+    if (!res?.ok) { patchLocal(selected.id, { permissions: previous }); setMsg({ type: "bad", text: "Permissions non enregistrées." }); }
+    else if (okText) setMsg({ type: "ok", text: okText });
+  };
+
+  const togglePerm = (moduleId: string) => {
+    if (!selected) return;
+    savePerms({ ...(selected.permissions || {}), [moduleId]: !(selected.permissions?.[moduleId] || false) });
+  };
+
+  const setAll = (value: boolean) => {
+    if (!selected) return;
+    const updated = { ...(selected.permissions || {}) };
+    MODULES.forEach((m) => { updated[m.id] = value; });
+    savePerms(updated, value ? `Tous les modules sont ouverts pour ${selected.username}.` : `Tous les modules sont fermés pour ${selected.username}.`);
   };
 
   return (
@@ -118,7 +126,14 @@ export default function NetworkControlTab() {
               </div>
 
               <div className={styles.block}>
-                <h3>Modules autorisés</h3>
+                <div className={styles.blockHead}>
+                  <h3>Modules autorisés <span className={styles.permCount}>{MODULES.filter((m) => selected.permissions?.[m.id]).length} / {MODULES.length}</span></h3>
+                  <div className={styles.bulk}>
+                    <button type="button" className="kx-btn kx-btn-ghost kx-btn-sm" onClick={() => setAll(true)}><ShieldCheck size={14} /> Tout autoriser</button>
+                    <button type="button" className="kx-btn kx-btn-ghost kx-btn-sm" onClick={() => setAll(false)}><ShieldOff size={14} /> Tout retirer</button>
+                  </div>
+                </div>
+                <p className={styles.blockHint}>Un module fermé apparaît verrouillé sur l&apos;accueil et dans la barre de navigation du pilote, et son adresse affiche un écran d&apos;accès refusé.</p>
                 <div className={styles.perms}>
                   {MODULES.map((m) => {
                     const on = selected.permissions?.[m.id] || false;
@@ -126,7 +141,7 @@ export default function NetworkControlTab() {
                     return (
                       <button key={m.id} type="button" role="switch" aria-checked={on} className={`${styles.perm} ${on ? styles.permOn : ""}`} onClick={() => togglePerm(m.id)}>
                         <span className={styles.permIcon}><Icon size={18} /></span>
-                        <span className={styles.permLabel}>{m.label}</span>
+                        <span className={styles.permLabel}>{m.label}<small>{m.hint}</small></span>
                         <span className={styles.switch}><span>{on && <Check size={11} strokeWidth={3} />}</span></span>
                       </button>
                     );

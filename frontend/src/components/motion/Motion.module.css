@@ -1,0 +1,70 @@
+/* ---------- Curseur ---------- */
+.ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483600;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(37, 99, 235, 0.55);
+  background: rgba(59, 130, 246, 0.04);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  transition: width 0.35s var(--k-spring), height 0.35s var(--k-spring), margin 0.35s var(--k-spring),
+    background-color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease, border-radius 0.3s ease;
+  will-change: transform;
+}
+.ring[data-mode="hover"] { width: 54px; height: 54px; margin: -27px 0 0 -27px; background: rgba(59, 130, 246, 0.1); border-color: rgba(37, 99, 235, 0.35); }
+.ring[data-mode="text"] { width: 4px; height: 26px; margin: -13px 0 0 -2px; border-radius: 3px; border-color: transparent; background: rgba(37, 99, 235, 0.5); }
+.ring[data-mode="label"] { width: 84px; height: 84px; margin: -42px 0 0 -42px; background: linear-gradient(145deg, #3b82f6, #1d4ed8); border-color: transparent; box-shadow: 0 14px 30px -12px rgba(29, 78, 216, 0.7); }
+.ring[data-down] { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+.ring[data-mode="label"][data-down] { width: 70px; height: 70px; margin: -35px 0 0 -35px; }
+.ring[data-hidden] { opacity: 0; }
+.ringLabel { font-size: 0.72rem; font-weight: 650; letter-spacing: 0.01em; color: #fff; opacity: 0; transform: scale(0.6); transition: opacity 0.2s ease, transform 0.3s var(--k-spring); white-space: nowrap; }
+.ring[data-mode="label"] .ringLabel { opacity: 1; transform: none; }
+.dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483601;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--k-blue-600);
+  pointer-events: none;
+}
+@media (pointer: coarse) { .ring, .dot { display: none; } }
+
+/* ---------- Magnétique ---------- */
+.magnetic { display: inline-flex; transition: transform 0.45s var(--k-spring); will-change: transform; }
+
+/* ---------- Typo cinétique ---------- */
+.kinetic { display: inline; }
+.word { display: inline-block; white-space: nowrap; }
+.letter {
+  display: inline-block;
+  transition: font-weight 0.25s ease, transform 0.35s var(--k-spring);
+  animation: letterIn 0.8s var(--k-ease) both;
+}
+@keyframes letterIn {
+  from { opacity: 0; transform: translateY(0.4em) rotate(4deg); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+/* ---------- Révélation par masque ---------- */
+.reveal {
+  clip-path: inset(18% 0 0 0 round 24px);
+  opacity: 0;
+  transform: translateY(24px);
+  transition: clip-path 0.9s var(--k-ease), opacity 0.6s ease, transform 0.9s var(--k-ease);
+}
+.revealOn { clip-path: inset(0 0 0 0 round 0); opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { clip-path: none; opacity: 1; transform: none; }
+  .letter { animation: none; }
+}

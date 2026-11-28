@@ -7,15 +7,21 @@ import {
   User, Lock, Eye, EyeOff, ArrowRight, Check, Loader2, AlertTriangle, Terminal,
   ShieldCheck, Activity, Scale, Sparkles,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import styles from "./LoginPage.module.css";
 import { useAuth } from "@/context/AuthContext";
+import { navigate } from "@/lib/transition";
+import { KineticText } from "@/components/motion";
+import LoginMascot, { type MascotMood } from "./LoginMascot";
+
+const LiquidScene = dynamic(() => import("@/components/three/LiquidScene"), { ssr: false });
 
 type AuthStatus = "IDLE" | "SCANNING" | "SUCCESS" | "ERROR";
 
 const FLOATERS = [
-  { icon: Activity, title: "Analyse EPS", sub: "synchronisée avec Bytel", x: "9%", y: "24%", d: 0 },
-  { icon: ShieldCheck, title: "Validation", sub: "suivie pilote par pilote", x: "38%", y: "40%", d: 0.15 },
-  { icon: Scale, title: "Contestation", sub: "générée en un clic", x: "56%", y: "13%", d: 0.3 },
+  { icon: Activity, title: "Analyse EPS", sub: "synchronisée avec Bytel", x: "7%", y: "20%", d: 0 },
+  { icon: ShieldCheck, title: "Validation", sub: "suivie pilote par pilote", x: "22%", y: "38%", d: 0.15 },
+  { icon: Scale, title: "Contestation", sub: "générée en un clic", x: "34%", y: "9%", d: 0.3 },
 ];
 
 export default function LoginPage() {
@@ -29,7 +35,9 @@ export default function LoginPage() {
   const [status, setStatus] = useState<AuthStatus>("IDLE");
   const [errorMsg, setErrorMsg] = useState("");
   const [shake, setShake] = useState(0);
+  const [pwFocus, setPwFocus] = useState(false);
   const sceneRef = useRef<HTMLDivElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   // Parallaxe douce du panneau de gauche
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -64,11 +72,10 @@ export default function LoginPage() {
         const user = await res.json();
         setStatus("SUCCESS");
         login(user);
-        setTimeout(() => {
-          if (user.role === "ADMIN") router.push("/portal");
-          else if (user.role === "PILOT") router.push("/pilot/home");
-          else router.push("/");
-        }, 850);
+        const dest = user.role === "ADMIN" ? "/portal" : user.role === "PILOT" ? "/pilot/home" : "/";
+        const r = submitRef.current?.getBoundingClientRect();
+        // Sortie en fondu : la page suivante se dévoile en cercle depuis le bouton
+        setTimeout(() => navigate(router, dest, r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined), 700);
       } else {
         let msg = "Identifiant ou mot de passe incorrect.";
         try {
@@ -87,13 +94,23 @@ export default function LoginPage() {
 
   const busy = status === "SCANNING";
   const done = status === "SUCCESS";
+  const mood: MascotMood = done ? "success" : status === "ERROR" ? "error" : busy ? "busy" : pwFocus && password ? (showPassword ? "peek" : "shy") : pwFocus ? "shy" : "watch";
 
   return (
     <div className={styles.page}>
       {/* ---------- PANNEAU ÉDITORIAL ---------- */}
-      <section className={styles.story} ref={sceneRef} onPointerMove={onMove} aria-hidden="true">
+      <motion.section
+        className={styles.story}
+        ref={sceneRef}
+        onPointerMove={onMove}
+        aria-hidden="true"
+        initial={{ clipPath: "inset(100% 0% 0% 0% round 32px)" }}
+        animate={{ clipPath: done ? "inset(0% 0% 0% 0% round 60px)" : "inset(0% 0% 0% 0% round 32px)", scale: done ? 0.97 : 1 }}
+        transition={{ duration: 1.1, ease: [0.76, 0, 0.24, 1] }}
+      >
         <div className={styles.storyBg} />
         <div className={styles.storyGrid} />
+        <div className={styles.scene}><LiquidScene excited={busy || done} /></div>
 
         <div className={styles.brand}>
           <span className={styles.mark}><Terminal size={18} strokeWidth={2.6} /></span>
@@ -104,10 +121,11 @@ export default function LoginPage() {
           <motion.span className={styles.eyebrow} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Sparkles size={13} /> Pilotage opérationnel
           </motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}>
-            Chaque intervention,<br />
-            <em>maîtrisée</em> de bout en bout.
-          </motion.h1>
+          <h1>
+            <KineticText text="Chaque intervention," min={550} max={800} />
+            <br />
+            <em>maîtrisée</em> <KineticText text="de bout en bout." min={550} max={800} />
+          </h1>
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}>
             Analyse, facturation, contestation et suivi des équipes réunis dans un seul espace de travail.
           </motion.p>
@@ -133,7 +151,7 @@ export default function LoginPage() {
         </div>
 
         <p className={styles.storyFoot}>© {new Date().getFullYear()} Kyntus · Accès réservé aux opérateurs habilités</p>
-      </section>
+      </motion.section>
 
       {/* ---------- FORMULAIRE ---------- */}
       <section className={styles.formSide}>
@@ -141,11 +159,11 @@ export default function LoginPage() {
           key={shake}
           className={`${styles.card} ${done ? styles.cardDone : ""}`}
           initial={shake ? { x: 0 } : { opacity: 0, y: 18 }}
-          animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : { opacity: 1, y: 0 }}
-          transition={shake ? { duration: 0.45 } : { duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          animate={shake ? { x: [0, -10, 9, -6, 4, 0] } : done ? { opacity: 1, y: 0, scale: 0.98 } : { opacity: 1, y: 0 }}
+          transition={shake ? { duration: 0.45 } : { duration: 0.8, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className={styles.cardHead}>
-            <span className={styles.lockBadge}><Lock size={18} /></span>
+            <span className={styles.mascot}><LoginMascot mood={mood} /></span>
             <h2>Connexion</h2>
             <p>Entrez vos identifiants pour accéder à votre espace.</p>
           </div>
@@ -181,6 +199,8 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyUp={(e) => setCapsLock(e.getModifierState?.("CapsLock") ?? false)}
+                  onFocus={() => setPwFocus(true)}
+                  onBlur={() => setPwFocus(false)}
                   placeholder="••••••••"
                   disabled={busy || done}
                   required
@@ -210,7 +230,7 @@ export default function LoginPage() {
               )}
             </AnimatePresence>
 
-            <button type="submit" className={`${styles.submit} ${done ? styles.submitDone : ""}`} disabled={busy || done || !username.trim() || !password}>
+            <button ref={submitRef} type="submit" className={`${styles.submit} ${done ? styles.submitDone : ""}`} disabled={busy || done || !username.trim() || !password}>
               <AnimatePresence mode="wait" initial={false}>
                 {done ? (
                   <motion.span key="ok" className={styles.submitInner} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>

@@ -351,3 +351,46 @@ body::after {
 @media (max-width: 640px) {
   .kx-page { padding: 18px 16px 56px; gap: 16px; }
 }
+
+/* ==========================================================================
+   V3 — VIEW TRANSITIONS, RESSORTS, TEXTE VIVANT
+   ========================================================================== */
+:root {
+  /* Ressort physique échantillonné (CSS linear()) : dépasse légèrement puis se pose */
+  --k-spring-linear: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.067, 1.099 24.3%, 1.105 25.9%, 1.1, 1.085 30.4%, 1.032 36.9%, 1.005 41.6%, 0.991 47.1%, 0.994 59.5%, 1);
+}
+
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) { animation: 0.45s var(--k-ease) both kx-vt-out; }
+::view-transition-new(root) { animation: 0.55s var(--k-ease) both kx-vt-in; }
+@keyframes kx-vt-out { to { opacity: 0; transform: scale(0.985); filter: blur(6px); } }
+@keyframes kx-vt-in { from { opacity: 0; transform: translateY(12px); } }
+
+/* Révélation circulaire depuis le point de clic */
+html[data-vt="reveal"]::view-transition-old(root) { animation: 0.7s var(--k-ease) both kx-vt-recede; }
+html[data-vt="reveal"]::view-transition-new(root) { animation: 0.75s cubic-bezier(0.7, 0, 0.2, 1) both kx-vt-reveal; }
+@keyframes kx-vt-recede { to { transform: scale(0.94); filter: blur(8px) saturate(0.8); opacity: 0.6; } }
+@keyframes kx-vt-reveal {
+  from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%)); }
+  to { clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 50%)); }
+}
+
+/* L'icône de la carte cliquée devient l'icône du header de la page */
+::view-transition-group(kx-page-icon) { animation-duration: 0.75s; animation-timing-function: var(--k-spring-linear); }
+
+/* Pendant une transition, les animations d'entrée de page sont superflues */
+html[data-vt] .kx-page { animation: none; }
+
+/* Titres : accent serif en dégradé vivant */
+.kx-title em, .kx-live-em {
+  background: linear-gradient(100deg, #1d4ed8 0%, #0ea5e9 30%, #6366f1 55%, #2563eb 80%, #1d4ed8 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: kx-shimmer 9s linear infinite;
+}
+
+/* Le curseur custom reste un accent : on garde le curseur natif */
+html.kx-has-cursor a, html.kx-has-cursor button { cursor: pointer; }

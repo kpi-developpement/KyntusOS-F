@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { navigate } from "@/lib/transition";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -51,6 +52,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
   const name = user?.username || "Admin";
 
@@ -81,7 +83,8 @@ export default function Sidebar() {
               return item.external ? (
                 <a key={item.path} href={item.path} className={styles.link} title={item.name}>{content}</a>
               ) : (
-                <Link key={item.path} href={item.path} className={`${styles.link} ${active ? styles.active : ""}`} aria-current={active ? "page" : undefined} title={item.name}>
+                <Link key={item.path} href={item.path} className={`${styles.link} ${active ? styles.active : ""}`} aria-current={active ? "page" : undefined} title={item.name}
+                  onClick={(e) => { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); navigate(router, item.path, { x: e.clientX, y: e.clientY }); } }}>
                   {content}
                 </Link>
               );

@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import NotificationCenter from "@/components/features/NotificationCenter";
 import InteractiveBackground from "@/components/ui/InteractiveBackground";
+import CyberLoader from "@/components/ui/CyberLoader";
+import { KxCursor, TransitionResolver } from "@/components/motion";
 import styles from "./AppShell.module.css";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -16,6 +18,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <CyberLoader />
+      <KxCursor />
+      <TransitionResolver />
       {/* La zone pilote rend son propre fond */}
       {!isPilotSection && <InteractiveBackground />}
 

@@ -1,5 +1,6 @@
 package com.kyntus.Workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -19,6 +20,8 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    // Jamais renvoyé au navigateur (login, liste des pilotes, assignee des tâches…)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Enumerated(EnumType.STRING)

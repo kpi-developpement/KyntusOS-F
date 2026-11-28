@@ -92,8 +92,8 @@
   font-weight: 400;
   letter-spacing: -0.015em;
   padding-right: 0.08em;
-  background: linear-gradient(100deg, #1d4ed8 0%, #0ea5e9 50%, #1d4ed8 100%);
-  background-size: 200% 100%;
+  background: linear-gradient(100deg, #1d4ed8 0%, #0ea5e9 30%, #6366f1 55%, #2563eb 80%, #1d4ed8 100%);
+  background-size: 240% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: kx-shimmer 6s linear infinite;
 }
@@ -131,9 +131,10 @@
 
 /* ---------- GRID ---------- */
 .grid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 18px;
+  gap: 20px;
   perspective: 1600px;
 }
 
@@ -145,116 +146,131 @@
   --ry: 0deg;
   position: relative;
   width: 100%;
-  min-height: 228px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
   text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 26px;
   overflow: hidden;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 248, 255, 0.9) 100%);
-  border: 1px solid var(--k-border);
-  box-shadow: var(--k-shadow);
+  padding: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(246, 250, 255, 0.92) 100%);
+  border: 1px solid var(--k-hairline);
+  box-shadow: var(--k-shadow), var(--k-inner);
   transform: rotateX(var(--rx)) rotateY(var(--ry));
   transform-style: preserve-3d;
-  transition: transform 0.25s ease-out, box-shadow 0.35s var(--k-ease), border-color 0.35s var(--k-ease);
+  transition: transform 0.3s ease-out, box-shadow 0.4s var(--k-ease), border-color 0.4s var(--k-ease), filter 0.3s ease;
 }
-
 .card::before {
   content: "";
-  position: absolute; inset: 0; pointer-events: none; opacity: 0;
-  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c) 16%, transparent), transparent 65%);
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 1;
+  background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--c) 14%, transparent), transparent 65%);
   transition: opacity 0.35s ease;
 }
-.card::after {
-  content: "";
-  position: absolute; left: 20px; right: 20px; top: 0; height: 3px; border-radius: 0 0 8px 8px;
-  background: linear-gradient(90deg, transparent, var(--c), transparent);
-  opacity: 0; transform: scaleX(0.3);
-  transition: opacity 0.35s ease, transform 0.5s var(--k-ease);
-}
-
-.card:hover {
-  border-color: color-mix(in srgb, var(--c) 35%, transparent);
-  box-shadow: 0 30px 60px -24px color-mix(in srgb, var(--c) 45%, transparent), 0 10px 20px -10px rgba(15, 30, 61, 0.12);
-}
+.card:hover { border-color: color-mix(in srgb, var(--c) 30%, transparent); box-shadow: 0 34px 64px -28px color-mix(in srgb, var(--c) 50%, transparent), 0 10px 20px -10px rgba(15, 30, 61, 0.12), var(--k-inner); }
 .card:hover::before { opacity: 1; }
-.card:hover::after { opacity: 1; transform: scaleX(1); }
-.card:active { transform: rotateX(var(--rx)) rotateY(var(--ry)) scale(0.985); }
 .card:focus-visible { outline: 3px solid var(--k-blue-500); outline-offset: 3px; }
 
 .cardSheen {
-  position: absolute; top: 0; left: -60%; width: 40%; height: 100%; pointer-events: none;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  position: absolute; top: 0; left: -60%; width: 40%; height: 100%; pointer-events: none; z-index: 2;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.7), transparent);
   transform: skewX(-18deg);
 }
-.card:hover .cardSheen { animation: sheen 0.9s var(--k-ease); }
+.card:hover .cardSheen { animation: sheen 1s var(--k-ease); }
 @keyframes sheen { from { left: -60%; } to { left: 130%; } }
 
-.cardTop { display: flex; align-items: center; justify-content: space-between; transform: translateZ(30px); }
-
-.cardIcon {
-  width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 70%, #ffffff), var(--c));
-  box-shadow: 0 10px 22px -10px var(--c), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transition: transform 0.5s var(--k-spring);
+/* Scène 3D */
+.stage {
+  position: relative;
+  height: 150px;
+  margin: 8px 8px 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 90% at 50% 100%, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--c) 7%, #ffffff), #ffffff);
+  border: 1px solid color-mix(in srgb, var(--c) 10%, transparent);
 }
-.card:hover .cardIcon { transform: translateZ(20px) rotate(-8deg) scale(1.1); }
+.stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(color-mix(in srgb, var(--c) 22%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(60% 70% at 50% 60%, #000, transparent);
+  opacity: 0.6;
+}
+.stageGlow {
+  position: absolute; left: 50%; bottom: 14px; width: 120px; height: 18px; transform: translateX(-50%);
+  border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 45%, transparent), transparent);
+  filter: blur(4px); transition: transform 0.4s var(--k-spring), opacity 0.3s ease;
+}
+.card:hover .stageGlow { transform: translateX(-50%) scale(1.25); }
+.glyph { position: absolute; inset: 0; }
 
 .status {
+  position: absolute; top: 10px; right: 10px; z-index: 3;
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+  padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 650;
+  background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px);
 }
-.statusDot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent); }
-.st_ONLINE { color: var(--k-ok); background: var(--k-ok-soft); }
-.st_SECURE { color: var(--k-blue-700); background: var(--k-blue-50); }
-.st_ARCHIVED { color: var(--k-muted); background: #f1f5f9; }
-.st_NEW { color: #fff; background: var(--k-grad); }
-.st_ONLINE .statusDot, .st_NEW .statusDot { animation: pulse 2.2s ease-in-out infinite; }
-@keyframes pulse { 50% { box-shadow: 0 0 0 6px transparent; opacity: 0.6; } }
+.statusDot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2.2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 5px transparent; opacity: 0.5; } }
+.stOn { color: var(--k-ok); }
+.stNew { color: #fff; background: var(--k-grad); }
+.stLocked { color: #64748b; }
 
-.cardBody { display: flex; flex-direction: column; gap: 6px; transform: translateZ(20px); }
-.cardTag {
-  font-family: var(--k-font-mono); font-size: 0.7rem; font-weight: 500;
-  letter-spacing: 0.02em; text-transform: uppercase; color: var(--c);
+.cardBody { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 6px; padding: 16px 20px 0; }
+.cardMeta { display: flex; align-items: center; gap: 10px; }
+.cardIcon {
+  width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0;
+  color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 70%, #ffffff), var(--c));
+  box-shadow: 0 8px 16px -8px var(--c);
+  transition: transform 0.5s var(--k-spring);
 }
-.cardTitle { font-size: 1.32rem; font-weight: 650; letter-spacing: -0.035em; color: var(--k-navy); }
+.card:hover .cardIcon { transform: rotate(-10deg) scale(1.1); }
+.cardTag { font-family: var(--k-font-mono); font-size: 0.7rem; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c); }
+.cardTitle { font-size: 1.36rem; font-weight: 650; letter-spacing: -0.04em; color: var(--k-navy); transition: font-weight 0.3s ease, letter-spacing 0.3s ease; }
+.card:hover .cardTitle { font-weight: 760; letter-spacing: -0.045em; }
 .cardDesc { font-size: 0.88rem; line-height: 1.5; color: var(--k-muted); }
 
 .cardFoot {
-  margin-top: auto;
+  position: relative; z-index: 3;
+  margin: 16px 20px 18px; padding-top: 14px;
   display: flex; align-items: center; justify-content: space-between;
-  padding-top: 14px; border-top: 1px dashed var(--k-border);
-  font-size: 0.82rem; font-weight: 700; color: var(--k-text-2);
-  transform: translateZ(14px);
+  border-top: 1px dashed var(--k-border);
+  font-size: 0.82rem; font-weight: 650; color: var(--k-text-2);
 }
 .cardArrow {
   width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
   color: var(--c); background: color-mix(in srgb, var(--c) 10%, #ffffff);
-  transition: transform 0.35s var(--k-spring), background-color 0.25s ease, color 0.25s ease;
+  transition: transform 0.4s var(--k-spring), background-color 0.25s ease, color 0.25s ease;
 }
-.card:hover .cardArrow { color: #fff; background: var(--c); transform: translate(3px, -3px); }
+.card:hover .cardArrow { color: #fff; background: var(--c); transform: translate(3px, -3px) rotate(8deg); }
+
+/* Verrouillé : désaturé, pas d'inclinaison, curseur interdit */
+.cardLocked { cursor: not-allowed; transform: none !important; background: linear-gradient(180deg, #fbfcfe, #f3f6fa); }
+.cardLocked .stage { filter: grayscale(1); opacity: 0.75; }
+.cardLocked .cardIcon { background: #cbd5e1; box-shadow: none; }
+.cardLocked .cardTag { color: #94a3b8; }
+.cardLocked .cardTitle { color: #64748b; }
+.cardLocked:hover { border-color: #e2e8f0; box-shadow: var(--k-shadow), var(--k-inner); }
+.cardLocked:hover::before { opacity: 0; }
+.cardLocked:hover .cardSheen { animation: none; }
+.cardLocked:hover .cardTitle { font-weight: 650; }
+.cardLocked .cardArrow, .cardLocked:hover .cardArrow { color: #94a3b8; background: #eef2f7; transform: none; }
+.cardLocked .cardFoot { color: #94a3b8; }
+
+.accessLine { display: inline-flex; align-items: center; gap: 12px; font-size: 0.86rem; color: var(--k-muted); }
+.accessLine b { color: var(--k-navy); font-variant-numeric: tabular-nums; }
+.accessLine span { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: #f1f5f9; color: #64748b; font-weight: 600; font-size: 0.78rem; }
 
 .empty {
   grid-column: 1 / -1; text-align: center; padding: 48px 16px; color: var(--k-muted);
-  border: 1.5px dashed var(--k-border-strong); border-radius: 20px; background: rgba(255, 255, 255, 0.6);
+  border: 1.5px dashed var(--k-border-strong); border-radius: 22px; background: rgba(255, 255, 255, 0.6);
 }
 .empty button { border: 0; background: none; color: var(--k-blue-600); font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
 
-/* ---------- LAUNCH ---------- */
-.launch { position: fixed; inset: 0; z-index: 2000; pointer-events: none; overflow: hidden; }
-.launchWave {
-  position: absolute; width: 300vmax; height: 300vmax; margin: -150vmax 0 0 -150vmax; border-radius: 50%;
-}
-.launchLabel {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -0.02em; color: var(--k-navy);
-}
+.line { display: block; }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 760px) {

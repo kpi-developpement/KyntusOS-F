@@ -3,6 +3,7 @@
 /* ---------- HEADER ---------- */
 .header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; animation: kx-rise 0.6s var(--k-ease) both; }
 .headerIcon {
+  view-transition-name: kx-page-icon;
   position: relative;
   width: 56px; height: 56px; border-radius: 18px; flex-shrink: 0;
   display: grid; place-items: center; color: #fff;
@@ -26,7 +27,12 @@
 }
 .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--k-blue-500); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18); }
 .title { font-size: clamp(1.65rem, 2.6vw, 2.25rem); font-weight: 700; letter-spacing: -0.038em; line-height: 1.06; color: var(--k-navy); }
-.title em { font-family: var(--k-font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; color: var(--k-blue-600); padding-right: 0.06em; }
+.title em {
+  font-family: var(--k-font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; padding-right: 0.08em;
+  background: linear-gradient(100deg, #1d4ed8 0%, #0ea5e9 30%, #6366f1 55%, #2563eb 80%, #1d4ed8 100%);
+  background-size: 240% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: kx-shimmer 9s linear infinite;
+}
 .subtitle { color: var(--k-muted); font-size: 0.92rem; line-height: 1.5; }
 .headerActions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 

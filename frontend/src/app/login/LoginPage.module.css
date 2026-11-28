@@ -235,3 +235,17 @@
   .card { padding: 26px 20px 20px; border-radius: 24px; }
   .storyText p { font-size: 0.95rem; }
 }
+
+/* Scène 3D derrière le texte du panneau */
+.scene { position: absolute; inset: 0; z-index: -1; }
+.story { will-change: clip-path; }
+.storyText h1 em {
+  background: linear-gradient(100deg, #e0f2fe, #ffffff 40%, #bae6fd 70%, #e0f2fe);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: kx-shimmer 7s linear infinite;
+  padding-right: 0.08em;
+}
+.mascot { display: inline-flex; margin: 4px 0 10px; }

@@ -1,28 +1,19 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Terminal, LayoutDashboard, Database, Cpu, Settings, History, Layers,
-  Scale, Cloud, BarChart2, Search, LogOut, Sparkles, CornerDownLeft,
-} from "lucide-react";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import { Terminal, Search, LogOut, Sparkles, CornerDownLeft, Lock } from "lucide-react";
 
-import HolographicCard, { type HomeModule } from "./components/HolographicCard";
+import HolographicCard from "./components/HolographicCard";
+import { PILOT_MODULES } from "@/lib/modules";
+import { useAccess } from "@/lib/access";
+import { navigate } from "@/lib/transition";
+import { KineticText, Magnetic, SmoothScroll } from "@/components/motion";
 import styles from "./Home.module.css";
 
-const MODULES: HomeModule[] = [
-  { id: "board", title: "Analyse", path: "/pilot/board", icon: Terminal, color: "#2563eb", desc: "Analyse et édition des données brutes.", status: "ONLINE", tag: "Data entry" },
-  { id: "kanban", title: "Tableau de tâches", path: "/pilot/kanban", icon: LayoutDashboard, color: "#0ea5e9", desc: "Pilotage et suivi des tâches en temps réel.", status: "ONLINE", tag: "Tactical" },
-  { id: "facture", title: "Facture", path: "/pilot/facture", icon: Cpu, color: "#4f46e5", desc: "Moteur de calcul et génération des factures.", status: "ONLINE", tag: "Billing" },
-  { id: "contestation", title: "Contestation", path: "/pilot/contestation", icon: Scale, color: "#1d4ed8", desc: "Croisement Global · Facture · CA et détection des anomalies.", status: "NEW", tag: "Dispute" },
-  { id: "api", title: "API Bytel", path: "/pilot/api", icon: Cloud, color: "#0284c7", desc: "Interventions synchronisées en direct depuis Bytel.", status: "ONLINE", tag: "Live" },
-  { id: "recorde", title: "Base de données", path: "/pilot/recorde", icon: Database, color: "#2563eb", desc: "Gestion centrale des données et versions.", status: "SECURE", tag: "Terrain" },
-  { id: "tissue-records", title: "Tissue Records", path: "/pilot/tissue-records", icon: Layers, color: "#0891b2", desc: "Gestion dédiée des dossiers Tissue et versions.", status: "SECURE", tag: "Tissue" },
-  { id: "ventilation", title: "Ventilation", path: "/pilot/ventilation", icon: BarChart2, color: "#3b82f6", desc: "Suivi et répartition des flux financiers.", status: "ONLINE", tag: "Finance" },
-  { id: "parametrage", title: "Paramétrage", path: "/pilot/parametrage", icon: Settings, color: "#6366f1", desc: "Configuration des règles du système.", status: "ONLINE", tag: "Rules" },
-  { id: "history", title: "Archive", path: "/pilot/history", icon: History, color: "#64748b", desc: "Historique, logs et KPIs des missions.", status: "ARCHIVED", tag: "Logs" },
-];
+const GlyphCanvas = dynamic(() => import("@/components/three/ModuleGlyphs").then((m) => m.GlyphCanvas), { ssr: false });
 
 const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -35,22 +26,25 @@ function greeting(d: Date) {
 
 export default function PilotHomePage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ username?: string } | null>(null);
+  const { can, ready, username } = useAccess();
   const [now, setNow] = useState<Date | null>(null);
   const [query, setQuery] = useState("");
-  const [launch, setLaunch] = useState<{ x: number; y: number; color: string; title: string } | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+
+  // Parallaxe : le hero recule et s'efface pendant que les cartes montent
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroScale = useSpring(useTransform(scrollYProgress, [0, 1], [1, 0.88]), { stiffness: 140, damping: 26 });
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.9], [1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -60]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("kyntus_user");
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- lecture unique du stockage local au montage
-    if (stored) setUser(JSON.parse(stored));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- horloge locale
     setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
 
-  // "/" ou Ctrl+K pour chercher un module
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const typing = (e.target as HTMLElement)?.tagName === "INPUT";
@@ -63,31 +57,32 @@ export default function PilotHomePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const filtered = useMemo(() => {
+  const modules = useMemo(() => {
     const q = normalize(query.trim());
-    if (!q) return MODULES;
-    return MODULES.filter((m) => normalize(`${m.title} ${m.desc} ${m.tag}`).includes(q));
-  }, [query]);
+    const list = q ? PILOT_MODULES.filter((m) => normalize(`${m.title} ${m.hint} ${m.tag}`).includes(q)) : PILOT_MODULES;
+    // Les modules ouverts d'abord, l'ordre d'origine ensuite
+    return [...list].sort((a, b) => Number(!can(a.key)) - Number(!can(b.key)));
+  }, [query, can]);
 
-  const open = (mod: HomeModule, x?: number, y?: number) => {
-    if (launch) return;
-    const cx = x ?? window.innerWidth / 2;
-    const cy = y ?? window.innerHeight / 2;
-    setLaunch({ x: cx, y: cy, color: mod.color, title: mod.title });
-    router.prefetch(mod.path);
-    setTimeout(() => router.push(mod.path), 650);
+  const openCount = PILOT_MODULES.filter((m) => can(m.key)).length;
+  const firstOpen = modules.find((m) => can(m.key));
+
+  const open = (path: string, x?: number, y?: number, iconEl?: HTMLElement | null) => {
+    navigate(router, path, { x, y, morph: iconEl });
   };
 
   const logout = () => {
     localStorage.removeItem("kyntus_user");
-    router.push("/login");
+    navigate(router, "/login");
   };
 
-  const name = user?.username || "pilote";
+  const name = username || "pilote";
 
   return (
     <main className={styles.page}>
-      {/* TOP BAR */}
+      <SmoothScroll />
+      <GlyphCanvas />
+
       <header className={styles.topbar}>
         <div className={styles.brand}>
           <span className={styles.brandMark}><Terminal size={18} strokeWidth={2.6} /></span>
@@ -104,38 +99,34 @@ export default function PilotHomePage() {
             <span className={styles.avatar}>{name.slice(0, 1).toUpperCase()}</span>
             <span className={styles.userName}>{name}</span>
           </span>
-          <button type="button" className={styles.logout} onClick={logout} aria-label="Se déconnecter" title="Se déconnecter">
-            <LogOut size={17} />
-          </button>
+          <Magnetic strength={0.4}>
+            <button type="button" className={styles.logout} onClick={logout} aria-label="Se déconnecter" title="Se déconnecter">
+              <LogOut size={17} />
+            </button>
+          </Magnetic>
         </div>
       </header>
 
-      {/* HERO */}
-      <section className={styles.hero}>
-        <motion.span
-          className={styles.eyebrow}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+      <motion.section ref={heroRef} className={styles.hero} style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}>
+        <motion.span className={styles.eyebrow} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Sparkles size={13} /> Espace pilote
         </motion.span>
-        <motion.h1
-          className={styles.title}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {now ? greeting(now) : "Bonjour"}, <span className={styles.titleName}>{name}</span>.
-          <br />
-          On lance quoi <em>aujourd&apos;hui</em> ?
-        </motion.h1>
+
+        <h1 className={styles.title}>
+          <span className={styles.line}>
+            <KineticText text={`${now ? greeting(now) : "Bonjour"},`} />{" "}
+            <span className={styles.titleName}><KineticText text={`${name}.`} /></span>
+          </span>
+          <span className={styles.line}>
+            <KineticText text="On lance quoi" /> <em>aujourd&apos;hui</em> ?
+          </span>
+        </h1>
 
         <motion.label
           className={styles.search}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, y: 14, clipPath: "inset(0 50% 0 50% round 18px)" }}
+          animate={{ opacity: 1, y: 0, clipPath: "inset(0 0% 0 0% round 18px)" }}
+          transition={{ duration: 0.9, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
         >
           <Search size={18} />
           <span className={styles.srOnly}>Rechercher un module</span>
@@ -144,56 +135,45 @@ export default function PilotHomePage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && filtered[0]) open(filtered[0]);
+              if (e.key === "Enter" && firstOpen) open(firstOpen.path);
               if (e.key === "Escape") setQuery("");
             }}
             placeholder="Rechercher un module…"
           />
-          {query && filtered[0] ? (
-            <span className={styles.enterHint}><CornerDownLeft size={13} /> {filtered[0].title}</span>
+          {query && firstOpen ? (
+            <span className={styles.enterHint}><CornerDownLeft size={13} /> {firstOpen.title}</span>
           ) : (
             <kbd className={styles.kbd}>/</kbd>
           )}
         </motion.label>
-      </section>
 
-      {/* MODULES */}
+        {ready && (
+          <motion.p className={styles.accessLine} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+            <b>{openCount}</b> module{openCount > 1 ? "s" : ""} ouvert{openCount > 1 ? "s" : ""} pour votre compte
+            {openCount < PILOT_MODULES.length && <span><Lock size={12} /> {PILOT_MODULES.length - openCount} verrouillé{PILOT_MODULES.length - openCount > 1 ? "s" : ""}</span>}
+          </motion.p>
+        )}
+      </motion.section>
+
       <section className={styles.grid} aria-label="Modules">
         <AnimatePresence mode="popLayout">
-          {filtered.map((mod, i) => (
-            <HolographicCard key={mod.id} mod={mod} index={i} onOpen={(x, y) => open(mod, x, y)} />
+          {modules.map((mod, i) => (
+            <HolographicCard
+              key={mod.path}
+              mod={mod}
+              index={i}
+              locked={ready && !can(mod.key)}
+              onOpen={(x, y, iconEl) => open(mod.path, x, y, iconEl)}
+            />
           ))}
         </AnimatePresence>
-        {filtered.length === 0 && (
+        {modules.length === 0 && (
           <div className={styles.empty}>
             Aucun module ne correspond à « {query} ».{" "}
             <button type="button" onClick={() => setQuery("")}>Effacer la recherche</button>
           </div>
         )}
       </section>
-
-      {/* TRANSITION DE LANCEMENT */}
-      <AnimatePresence>
-        {launch && (
-          <motion.div className={styles.launch} initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div
-              className={styles.launchWave}
-              style={{ left: launch.x, top: launch.y, background: `radial-gradient(circle, #ffffff 0%, #eff6ff 45%, ${launch.color}33 100%)` }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.65, ease: [0.65, 0, 0.35, 1] }}
-            />
-            <motion.span
-              className={styles.launchLabel}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-            >
-              {launch.title}
-            </motion.span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }

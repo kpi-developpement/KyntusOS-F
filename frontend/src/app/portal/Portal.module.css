@@ -73,3 +73,22 @@
 .tileText small { font-size: 0.8rem; color: var(--k-muted); }
 .tileArrow { color: var(--k-faint); transition: transform 0.3s var(--k-spring), color 0.2s ease; }
 .tile:hover .tileArrow { color: var(--k-blue-600); transform: translateX(3px); }
+
+.grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.tile { flex-wrap: wrap; position: relative; padding: 10px 14px 14px; }
+.tileStage {
+  position: relative; width: 100%; height: 120px; margin-bottom: 6px; border-radius: 16px; overflow: hidden;
+  background: radial-gradient(70% 90% at 50% 100%, rgba(59, 130, 246, 0.18), transparent 70%), linear-gradient(180deg, #f3f8ff, #ffffff);
+  border: 1px solid var(--k-blue-100);
+}
+.tileGlyph { position: absolute; inset: 0; }
+.tile .tileIcon { width: 34px; height: 34px; border-radius: 11px; }
+.hero h1 em {
+  background: linear-gradient(100deg, #1d4ed8 0%, #0ea5e9 30%, #6366f1 55%, #2563eb 80%, #1d4ed8 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: kx-shimmer 9s linear infinite;
+  padding-right: 0.08em;
+}

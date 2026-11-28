@@ -88,3 +88,11 @@
   .manage { grid-template-columns: 1fr; }
   .roster { max-height: 260px; }
 }
+
+.blockHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.blockHead h3 { display: inline-flex; align-items: center; gap: 8px; }
+.permCount { font-size: 0.74rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; color: var(--k-blue-700); background: var(--k-blue-50); font-variant-numeric: tabular-nums; }
+.bulk { display: flex; gap: 6px; }
+.blockHint { font-size: 0.82rem; color: var(--k-muted); line-height: 1.5; margin-top: -2px; }
+.permLabel { display: flex; flex-direction: column; min-width: 0; }
+.permLabel small { font-size: 0.74rem; font-weight: 450; color: var(--k-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

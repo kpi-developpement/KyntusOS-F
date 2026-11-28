@@ -14,3 +14,4 @@
 
 /* Laisse la place à la cloche de notifications (fixe en haut à droite) */
 .withSidebar :global(.kx-page) > header:first-child { padding-right: 60px; }
+:global(html[data-vt]) .pageIn { animation: none; }

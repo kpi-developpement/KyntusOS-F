@@ -3,27 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  LayoutList, KanbanSquare, History, LogOut, Terminal, Database, Cpu, BarChart2,
-  Receipt, Cloud, Layers, Scale, Search, CornerDownLeft, Home, type LucideIcon,
-} from "lucide-react";
+import { LogOut, Terminal, Search, CornerDownLeft, Home, Lock, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PILOT_MODULES } from "@/lib/modules";
+import { useAccess } from "@/lib/access";
+import { navigate } from "@/lib/transition";
 import styles from "./PilotNavbar.module.css";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; hint: string };
+type NavItem = { href: string; label: string; icon: LucideIcon; hint: string; key: string | null };
 
-export const PILOT_NAV: NavItem[] = [
-  { href: "/pilot/board", label: "Analyse", icon: LayoutList, hint: "Data entry et décisions" },
-  { href: "/pilot/kanban", label: "Tâches", icon: KanbanSquare, hint: "Tableau tactique" },
-  { href: "/pilot/recorde", label: "Terrain", icon: Database, hint: "Terrain records" },
-  { href: "/pilot/tissue-records", label: "Tissue", icon: Layers, hint: "Tissue records" },
-  { href: "/pilot/api", label: "API Bytel", icon: Cloud, hint: "Interventions en direct" },
-  { href: "/pilot/parametrage", label: "Paramétrage", icon: Cpu, hint: "Règles de facturation" },
-  { href: "/pilot/ventilation", label: "Ventilation", icon: BarChart2, hint: "Flux financiers" },
-  { href: "/pilot/facture", label: "Facturation", icon: Receipt, hint: "Moteur de factures" },
-  { href: "/pilot/contestation", label: "Contestation", icon: Scale, hint: "Global · Facture · CA" },
-  { href: "/pilot/history", label: "Archive", icon: History, hint: "Historique des missions" },
-];
+const NAV: NavItem[] = PILOT_MODULES.map((m) => ({ href: m.path, label: m.label, icon: m.icon, hint: m.hint, key: m.key }));
 
 const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
@@ -33,6 +22,7 @@ export default function PilotNavbar() {
   const [user, setUser] = useState<{ username?: string } | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const { can } = useAccess();
 
   useEffect(() => {
     const stored = localStorage.getItem("kyntus_user");
@@ -56,7 +46,7 @@ export default function PilotNavbar() {
 
   const logout = () => {
     localStorage.removeItem("kyntus_user");
-    router.push("/login");
+    navigate(router, "/login");
   };
 
   const name = user?.username || "Pilote";
@@ -65,34 +55,39 @@ export default function PilotNavbar() {
     <>
       <nav className={`${styles.wrap} ${scrolled ? styles.scrolled : ""}`} aria-label="Navigation pilote">
         <div className={styles.bar}>
-          <Link href="/pilot/home" className={styles.brand} aria-label="Accueil Kyntus OS">
+          <Link href="/pilot/home" className={styles.brand} aria-label="Accueil Kyntus OS" onClick={(e) => { e.preventDefault(); navigate(router, "/pilot/home", { x: e.clientX, y: e.clientY }); }}>
             <span className={styles.mark}><Terminal size={17} strokeWidth={2.6} /></span>
             <span className={styles.word}>Kyntus<b>OS</b></span>
           </Link>
 
           <ul className={styles.dock}>
-            {PILOT_NAV.map((item) => {
+            {NAV.map((item) => {
               const Icon = item.icon;
               const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+              const allowed = can(item.key);
               return (
                 <li key={item.href} className={styles.item}>
-                  <Link
-                    href={item.href}
-                    className={`${styles.link} ${active ? styles.active : ""}`}
-                    aria-current={active ? "page" : undefined}
-                    aria-label={item.label}
-                  >
-                    {active && (
-                      <motion.span
-                        layoutId="pilot-nav-pill"
-                        className={styles.pill}
-                        transition={{ type: "spring", stiffness: 520, damping: 38 }}
-                      />
-                    )}
-                    <Icon size={17} strokeWidth={active ? 2.4 : 2} className={styles.icon} />
-                    {active && <span className={styles.label}>{item.label}</span>}
-                  </Link>
-                  {!active && <span className={styles.tip} role="tooltip">{item.label}</span>}
+                  {allowed ? (
+                    <Link
+                      href={item.href}
+                      className={`${styles.link} ${active ? styles.active : ""}`}
+                      aria-current={active ? "page" : undefined}
+                      aria-label={item.label}
+                      onClick={(e) => { if (!e.metaKey && !e.ctrlKey) { e.preventDefault(); navigate(router, item.href, { x: e.clientX, y: e.clientY }); } }}
+                    >
+                      {active && (
+                        <motion.span layoutId="pilot-nav-pill" className={styles.pill} transition={{ type: "spring", stiffness: 520, damping: 38 }} />
+                      )}
+                      <Icon size={17} strokeWidth={active ? 2.4 : 2} className={styles.icon} />
+                      {active && <span className={styles.label}>{item.label}</span>}
+                    </Link>
+                  ) : (
+                    <span className={`${styles.link} ${styles.locked}`} aria-disabled="true" aria-label={`${item.label} (non autorisé)`} tabIndex={0}>
+                      <Icon size={17} strokeWidth={2} className={styles.icon} />
+                      <Lock size={10} strokeWidth={3} className={styles.lockBadge} />
+                    </span>
+                  )}
+                  {!active && <span className={styles.tip} role="tooltip">{allowed ? item.label : `${item.label} · non autorisé`}</span>}
                 </li>
               );
             })}
@@ -117,22 +112,22 @@ export default function PilotNavbar() {
       </nav>
 
       <AnimatePresence>
-        {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} onGo={(href) => { setPaletteOpen(false); router.push(href); }} />}
+        {paletteOpen && <CommandPalette can={can} onClose={() => setPaletteOpen(false)} onGo={(href) => { setPaletteOpen(false); navigate(router, href); }} />}
       </AnimatePresence>
     </>
   );
 }
 
-function CommandPalette({ onClose, onGo }: { onClose: () => void; onGo: (href: string) => void }) {
+function CommandPalette({ onClose, onGo, can }: { onClose: () => void; onGo: (href: string) => void; can: (k: string | null) => boolean }) {
   const [q, setQ] = useState("");
   const [idx, setIdx] = useState(0);
   const input = useRef<HTMLInputElement>(null);
 
   const items = useMemo(() => {
-    const all: NavItem[] = [{ href: "/pilot/home", label: "Accueil", icon: Home, hint: "Tous les modules" }, ...PILOT_NAV];
+    const all: NavItem[] = [{ href: "/pilot/home", label: "Accueil", icon: Home, hint: "Tous les modules", key: null }, ...NAV.filter((n) => can(n.key))];
     const t = norm(q.trim());
     return t ? all.filter((i) => norm(`${i.label} ${i.hint}`).includes(t)) : all;
-  }, [q]);
+  }, [q, can]);
 
   useEffect(() => { input.current?.focus(); }, []);
 

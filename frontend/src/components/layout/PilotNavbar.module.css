@@ -321,3 +321,20 @@
   .search, .user { display: none; }
   .dock { justify-content: flex-start; }
 }
+
+/* Module non autorisé : grisé, cadenas, non cliquable */
+.locked { color: #a5b4c8 !important; cursor: not-allowed; position: relative; }
+.locked:hover { background: transparent !important; color: #94a3b8 !important; }
+.locked .icon { opacity: 0.55; }
+.locked:hover .icon { transform: none; }
+.lockBadge {
+  position: absolute;
+  right: 5px;
+  bottom: 6px;
+  padding: 2px;
+  box-sizing: content-box;
+  border-radius: 50%;
+  color: #fff;
+  background: #94a3b8;
+  border: 1.5px solid #fff;
+}

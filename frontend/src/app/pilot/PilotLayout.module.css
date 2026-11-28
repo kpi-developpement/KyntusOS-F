@@ -23,3 +23,8 @@
 @media (max-width: 640px) {
   .contentWrapper { padding-top: 72px; }
 }
+
+.page { animation: kx-page-in 0.5s var(--k-ease) both; }
+:global(html[data-vt]) .page { animation: none; }
+.gate, .gateWait { max-width: 640px; margin: 10vh auto 0; padding: 0 16px; }
+.gate { border-radius: 28px; background: rgba(255, 255, 255, 0.85); border: 1px solid var(--k-hairline); box-shadow: var(--k-shadow-lg); }
