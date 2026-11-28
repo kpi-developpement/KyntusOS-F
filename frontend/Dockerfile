@@ -20,17 +20,18 @@ ARG BACKEND_URL
 ENV BACKEND_URL=$BACKEND_URL
 
 # Disable telemetry
-ENV NEXT_TELEMETRY_DISABLED 1
-RUN npm run build
+ENV NEXT_TELEMETRY_DISABLED=1
+# public/ doit exister pour le COPY du runner, même s'il est vide
+RUN mkdir -p public && npm run build
 
 # Stage 3: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # 🔥 FIX: Port redinah 3827 hna bach Next.js ylanci fih
-ENV PORT 3827
+ENV PORT=3827
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
