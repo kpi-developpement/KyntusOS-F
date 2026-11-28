@@ -1,11 +1,11 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-28 11:53 · 29 files · ~13,011 tokens_
+_llm_extractor v3.0 · 2026-11-28 12:17 · 29 files · ~13,011 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion
-**Files:** java 107, tsx 87, css 41, ts 9, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1, text 1
+**Files:** java 107, tsx 87, css 42, ts 9, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1, text 1
 **Manifests:**
 - `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lenis@1.3.11, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
@@ -141,7 +141,7 @@ KyntusOS-F/
           index.tsx [sig]
           Motion.module.css [omitted]
         three/ (2 files omitted)
-        ui/ (10 files omitted)
+        ui/ (11 files omitted)
       context/ (1 files omitted)
       lib/ (4 files omitted)
       types/ (1 files omitted)
@@ -1051,4 +1051,4 @@ export function Reveal({ children, className, delay = 0 }: { children: React.Rea
 export function SmoothScroll() { … }
 ```
 ## Not included
-- omitted (budget): 227 files — see `[omitted]` in Structure
+- omitted (budget): 228 files — see `[omitted]` in Structure
