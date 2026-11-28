@@ -1,13 +1,13 @@
 # Project: KyntusOS-F
-_llm_extractor v3.0 · 2026-11-28 10:47 · 28 files · ~12,728 tokens_
+_llm_extractor v3.0 · 2026-11-28 11:53 · 29 files · ~13,011 tokens_
 
 > **How to read:** comments and import/using/package lines are stripped; files marked `[sig]` show signatures only: `{ … }` / `...` = body omitted; `[omitted]` = exists in the project but left out (token budget); `***` = redacted secret.
 
 ## Overview
 **Stack:** Next.js 16, React 19, Three.js, R3F, TypeScript, Framer Motion
-**Files:** java 107, tsx 83, css 40, ts 6, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1, text 1
+**Files:** java 107, tsx 87, css 41, ts 9, md 2, yaml 2, dockerfile 2, json 2, xml 1, properties 1, js 1, text 1
 **Manifests:**
-- `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
+- `frontend/package.json` — scripts: dev=`next dev` | build=`next build` | start=`next start` | lint=`eslint` · deps: @react-spring/three@10.0.3, @react-three/drei@10.7.7, @react-three/fiber@9.5.0, @stomp/stompjs@7.3.0, framer-motion@12.38.0, lenis@1.3.11, lucide-react@0.563.0, next@16.1.6, react@19.2.3, react-dom@19.2.3, sockjs-client@1.6.1, three@0.182.0, xlsx@0.18.5 · devDeps: @types/node, @types/react, @types/react-dom, @types/three, babel-plugin-react-compiler, eslint, eslint-config-next, typescript
 
 ### API endpoints
 - **AdminController**: GET /api/admin/search (searchByEps) · POST /api/admin/eps-tracer (traceEps) · POST /api/admin/flag-error/{taskId} (flagError) · POST /api/admin/points (manualPointsAdjustment) · GET /api/admin/points/history/{pilotId} (getPointsHistory)
@@ -104,7 +104,7 @@ KyntusOS-F/
       app/
         admin/ (31 files omitted)
         import/ (2 files omitted)
-        login/ (2 files omitted)
+        login/ (3 files omitted)
         pilot/
           api/
             components/
@@ -137,9 +137,13 @@ KyntusOS-F/
           index.tsx [sig]
           Kx.module.css [omitted]
         layout/ (7 files omitted)
+        motion/
+          index.tsx [sig]
+          Motion.module.css [omitted]
+        three/ (2 files omitted)
         ui/ (10 files omitted)
       context/ (1 files omitted)
-      lib/ (1 files omitted)
+      lib/ (4 files omitted)
       types/ (1 files omitted)
     … +5 files omitted
   AGENTS.md [omitted]
@@ -1024,5 +1028,27 @@ export function KxTable({
   );
 }
 ```
+
+### frontend/src/components/motion/index.tsx · signatures only
+```tsx
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { resolvePendingTransition } from "@/lib/transition";
+import s from "./Motion.module.css";
+
+export function TransitionResolver() { … }
+
+export function KxCursor() { … }
+
+export function Magnetic({ children, strength = 0.32, className }: { children: React.ReactNode; strength?: number; className?: string }) { … }
+
+export function KineticText({ text, className, radius = 140, min = 500, max = 850 }: { text: string; className?: string; radius?: number; min?: number; max?: number }) { … }
+
+export function Reveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) { … }
+
+export function SmoothScroll() { … }
+```
 ## Not included
-- omitted (budget): 220 files — see `[omitted]` in Structure
+- omitted (budget): 227 files — see `[omitted]` in Structure
